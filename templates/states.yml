@@ -1,0 +1,37 @@
+# Canonical states for applications.md
+# These are the ONLY valid values for the Status column.
+
+states:
+  - name: Evaluated
+    description: Report completed, pending application decision
+    terminal: false
+  - name: Applied
+    description: Application submitted by candidate
+    terminal: false
+  - name: Responded
+    description: Company responded; candidate replied (inbound)
+    terminal: false
+  - name: Contact
+    description: Candidate proactively reached out (outbound, LinkedIn, etc.)
+    terminal: false
+  - name: Interview
+    description: In active interview process
+    terminal: false
+  - name: Offer
+    description: Offer received
+    terminal: true
+  - name: Rejected
+    description: Rejected by company
+    terminal: true
+  - name: Discarded
+    description: Discarded by candidate or offer closed
+    terminal: true
+  - name: SKIP
+    description: Doesn't fit criteria — do not apply
+    terminal: true
+
+rules:
+  - No markdown bold (**) in status field
+  - No dates in status field (use the date column)
+  - No extra text in status field (use the notes column)
+  - Only values from this list are valid
