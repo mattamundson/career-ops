@@ -9,9 +9,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/santifer/career-ops/dashboard/internal/data"
-	"github.com/santifer/career-ops/dashboard/internal/theme"
-	"github.com/santifer/career-ops/dashboard/internal/ui/screens"
+	"career-ops/dashboard/internal/data"
+	"career-ops/dashboard/internal/theme"
+	"career-ops/dashboard/internal/ui/screens"
 )
 
 type viewState int
@@ -89,8 +89,10 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmd = exec.Command("open", url)
 			case "linux":
 				cmd = exec.Command("xdg-open", url)
+			case "windows":
+				cmd = exec.Command("cmd", "/c", "start", url)
 			default:
-				cmd = exec.Command("open", url)
+				cmd = exec.Command("xdg-open", url)
 			}
 			_ = cmd.Start()
 			return nil
