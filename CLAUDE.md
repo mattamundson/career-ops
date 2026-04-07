@@ -13,6 +13,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | File | Function |
 |------|----------|
 | `cv.md` | Canonical CV — always read before evaluating |
+| `article-digest.md` | Proof-point digest — compact metrics per project (companion to cv.md) |
 | `config/profile.yml` | Candidate identity, targets, narrative |
 | `data/applications.md` | Application tracker |
 | `data/pipeline.md` | Inbox of pending URLs |
@@ -20,6 +21,8 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `portals.yml` | Query and company config |
 | `templates/cv-template.html` | HTML template for CVs |
 | `generate-pdf.mjs` | Playwright: HTML to PDF |
+| `cv-sync-check.mjs` | CV/profile synchronization check — run to verify consistency |
+| `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`) |
 | `interview-prep/story-bank.md` | Accumulated STAR+R stories across evaluations |
 | `reports/` | Evaluation reports (format: `{###}-{company-slug}-{YYYY-MM-DD}.md`) |
 
@@ -78,10 +81,10 @@ Once all files exist, confirm:
 | If the user... | Mode |
 |----------------|------|
 | Pastes JD or URL | auto-pipeline (evaluate + report + PDF + tracker) |
-| Asks to evaluate offer | `offer` |
-| Asks to compare offers | `compare` |
-| Wants LinkedIn outreach | `contact` |
-| Asks for company research | `research` |
+| Asks to evaluate offer | `offer` (also: `oferta`) |
+| Asks to compare offers | `compare` (also: `ofertas`) |
+| Wants LinkedIn outreach | `contact` (also: `contacto`) |
+| Asks for company research | `research` (also: `deep` — alias, same mode) |
 | Wants to generate CV/PDF | `pdf` |
 | Evaluates a course/cert | `training` |
 | Evaluates portfolio project | `project` |
@@ -120,7 +123,7 @@ Once all files exist, confirm:
 
 ## Stack and Conventions
 
-- Node.js (mjs modules), Playwright (PDF + scraping), YAML (config), HTML/CSS (template), Markdown (data)
+- Node.js (mjs modules), Go (TUI dashboard), Playwright (PDF + scraping), YAML (config), HTML/CSS (template), Markdown (data), Shell (batch runner)
 - Scripts in `.mjs`, configuration in YAML
 - Output in `output/` (gitignored), Reports in `reports/`
 - JDs in `jds/` (referenced as `local:jds/{file}` in pipeline.md)
@@ -166,7 +169,8 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 |-------|-------------|
 | `Evaluated` | Report completed, pending decision |
 | `Applied` | Application sent |
-| `Responded` | Company responded |
+| `Responded` | Company responded (recruiter screen, initial outreach) |
+| `Contact` | Active contact with recruiter/hiring manager before formal process |
 | `Interview` | In interview process |
 | `Offer` | Offer received |
 | `Rejected` | Rejected by company |

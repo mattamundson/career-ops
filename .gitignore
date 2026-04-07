@@ -31,4 +31,13 @@ node_modules/
 # Claude Code local
 .claude/settings.local.json
 .claude/memory/
+
+# Built binaries
 career-dashboard
+dashboard/career-dashboard.exe
+
+# Firecrawl cache
+.firecrawl/
+
+# Batch merged output
+batch/tracker-additions/merged/

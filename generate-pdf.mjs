@@ -16,6 +16,7 @@ import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const toFileURL = (p) => 'file:///' + p.replace(/\\/g, '/');
 
 async function generatePDF() {
   const args = process.argv.slice(2);
@@ -59,7 +60,7 @@ async function generatePDF() {
   const fontsDir = resolve(__dirname, 'fonts');
   html = html.replace(
     /url\(['"]?\.\/fonts\//g,
-    `url('file://${fontsDir}/`
+    `url('${toFileURL(fontsDir)}/`
   );
   // Close any unclosed quotes from the replacement
   html = html.replace(
@@ -73,7 +74,7 @@ async function generatePDF() {
   // Set content with file base URL for any relative resources
   await page.setContent(html, {
     waitUntil: 'networkidle',
-    baseURL: `file://${dirname(inputPath)}/`,
+    baseURL: `${toFileURL(dirname(inputPath))}/`,
   });
 
   // Wait for fonts to load
