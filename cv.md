@@ -1,6 +1,6 @@
 # Matthew M. Amundson
 
-**Minneapolis, MN** · 612-877-1189 · MattMAmundson@gmail.com · [linkedin.com/in/mmamundson](https://linkedin.com/in/mmamundson)
+**Minneapolis, MN** · 612-877-1189 · MattMAmundson@gmail.com · [linkedin.com/in/mmamundson](https://linkedin.com/in/mmamundson) · [github.com/mattamundson](https://github.com/mattamundson)
 
 ---
 
