@@ -1,0 +1,7 @@
+# Company Intel Queue
+# One company name per line. Run: node scripts/company-intel.mjs --company=<name>
+# Lines starting with # are comments. Blank lines are ignored.
+# Example:
+#   Panopto
+#   Acme Corp
+#   Microsoft
