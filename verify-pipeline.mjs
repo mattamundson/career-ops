@@ -15,7 +15,7 @@
  */
 
 import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 const CAREER_OPS = fileURLToPath(new URL('.', import.meta.url));
@@ -187,6 +187,85 @@ if (errors === 0 && warnings === 0) {
   console.log('🟡 Pipeline OK with warnings');
 } else {
   console.log('🔴 Pipeline has errors — fix before proceeding');
+}
+
+// --- Check 8: Stale cadence (--stale-check flag) ---
+if (process.argv.includes('--stale-check')) {
+  const CADENCE_DEFAULTS = {
+    evaluated_days: 14,
+    applied_days:   7,
+    responded_days: 5,
+    contact_days:   5,
+    interview_days: 10,
+  };
+
+  function loadCadenceThresholds() {
+    try {
+      const profilePath = join(CAREER_OPS, 'config/profile.yml');
+      if (!existsSync(profilePath)) return { ...CADENCE_DEFAULTS };
+      const yml = readFileSync(profilePath, 'utf8');
+      const cadence = {};
+      let inCadence = false;
+      for (const raw of yml.split('\n')) {
+        const line = raw.trimEnd();
+        if (!line || line.startsWith('#')) continue;
+        if (/^cadence:\s*$/.test(line)) { inCadence = true; continue; }
+        if (inCadence && /^  ([a-zA-Z_]+):\s*(\d+)/.test(line)) {
+          const m = line.match(/^  ([a-zA-Z_]+):\s*(\d+)/);
+          cadence[m[1]] = Number(m[2]);
+        } else if (inCadence && !/^ /.test(line)) {
+          inCadence = false;
+        }
+      }
+      return Object.keys(cadence).length > 0
+        ? { ...CADENCE_DEFAULTS, ...cadence }
+        : { ...CADENCE_DEFAULTS };
+    } catch { return { ...CADENCE_DEFAULTS }; }
+  }
+
+  function cadenceThreshold(status, thresholds) {
+    const s = (status || '').toLowerCase().trim();
+    const map = {
+      evaluated: thresholds.evaluated_days,
+      applied:   thresholds.applied_days,
+      responded: thresholds.responded_days,
+      contact:   thresholds.contact_days,
+      interview: thresholds.interview_days,
+    };
+    return map[s] ?? null;
+  }
+
+  function cadenceAction(status) {
+    const s = (status || '').toLowerCase().trim();
+    const actions = {
+      evaluated: 'Submit application or archive',
+      applied:   'Send follow-up email',
+      responded: 'Schedule next step or reply',
+      contact:   'Follow up with contact',
+      interview: 'Send thank-you / request decision',
+    };
+    return actions[s] ?? 'Review and act';
+  }
+
+  const TODAY_MS = Date.now();
+  const thresholds = loadCadenceThresholds();
+  let staleCount = 0;
+
+  for (const e of entries) {
+    const d = new Date(e.date);
+    if (isNaN(d)) continue;
+    const days = Math.floor((TODAY_MS - d.getTime()) / (1000 * 60 * 60 * 24));
+    const statusClean = (e.status || '').replace(/\*\*/g, '').trim().toLowerCase()
+      .replace(/\s+\d{4}-\d{2}-\d{2}.*$/, '').trim();
+    const threshold = cadenceThreshold(statusClean, thresholds);
+    if (threshold === null) continue;
+    if (days >= threshold) {
+      const overdue = days - threshold;
+      warn(`Stale #${e.num}: ${e.company} — ${e.role} | ${statusClean} | ${days}d (+${overdue}d over) | ${cadenceAction(statusClean)}`);
+      staleCount++;
+    }
+  }
+  if (staleCount === 0) ok('Cadence check: all follow-ups within cadence');
 }
 
 process.exit(errors > 0 ? 1 : 0);

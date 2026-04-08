@@ -10,6 +10,12 @@
    - US/Canada → `letter`
    - Rest of world → `a4`
 6. Detect role archetype → adapt framing
+   - Classify the JD into one of the known archetypes (see `config/archetype-variants.yml`)
+   - If `config/archetype-variants.yml` exists and confidence is high (clear primary archetype), auto-select the matching variant slug
+   - Use `generate-pdf.mjs --variant={slug}` instead of the generic CV template
+   - Fallback to generic CV if: (a) `archetype-variants.yml` does not exist, (b) confidence is low / JD spans multiple archetypes equally, or (c) variant HTML generation fails
+   - Known slugs: `operational-data-architect` | `ai-automation-workflow-engineer` | `bi-analytics-lead` | `business-systems-erp-specialist` | `applied-ai-solutions-architect` | `operations-technology-leader`
+6b. **ATS pre-flight check:** Run `node scripts/ats-score.mjs --cv=cv.md --jd=<jd_file>`. If the score is **below 60%**, pause and warn before generating the PDF. List the specific missing keywords and suggest where to inject each one (Professional Summary or Core Competencies grid). Do not proceed to PDF generation until the user confirms or the CV has been updated to bring the score above 60%.
 7. Rewrite Professional Summary injecting JD keywords + exit narrative bridge ("Built the entire operational tech stack as COO. Now applying that systems thinking to [JD domain] at scale.")
 8. Select top 3-4 most relevant projects for the offer
 9. Reorder experience bullets by relevance to JD

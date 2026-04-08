@@ -14,6 +14,7 @@ import { chromium } from 'playwright';
 import { resolve, dirname } from 'path';
 import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const toFileURL = (p) => 'file:///' + p.replace(/\\/g, '/');
@@ -22,11 +23,13 @@ async function generatePDF() {
   const args = process.argv.slice(2);
 
   // Parse arguments
-  let inputPath, outputPath, format = 'a4';
+  let inputPath, outputPath, format = 'a4', variant = null;
 
   for (const arg of args) {
     if (arg.startsWith('--format=')) {
       format = arg.split('=')[1].toLowerCase();
+    } else if (arg.startsWith('--variant=')) {
+      variant = arg.split('=')[1];
     } else if (!inputPath) {
       inputPath = arg;
     } else if (!outputPath) {
@@ -34,8 +37,18 @@ async function generatePDF() {
     }
   }
 
+  // --variant mode: generate HTML first, then derive paths
+  if (variant) {
+    const genVariant = resolve(__dirname, 'scripts', 'generate-variant.mjs');
+    console.log(`Generating variant HTML for: ${variant}`);
+    execSync(`node "${genVariant}" --variant=${variant}`, { stdio: 'inherit', cwd: __dirname });
+    inputPath  = resolve(__dirname, 'output', `cv-matt-${variant}.html`);
+    outputPath = resolve(__dirname, 'output', `cv-matt-${variant}.pdf`);
+  }
+
   if (!inputPath || !outputPath) {
     console.error('Usage: node generate-pdf.mjs <input.html> <output.pdf> [--format=letter|a4]');
+    console.error('       node generate-pdf.mjs --variant=<slug> [--format=letter|a4]');
     process.exit(1);
   }
 

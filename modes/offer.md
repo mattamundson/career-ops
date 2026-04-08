@@ -18,6 +18,7 @@ Table with:
 - Seniority
 - Remote (full/hybrid/onsite)
 - Team size (if mentioned)
+- **Semantic Match:** {score}% — run `node scripts/match-jd.mjs --jd=<jd_file>` (run `node scripts/embed-profile.mjs` first if embeddings are missing); format as `{overall}% overall | best archetype: {name} at {score}%`
 - TL;DR in 1 sentence
 
 ## Block B — CV Match
@@ -32,6 +33,8 @@ Read `cv.md`. Create a table mapping each JD requirement to exact lines from the
 - If Applied AI / Solutions Architect → prioritize system design, Jarvis Trader architecture, enterprise-ready integrations
 - If Operations Technology Leader → prioritize COO build story, cross-functional delivery, change management at scale
 
+**ATS Match:** Run `node scripts/ats-score.mjs --cv=cv.md --jd=<jd_file>` and include the percentage score. List the top 5 missing keywords with a one-line suggestion for each (which CV section to inject it into, or a reformulation of existing language).
+
 **Gaps section** with mitigation strategy for each gap. For each gap:
 1. Is it a hard blocker or a nice-to-have?
 2. Can the candidate demonstrate adjacent experience?
@@ -45,6 +48,8 @@ Read `cv.md`. Create a table mapping each JD requirement to exact lines from the
 3. **"If they downlevel me" plan**: accept if comp is fair, negotiate 6-month review, clear promotion criteria
 
 ## Block D — Comp and Demand
+
+**Cache check first:** Before running live web searches, check if `data/company-intel/{slug}.md` exists (slug = company name lowercased with hyphens). If it exists and `last_updated` is within 30 days, use the cached Glassdoor, funding, headcount, and compensation data from that file. If the file is missing or stale, run `node scripts/company-intel.mjs --company={name}` to generate the template, then supplement with live WebSearch to fill placeholders.
 
 Use WebSearch for:
 - Current salaries for the role (Glassdoor, Levels.fyi, Blind)

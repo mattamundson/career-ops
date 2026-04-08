@@ -16,8 +16,22 @@ If the input is a **URL** (not pasted JD text), use this strategy to extract the
 
 **If the input is JD text** (not a URL): use directly, no fetch needed.
 
-## Step 1 — A-F Evaluation
-Run exactly as in the `offer` mode (read `modes/offer.md` for all A-F blocks).
+## Step 1 — Prefilter Check + A-F Evaluation
+
+**Before running the full A-F evaluation**, check for an existing prefilter result:
+
+1. Build the expected filename: `data/prefilter-results/{company-slug}-{title-slug}.md`
+   - `company-slug` = company name lowercased, spaces → hyphens, no special characters
+   - `title-slug` = role title lowercased, same rules
+2. If the file exists:
+   - Read it and check the `**status:**` field and `**Recommendation:**` field
+   - If `status: skip` or `Recommendation: SKIP` → **stop**. Inform the candidate this role was pre-screened as SKIP with the recorded score/rationale. Ask before proceeding.
+   - If `status: maybe` or `Recommendation: MAYBE` → **note this** in the report header but continue with full A-F evaluation
+   - If `status: evaluate` or `Recommendation: EVALUATE` → continue directly to A-F (no need to re-run prefilter)
+   - If `status: pending` → the prefilter template exists but was not scored. Run `prefilter` mode first (Blocks A + simplified B), update the file's status field, then decide based on the score whether to continue with full A-F.
+3. If no prefilter file exists → proceed directly with full A-F evaluation (no prefilter gate required for ad-hoc URLs).
+
+Run the full A-F evaluation exactly as in the `offer` mode (read `modes/offer.md` for all A-F blocks).
 
 ## Step 2 — Save Report .md
 Save the complete evaluation to `reports/{###}-{company-slug}-{YYYY-MM-DD}.md` (see format in `modes/offer.md`).

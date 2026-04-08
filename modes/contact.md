@@ -1,5 +1,34 @@
 # Mode: contact — LinkedIn Power Move
 
+## Step 0 — Template Check (preferred first step)
+
+Before generating outreach from scratch, check for existing templates:
+
+1. **Check** whether `templates/outreach/` contains any files
+2. **Determine scenario** from context:
+   - `recruiter` — inbound recruiter reach-out or cold recruiter message
+   - `referral` — mutual connection or warm intro
+   - `hiring-manager` — direct outreach to the person who owns the role
+3. **Determine archetype** from the evaluation report (Block A of `offer.md`). If no report exists yet, infer from the JD: one of the 6 archetypes defined in `_shared.md`
+4. **Run the selector**:
+   ```
+   node scripts/select-template.mjs \
+     --scenario={scenario} \
+     --archetype={archetype} \
+     --channel={channel} \
+     --company={company} \
+     --role={role}
+   ```
+5. **Present the recommended template** filled with JD-specific data (company name, role, relevant proof point)
+6. **Allow editing** before sending — ask "Any edits before I finalize?"
+7. **After sending**, log the variant used by appending `[variant:{id}]` to the Notes column for that row in `applications.md`
+
+If no template fits the scenario, fall back to custom generation (Step 1 below).
+
+---
+
+## Step 1 — Custom Generation (fallback)
+
 1. **Identify targets** via WebSearch:
    - Hiring manager of the team
    - Assigned recruiter
