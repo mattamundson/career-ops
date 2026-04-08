@@ -1,0 +1,375 @@
+# Multi-Variant CV System — Archetype Variant Configs
+# Generated: 2026-04-07
+# Source files: modes/_shared.md, cv.md, article-digest.md
+#
+# Usage: Each variant drives a tailored CV rendering.
+# - lead_summary: replaces the Professional Summary header block
+# - top_proof_points: article-digest sections to feature most prominently
+# - experience_order: job slugs in preferred display sequence
+# - competency_tags: 8 tags for the CV header skills bar
+# - keyword_families: ATS/recruiter emphasis keywords (15-20)
+# - summary_angle: framing note for PDF generation and cover letter angle
+
+variants:
+
+  - slug: operational-data-architect
+    name: Operational Data Architect
+    comp_range: "$120K–$160K remote / $100K–$140K local"
+    lead_summary: >
+      End-to-end data pipeline builder with 10+ years turning raw ERP and operational data
+      into automated intelligence systems. Architected production ERP→BI→AI pipelines at
+      a manufacturer — zero contractors, zero manual handoffs — and delivered enterprise
+      analytics at Fortune 200 and $25B+ AUM scale.
+    top_proof_points:
+      - GMS Operational Intelligence Pipeline
+      - Inventory Health Index
+      - Pretium Partners Risk Analytics
+    experience_order:
+      - greenfield-metal-sales
+      - firstenergy
+      - pretium-partners
+      - land-olakes
+      - ultimed
+      - palomar
+      - dst-market-services
+    competency_tags:
+      - ERP API Integration
+      - Power BI / DAX
+      - Semantic Model Architecture
+      - ETL Pipeline Design
+      - SQL
+      - Microsoft Fabric
+      - AI-Driven Alerting
+      - Data Modeling
+    keyword_families:
+      - data pipeline
+      - semantic layer
+      - ERP integration
+      - Power BI
+      - DAX
+      - SQL
+      - ETL
+      - operational intelligence
+      - data modeling
+      - REST API
+      - KPI reporting
+      - automated alerts
+      - reorder triggers
+      - Microsoft Fabric
+      - real-time analytics
+      - data architecture
+      - production data systems
+      - business intelligence
+      - consumption modeling
+      - enterprise analytics
+    summary_angle: >
+      Frame as a technical practitioner who has built ERP-to-BI-to-AI pipelines end-to-end
+      in live production environments — not a consultant who recommended the architecture
+      but an operator who built and ran it. Lead with the GMS pipeline (ERP REST API →
+      Power BI semantic model → AI purchasing alerts) and reinforce with Pretium
+      ($25B+ distressed debt risk dashboards) and Land O'Lakes supply chain analytics.
+      The differentiator is domain-specific modeling (Inventory Health Index in linear feet,
+      distressed debt DAX measures) that off-the-shelf solutions can't replicate.
+
+  - slug: ai-automation-workflow-engineer
+    name: AI Automation / Workflow Engineer
+    comp_range: "$130K–$170K remote / $110K–$150K local"
+    lead_summary: >
+      Production AI automation builder with a track record of closed-loop systems that
+      replace manual workflows at scale. Built n8n cross-system automation connecting
+      ERP, BI, and Teams with zero manual handoffs, and deployed an autonomous AI trading
+      system with 1,295 passing tests under live capital management.
+    top_proof_points:
+      - GMS Cross-System Automation (n8n)
+      - Jarvis Trader
+      - Claude Code Skills and Plugins (23+ Skills)
+    experience_order:
+      - greenfield-metal-sales
+      - firstenergy
+      - jarvis-trader
+      - claude-code-plugins
+      - pretium-partners
+      - land-olakes
+      - palomar
+    competency_tags:
+      - n8n Workflow Automation
+      - LLM-Enabled Workflows
+      - Agentic Systems
+      - Python
+      - API Integration
+      - Claude Code
+      - Closed-Loop Automation
+      - Multi-Agent Orchestration
+    keyword_families:
+      - n8n
+      - workflow automation
+      - LLM workflows
+      - agentic systems
+      - Claude Code
+      - autonomous agents
+      - AI automation
+      - Python
+      - webhook triggers
+      - multi-agent
+      - closed-loop monitoring
+      - zero manual handoffs
+      - MCP integrations
+      - API orchestration
+      - event-driven automation
+      - process automation
+      - AI-assisted workflows
+      - production AI systems
+      - system integration
+      - autonomous decision-making
+    summary_angle: >
+      Frame as a builder of production AI automation systems — not demos or prototypes.
+      Lead with the n8n closed-loop system (4-system integration, zero manual handoffs)
+      and Jarvis Trader (autonomous trading, 1,295 tests, RL-trained signals). Emphasize
+      that both systems run under real conditions with real financial stakes. The Claude Code
+      23+ skills project demonstrates scalable automation thinking applied to developer
+      tooling. Avoid framing this as "I know n8n" — frame it as "I have built systems that
+      run without me in the loop."
+
+  - slug: bi-analytics-lead
+    name: BI & Analytics Lead
+    comp_range: "$110K–$150K remote / $95K–$135K local"
+    lead_summary: >
+      Analytics practitioner with 10+ years delivering Power BI solutions that drive
+      executive decisions — from $25B+ distressed debt risk dashboards at Pretium Partners
+      to enterprise reporting at Fortune 200 FirstEnergy to live operational intelligence
+      at a manufacturing company. Power BI, DAX, SQL, and semantic model architecture
+      across financial services, utilities, and supply chain.
+    top_proof_points:
+      - Pretium Partners Risk Analytics
+      - Land O'Lakes Supply Chain Analytics
+      - UltiMed Data Warehouse Redesign
+    experience_order:
+      - pretium-partners
+      - land-olakes
+      - firstenergy
+      - ultimed
+      - greenfield-metal-sales
+      - palomar
+      - dst-market-services
+    competency_tags:
+      - Power BI
+      - DAX
+      - SQL
+      - Semantic Model Architecture
+      - ETL Pipeline Design
+      - Executive Dashboards
+      - KPI Reporting
+      - Predictive Analytics
+    keyword_families:
+      - Power BI
+      - DAX
+      - SQL
+      - semantic model
+      - ETL pipeline
+      - executive dashboards
+      - KPI reporting
+      - data storytelling
+      - risk dashboards
+      - predictive analytics
+      - Microsoft Fabric
+      - Tableau
+      - portfolio analytics
+      - supply chain analytics
+      - data warehouse
+      - reporting automation
+      - business intelligence
+      - self-service BI
+      - operational reporting
+      - financial analytics
+    summary_angle: >
+      Frame as an enterprise BI practitioner with breadth of industry and depth of technical
+      skill. Lead with Pretium Partners (domain complexity — distressed debt requires
+      custom DAX measures, not standard financial templates) and reinforce with
+      Land O'Lakes (scale — 6,000+ truck purchase records, 3 supply chain teams) and
+      UltiMed (+35% insight improvement, first standardized BI platform company-wide).
+      GMS adds recency and full-stack ownership. Emphasize that dashboards drove real
+      decisions (purchasing actions, risk flagging, margin visibility) — not just
+      reporting for reporting's sake.
+
+  - slug: business-systems-erp-specialist
+    name: Business Systems / ERP Specialist
+    comp_range: "$110K–$150K remote / $95K–$130K local"
+    lead_summary: >
+      Business systems architect who has lived on both sides of the ops/tech boundary.
+      As COO, built production ERP integrations, barcode scanning infrastructure, and CRM
+      architecture from scratch — translating operator requirements nobody else could
+      articulate because I was the operator asking for them.
+    top_proof_points:
+      - Production Barcode Scanning System
+      - GMS Operational Intelligence Pipeline
+      - GMS CRM Architecture
+    experience_order:
+      - greenfield-metal-sales
+      - firstenergy
+      - pretium-partners
+      - land-olakes
+      - ultimed
+      - palomar
+      - dst-market-services
+    competency_tags:
+      - ERP API Integration
+      - Barcode / Scanning Systems
+      - CRM Architecture
+      - Node.js
+      - Android Development
+      - Business Process Design
+      - Systems Integration
+      - Ops-to-Tech Translation
+    keyword_families:
+      - ERP integration
+      - Paradigm ERP
+      - barcode scanning
+      - CRM architecture
+      - business systems
+      - Node.js
+      - REST API
+      - Android development
+      - inventory management
+      - lot tracking
+      - business process automation
+      - systems integration
+      - requirements translation
+      - operational technology
+      - Firebase
+      - Vercel
+      - workflow design
+      - product data management
+      - lifecycle tracking
+      - shop floor systems
+    summary_angle: >
+      Frame as the rare combination of operator and systems builder — someone who wrote
+      the business requirements, then built the system, then ran the operations that
+      depended on it. Lead with the barcode scanning system (replaced clipboard reconciliation
+      since company founding, full print→scan→track ERP lifecycle) and the GMS pipeline
+      (Paradigm REST API direct integration). Emphasize the COO-to-IC narrative: "I've been
+      the buyer of these solutions. I know what breaks in production because I'm the one
+      who had to fix it at 6 AM on a manufacturing floor." The CRM architecture adds
+      breadth (web stack: Vercel + Firebase + n8n).
+
+  - slug: applied-ai-solutions-architect
+    name: Applied AI / Solutions Architect
+    comp_range: "$140K–$180K remote / $120K–$160K local"
+    lead_summary: >
+      Applied AI architect with production systems as proof — not whiteboards. Designed
+      a 5-layer market regime detection system in Jarvis Trader with Walk-Forward Efficiency
+      scoring, RL-trained signal models, and autonomous position management under real capital.
+      Built 23+ Claude Code skills and MCP integrations for enterprise-grade AI workflows.
+    top_proof_points:
+      - Jarvis Trader
+      - Claude Code Skills and Plugins (23+ Skills)
+      - GMS Operational Intelligence Pipeline
+    experience_order:
+      - jarvis-trader
+      - claude-code-plugins
+      - greenfield-metal-sales
+      - firstenergy
+      - pretium-partners
+      - land-olakes
+      - palomar
+    competency_tags:
+      - AI System Design
+      - LLM-Powered Solutions
+      - Python / FastAPI
+      - Multi-Agent Architecture
+      - MCP Integrations
+      - Reinforcement Learning
+      - API System Design
+      - Production AI Reliability
+    keyword_families:
+      - LLM architecture
+      - AI system design
+      - agentic systems
+      - reinforcement learning
+      - multi-agent orchestration
+      - Claude Code
+      - MCP integrations
+      - Python
+      - FastAPI
+      - production AI
+      - observability
+      - safety layers
+      - Walk-Forward Efficiency
+      - regime detection
+      - signal modeling
+      - API design
+      - system reliability
+      - fallback design
+      - enterprise AI
+      - end-to-end AI solutions
+    summary_angle: >
+      Frame as a solutions architect whose credibility comes from production proof, not
+      certifications. Lead with Jarvis Trader's architecture depth (5-layer regime detection,
+      WFE quality gate, RL signal model, ConsecutiveLossTracker safety layer, 1,295 tests)
+      as evidence of enterprise-grade design thinking applied outside an enterprise context.
+      Then pivot to Claude Code 23+ skills as evidence of production AI tooling at scale.
+      GMS pipeline demonstrates that this systems thinking applies to business problems,
+      not just trading. The pitch: "If I designed a trading system with this level of
+      observability and fallback logic for personal capital, imagine what I'd build with
+      your team and infrastructure."
+
+  - slug: operations-technology-leader
+    name: Operations Technology Leader
+    comp_range: "$150K–$200K remote / $130K–$175K local"
+    lead_summary: >
+      Technology executive who built an entire operational tech stack as COO — ERP
+      integrations, BI pipelines, AI automation, barcode systems, and CRM — with no
+      outside contractors. Delivered enterprise analytics at Fortune 200 scale at FirstEnergy.
+      Now targeting senior roles where operational experience and technical depth combine
+      to drive cross-functional transformation.
+    top_proof_points:
+      - GMS Operational Intelligence Pipeline
+      - Production Barcode Scanning System
+      - GMS Cross-System Automation (n8n)
+    experience_order:
+      - greenfield-metal-sales
+      - firstenergy
+      - pretium-partners
+      - land-olakes
+      - ultimed
+      - palomar
+      - dst-market-services
+    competency_tags:
+      - Technology Strategy
+      - Cross-Functional Leadership
+      - ERP / BI / AI Stack Ownership
+      - Change Management
+      - Vendor-Free Delivery
+      - Enterprise Analytics
+      - Operational Intelligence
+      - P&L-Aware Technology
+    keyword_families:
+      - technology leadership
+      - operational transformation
+      - cross-functional delivery
+      - change management
+      - ERP strategy
+      - BI strategy
+      - AI adoption
+      - digital transformation
+      - enterprise analytics
+      - COO
+      - systems ownership
+      - zero contractors
+      - end-to-end delivery
+      - stakeholder alignment
+      - business systems strategy
+      - operational excellence
+      - Fortune 200
+      - technology roadmap
+      - P&L accountability
+      - executive reporting
+    summary_angle: >
+      Frame as a technology leader who has the COO exit story as the pitch — not a
+      transition narrative but a proof of concept. The entire GMS tech stack (ERP pipelines,
+      BI, AI alerts, barcode systems, CRM, n8n automation) was conceived, built, and
+      operated by one person with zero outside contractors. That is the leadership proof
+      point: end-to-end accountability for technology strategy and delivery. Reinforce with
+      FirstEnergy (Fortune 200 scale, compliance-intensive environment, cross-functional
+      stakeholder management). For senior IC or Director-level targets, position the
+      COO background as "I've been the stakeholder who approved the budget — I know what
+      good ROI looks like from both sides of the table."
