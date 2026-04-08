@@ -270,7 +270,9 @@ func loadJobURLs(careerOpsPath string) map[string]string {
 		if e, ok := entries[id]; ok {
 			reportToURL[reportNum] = e.url
 			if len(reportNum) < 3 {
-				reportToURL[fmt.Sprintf("%03s", reportNum)] = e.url
+				if n, err := strconv.Atoi(reportNum); err == nil {
+					reportToURL[fmt.Sprintf("%03d", n)] = e.url
+				}
 			}
 		}
 	}
@@ -490,6 +492,8 @@ func NormalizeStatus(raw string) string {
 	case strings.Contains(s, "discarded") || strings.Contains(s, "descartado") || s == "descartada" || s == "cerrada" || s == "cancelada" ||
 		strings.HasPrefix(s, "duplicado") || strings.HasPrefix(s, "dup"):
 		return "discarded"
+	case strings.Contains(s, "contact") || strings.Contains(s, "contacto"):
+		return "contact"
 	case strings.Contains(s, "evaluated") || strings.Contains(s, "evaluada") || s == "condicional" || s == "hold" || s == "monitor" || s == "evaluar" || s == "verificar":
 		return "evaluated"
 	default:
@@ -566,10 +570,27 @@ func UpdateApplicationStatus(careerOpsPath string, app model.CareerApplication, 
 	return os.WriteFile(filePath, []byte(strings.Join(lines, "\n")), 0644)
 }
 
-// replaceStatusInLine replaces the old status with new status in a table line.
+// replaceStatusInLine replaces the status in the Status column (field index 5, 0-based)
+// of a markdown table row. It avoids accidentally replacing text in other columns.
 func replaceStatusInLine(line, oldStatus, newStatus string) string {
-	// Case-insensitive replacement of the status field
-	return strings.Replace(line, oldStatus, newStatus, 1)
+	// Split into pipe-delimited fields
+	trimmed := strings.Trim(line, "|")
+	fields := strings.Split(trimmed, "|")
+	// Status is field index 5 (0: #, 1: Date, 2: Company, 3: Role, 4: Score, 5: Status, 6: PDF, 7: Report, 8: Notes)
+	if len(fields) <= 5 {
+		// Fallback: naive replace if field count is unexpected
+		return strings.Replace(line, oldStatus, newStatus, 1)
+	}
+	// Replace the status field value (case-insensitive match)
+	statusField := fields[5]
+	trimmedStatus := strings.TrimSpace(statusField)
+	if strings.EqualFold(trimmedStatus, oldStatus) {
+		// Preserve leading/trailing whitespace of the original field
+		leading := statusField[:len(statusField)-len(strings.TrimLeft(statusField, " \t"))]
+		trailing := statusField[len(strings.TrimRight(statusField, " \t")):]
+		fields[5] = leading + newStatus + trailing
+	}
+	return "|" + strings.Join(fields, "|") + "|"
 }
 
 // cleanTableCell removes trailing pipes and whitespace from a table cell value.
@@ -588,17 +609,19 @@ func StatusPriority(status string) int {
 		return 1
 	case "responded":
 		return 2
-	case "applied":
+	case "contact":
 		return 3
-	case "evaluated":
+	case "applied":
 		return 4
-	case "skip":
+	case "evaluated":
 		return 5
-	case "rejected":
+	case "skip":
 		return 6
-	case "discarded":
+	case "rejected":
 		return 7
-	default:
+	case "discarded":
 		return 8
+	default:
+		return 9
 	}
 }
