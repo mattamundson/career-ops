@@ -43,11 +43,15 @@ RESULTS_FLAG = next((a.split("=", 1)[1] for a in args if a.startswith("--results
 # Mirrors portals.yml title_filter.positive / negative
 # ---------------------------------------------------------------------------
 SEARCH_TERMS = [TERM_FLAG] if TERM_FLAG else [
-    "data architect",
+    "data architect remote",
     "analytics engineer remote",
     "power bi architect",
+    "power bi developer remote",
+    "business intelligence architect remote",
+    "microsoft fabric architect",
     "ai automation engineer remote",
     "solutions architect data remote",
+    "senior bi developer remote",
 ]
 
 BOARDS = BOARDS_FLAG.split(",") if BOARDS_FLAG else [
@@ -62,10 +66,13 @@ RESULTS_WANTED = int(RESULTS_FLAG) if RESULTS_FLAG else 25
 
 POSITIVE_KW = [
     "data architect", "data engineer", "analytics engineer", "bi engineer",
-    "business intelligence", "power bi", "ai automation", "automation engineer",
-    "workflow automation", "solutions architect", "data platform", "analytics lead",
-    "data lead", "analytics manager", "data manager", "applied ai", "ai engineer",
-    "ml engineer",
+    "bi architect", "bi developer", "business intelligence", "power bi",
+    "power bi developer", "power bi architect", "microsoft fabric", "fabric architect",
+    "fabric engineer", "ai automation", "automation engineer", "workflow automation",
+    "solutions architect", "data platform", "data warehouse", "data warehouse architect",
+    "analytics architect", "analytics platform", "analytics lead", "data lead",
+    "analytics manager", "data manager", "data governance", "data strategy",
+    "applied ai", "ai engineer", "ml engineer", "information architect",
 ]
 
 NEGATIVE_KW = [

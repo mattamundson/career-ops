@@ -106,6 +106,24 @@
 
 ---
 
+### 8. Aledade — Enterprise Data Architect [PRIORITY 8]
+- **Apply URL:** https://jobs.lever.co/aledade/3532b394-a4d4-4248-adfa-b22d61b3b634
+- **Report:** reports/023-aledade-2026-04-09.md
+- **PDF:** output/cv-matt-aledade-2026-04-09.pdf
+- **Cover Letter:** output/cover-letters/aledade-enterprise-data-architect.txt
+- **Score:** 3.8/5 — Healthcare SaaS Enterprise DA; remote confirmed; stock options; Level 8
+- **Salary:** Not listed (target: $165K–$185K base + equity)
+- **Remote:** Confirmed remote — Bethesda, MD / Remote
+- **Key angle:** Built the exact customer lifecycle data integration challenge Aledade needs — ERP to data warehouse to governed layer, eliminating manual reconciliation across fragmented SaaS systems (GMS: ERP/BI/AI; Pretium: $25B regulated analytics; FirstEnergy: Fortune 200 compliance). Single Source of Truth design is the core of 10 years of work.
+- **Key gaps to address:** Snowflake deep architecture and MuleSoft are minimum qualifications — frame honestly as tool ramp, not absence of architectural judgment.
+- **Questions to ask recruiter:**
+  1. How hard is day-1 Snowflake/MuleSoft proficiency — is there ramp time expected, or deep hands-on required before contributing?
+  2. Is MDM on dedicated tooling (Stibo/Informatica) or Snowflake-native MDM pattern?
+  3. What is the Level 8 salary band?
+- **Status:** [ ] Not started
+
+---
+
 ## Pending Human Action (applications already prepped)
 
 ### Panopto — DataOps Engineer
@@ -117,6 +135,56 @@
 - **Apply URL:** https://job-boards.greenhouse.io/valtech/jobs/4632199101
 - **PDF:** output/cv-matt-valtech-2026-04-06.pdf
 - **Status:** [ ] Awaiting submission
+
+---
+
+---
+
+### 9. V4C.ai — Power BI Architect [PRIORITY 9 — GO]
+- **Apply URL:** https://apply.workable.com/v4c/j/084E1FAE7B/
+- **Report:** reports/015-v4c-ai-power-bi-2026-04-09.md
+- **PDF:** output/cv-matt-v4cai-2026-04-09.pdf
+- **Cover Letter:** output/cover-letters/v4cai-power-bi-architect.txt
+- **Score:** 3.8/5 — Direct archetype 3 match; Power BI, DAX, star schema, semantic models, Fabric
+- **Salary:** Not disclosed (target: $150K+)
+- **Remote:** Confirmed remote — V4C.ai is remote-first
+- **Key angle:** Power BI architecture is the entire career thread — 5+ companies, 10+ years, advanced DAX, semantic models with RLS, Microsoft Fabric. Databricks NOT a hard requirement per full JD.
+- **Questions to ask recruiter:**
+  1. Does the Power BI Architect role interface with Databricks as a data source, or is it Power BI-layer only?
+  2. What industries do current engagements serve?
+  3. What is the salary band?
+- **Status:** [ ] Not started
+
+---
+
+### 10. Proactive Technology Management — Senior Full-Stack BI Architect [CONDITIONAL — confirm salary first]
+- **Apply URL:** https://www.linkedin.com/jobs/view/4400268850
+- **Report:** reports/020-proactive-tech-2026-04-09.md
+- **PDF:** output/cv-matt-proactive-tech-2026-04-09.pdf
+- **Cover Letter:** output/cover-letters/proactive-tech-bi-architect.txt
+- **Score:** 3.8/5 — Near-exact archetype 3 match; Power BI + Fabric + medallion architecture
+- **Salary:** Not specified — confirm $120K+ before proceeding (small MSP, SMB client base)
+- **Remote:** Flexible remote (Ferndale, MI listed)
+- **Key gate:** Confirm salary band in first recruiter contact. If below $120K, deprioritize in favor of enterprise roles.
+- **Status:** [ ] Contact recruiter first to confirm comp
+
+---
+
+### 10. Unknown Company — Data Architect (Azure + Finance GL/AR/AP) [CONDITIONAL — verify before applying]
+- **Apply URL:** https://www.indeed.com/viewjob?jk=ffa724aa3602f6ed
+- **Report:** reports/022-unknown-azure-da-2026-04-09.md
+- **Score:** 3.6/5 — Azure + finance domain strong archetype match
+- **Status:** BLOCKED — JD not accessible (Indeed JS-blocked), company identity unknown, remote policy unconfirmed
+- **Action required:** (1) Find the full JD — try searching company name or role on LinkedIn/Google. (2) Confirm remote policy. (3) Confirm FTE vs. contract. (4) Confirm salary $120K+. Apply only after all 4 confirmed.
+
+---
+
+### 11. V4C.ai — Power BI Architect [CONDITIONAL — get full JD first]
+- **Apply URL:** https://apply.workable.com/v4c/j/084E1FAE7B/
+- **Report:** reports/015-v4c-ai-power-bi-2026-04-09.md
+- **Score:** 3.0/5 — Power BI Architect title match; Databricks focus may be a structural gap
+- **Status:** BLOCKED — Full JD not retrieved from Workable. V4C.ai is Databricks-focused; if role requires Databricks client work, this may downgrade to MAYBE.
+- **Action required:** Get full JD from V4C.ai website or contact recruiter for job description before investing in application.
 
 ---
 

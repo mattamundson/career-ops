@@ -299,6 +299,84 @@ function pipelineRows(list) {
   </tr>`).join('');
 }
 
+function generateApplyQueue(appList) {
+  const queue = appList
+    .filter(a => a.status === 'GO' || a.status === 'Conditional GO')
+    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+
+  if (queue.length === 0) return '';
+
+  const rows = queue.map(app => {
+    const slug = app.company.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const clDir = join(ROOT, 'output', 'cover-letters');
+    const outDir = join(ROOT, 'output');
+
+    let hasCL = false;
+    if (existsSync(clDir)) {
+      try {
+        hasCL = readdirSync(clDir).some(f => f.startsWith(slug) && f.endsWith('.txt'));
+      } catch { /* ignore */ }
+    }
+
+    let hasPDF = false;
+    if (existsSync(outDir)) {
+      try {
+        hasPDF = readdirSync(outDir).some(f => f.startsWith(`cv-matt-${slug}`) && f.endsWith('.pdf'));
+      } catch { /* ignore */ }
+    }
+
+    const isGO = app.status === 'GO';
+    const badgeColor = isGO ? '#a6e3a1' : '#f9e2af';
+    const badge = `<span class="badge" style="color:${badgeColor};border-color:${badgeColor}22;background:${badgeColor}11">${app.status}</span>`;
+    const applyLink = app.jobUrl
+      ? `<a href="${app.jobUrl}" target="_blank" style="color:#89b4fa;font-weight:600">Apply →</a>`
+      : '<span style="color:var(--overlay0)">—</span>';
+    const clCell = hasCL
+      ? '<span style="color:#a6e3a1" title="Cover letter ready">✓</span>'
+      : '<span style="color:var(--surface2)">—</span>';
+    const pdfCell = hasPDF
+      ? '<span style="color:#a6e3a1" title="PDF ready">✓</span>'
+      : '<span style="color:var(--surface2)">—</span>';
+
+    return `<tr>
+      <td>${badge}</td>
+      <td class="company"><strong>${app.company}</strong></td>
+      <td class="role">${app.role}</td>
+      <td class="score">${scoreBar(app.score)}</td>
+      <td>${applyLink}</td>
+      <td style="text-align:center">${pdfCell}</td>
+      <td style="text-align:center">${clCell}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <!-- Apply Queue -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Apply Queue</h2>
+      <span class="count">${queue.length} ready</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Score</th>
+            <th>Apply</th>
+            <th style="text-align:center">PDF</th>
+            <th style="text-align:center">Cover Letter</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
 const tabStatuses = ['ALL', 'Evaluated', 'Applied', 'Contact', 'Interview', 'TOP≥4', 'SKIP'];
 function tabCount(status) {
   if (status === 'ALL') return apps.length;
@@ -600,6 +678,8 @@ const html = `<!DOCTYPE html>
         </div>` : ''}
     </div>
   </div>` : ''}
+
+  ${generateApplyQueue(apps)}
 
   <!-- Applications Table -->
   <div class="section">

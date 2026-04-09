@@ -1,6 +1,6 @@
 # Prefilter: Vertical Relevance — AWS Data Architect
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4383035513
 **company:** Vertical Relevance
