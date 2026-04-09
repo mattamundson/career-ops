@@ -741,23 +741,30 @@ async function runJobBoardQueries(cfg) {
 
   const { default: FirecrawlApp } = await import('@mendable/firecrawl-js');
   const firecrawl = new FirecrawlApp({ apiKey });
-  const allResults = [];
 
-  for (const q of queries) {
-    console.log(`  [firecrawl] ${q.name}...`);
-    try {
-      const result = await firecrawl.search(q.query, { limit: 20, lang: 'en', country: 'us' });
-      const hits = (result.web ?? result.data ?? []).map(r => ({
-        url:     r.url,
-        title:   (r.title ?? '').replace(/\s+/g, ' ').trim(),
-        company: inferBoardName(r.url),
-        portal:  `firecrawl/${q.name}`,
-      }));
-      console.log(`    → ${hits.length} results`);
-      allResults.push(...hits);
-    } catch (e) {
-      console.warn(`  [firecrawl] ${q.name} failed: ${e.message}`);
+  console.log(`  Running ${queries.length} Firecrawl queries in parallel...`);
+  const settled = await Promise.allSettled(
+    queries.map(q =>
+      firecrawl.search(q.query, { limit: 20, lang: 'en', country: 'us' })
+        .then(result => ({ q, result }))
+    )
+  );
+
+  const allResults = [];
+  for (const outcome of settled) {
+    if (outcome.status === 'rejected') {
+      console.warn(`  [firecrawl] query failed: ${outcome.reason?.message}`);
+      continue;
     }
+    const { q, result } = outcome.value;
+    const hits = (result.web ?? result.data ?? []).map(r => ({
+      url:     r.url,
+      title:   (r.title ?? '').replace(/\s+/g, ' ').trim(),
+      company: inferBoardName(r.url),
+      portal:  `firecrawl/${q.name}`,
+    }));
+    console.log(`  [firecrawl] ${q.name} → ${hits.length} results`);
+    allResults.push(...hits);
   }
 
   return allResults;

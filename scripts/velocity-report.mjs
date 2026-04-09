@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const APPLICATIONS_MD = join(ROOT, 'data', 'applications.md');
-const TODAY = '2026-04-07';
+const TODAY = new Date().toISOString().slice(0, 10);
 
 const JSON_MODE = process.argv.includes('--json');
 
