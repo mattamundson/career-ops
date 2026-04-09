@@ -717,6 +717,56 @@ async function fetchSmartRecruiters(slug, companyName, query = '') {
 }
 
 // ---------------------------------------------------------------------------
+// WorkDay ATS via Playwright
+// URL varies per company — portals.yml must supply full `url` field.
+// e.g. https://netflix.wd5.myworkdayjobs.com/en-US/External
+// WorkDay is a heavy SPA: wait for job-title elements before extraction.
+// Standard DOM: [data-automation-id="job-title"] inside an <a> link card.
+// Shares one browser instance across all companies.
+// ---------------------------------------------------------------------------
+async function fetchWorkday(companies) {
+  if (!companies.length) return [];
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch({ headless: true });
+  const results = [];
+  try {
+    for (const { url: boardUrl, name } of companies) {
+      const page = await browser.newPage();
+      try {
+        await page.goto(boardUrl, { waitUntil: 'networkidle', timeout: 45000 });
+        // Wait for job cards to render (WorkDay SPA needs explicit wait)
+        await page.waitForSelector('[data-automation-id="job-title"]', { timeout: 15000 })
+          .catch(() => null); // graceful — page may have 0 results
+
+        const jobs = await page.$$eval('[data-automation-id="job-title"]', (els, boardUrl) => {
+          const origin = new URL(boardUrl).origin;
+          return els.map(el => {
+            const anchor = el.closest('a') || el.querySelector('a') || el;
+            const href   = anchor.getAttribute('href') || '';
+            return {
+              title: el.textContent?.trim() || '',
+              url:   href.startsWith('http') ? href : origin + href,
+            };
+          }).filter(j => j.title && j.url);
+        }, boardUrl);
+
+        results.push({ company: { url: boardUrl, name }, jobs: jobs.map(j => ({
+          ...j, company: name, source: 'workday-playwright', updatedAt: null,
+        })) });
+      } catch (err) {
+        console.warn(`  [WARN] ${name} (WorkDay Playwright): ${err.message.slice(0, 80)}`);
+        results.push({ company: { url: boardUrl, name }, jobs: [] });
+      } finally {
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+  return results;
+}
+
+// ---------------------------------------------------------------------------
 // Date filter — keep only jobs updated within SINCE_DAYS
 // Greenhouse updated_at format: "2026-03-15T00:00:00.000Z"
 // ---------------------------------------------------------------------------
@@ -1157,6 +1207,45 @@ async function main() {
           seenUrls.add(job.url);
           toAdd.push(job);
           historyRows.push({ url: job.url, portal: `smartrecruiters/${company.name}`, title: job.title, company: company.name, status: 'added' });
+          totalNew++;
+        }
+      }
+      console.log('');
+    }
+  }
+
+  // --- WorkDay ATS companies via Playwright (skipped when --greenhouse-only) ---
+  if (!GREENHOUSE_ONLY) {
+    const wdCompanies = (cfg.workday_companies || []).filter(c => c.enabled !== false);
+    if (wdCompanies.length > 0) {
+      console.log(`Fetching WorkDay (Playwright) (${wdCompanies.length} companies)...`);
+      const wdResults = await fetchWorkday(wdCompanies);
+      for (const { company, jobs } of wdResults) {
+        console.log(`  ${company.name}: ${jobs.length} jobs`);
+        totalFound += jobs.length;
+        for (const job of jobs) {
+          if (!job.url || !job.title) continue;
+          const filterResult = matchesFilter(job.title, titleFilter);
+          if (!filterResult.match) {
+            historyRows.push({ url: job.url, portal: `workday/${company.name}`, title: job.title, company: company.name, status: 'skipped_title' });
+            totalSkipped++;
+            continue;
+          }
+          totalFiltered++;
+          if (seenUrls.has(job.url)) {
+            historyRows.push({ url: job.url, portal: `workday/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          const appKey = normalizeKey(`${company.name}:${job.title}`);
+          if (appliedKeys.has(appKey)) {
+            historyRows.push({ url: job.url, portal: `workday/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          toAdd.push(job);
+          historyRows.push({ url: job.url, portal: `workday/${company.name}`, title: job.title, company: company.name, status: 'added' });
           totalNew++;
         }
       }
