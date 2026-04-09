@@ -1,6 +1,6 @@
 # Prefilter: Unknown — AI Automation Engineer @ Cosuno - Jobs
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/cosuno/564a3a0b-4748-493c-84ba-d8625913bf85
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 2.0/5 — AI Automation Engineer at unknown startup — automation fit; company quality/comp unknown
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Off-archetype role
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

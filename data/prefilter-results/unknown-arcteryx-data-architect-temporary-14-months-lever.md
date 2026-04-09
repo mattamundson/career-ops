@@ -1,6 +1,6 @@
 # Prefilter: Unknown — ARC'TERYX - Data Architect (Temporary - 14 months) - Lever
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.lever.co/arcteryx.com/49f935ce-5eba-4f05-a876-eadd52ccf866
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Contract/gig/temporary
+**Quick Score:** 1.5/5 — Contract, temp, or equity-only position — targeting full-time permanent roles
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Contract or temporary position
+- Equity-only compensation not acceptable
+- N/A
+**Recommendation:** SKIP
 
 ---
 

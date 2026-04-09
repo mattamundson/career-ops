@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Analytics Engineer @ Freshpaint - Jobs
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/freshpaint/09a33259-9ddc-4d0a-b651-3f1f663bfd37
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 2.5/5 — AE at Freshpaint (healthcare analytics) — regulated data adjacent; dbt gap
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- SQL + data modeling: Land O'Lakes SQL database (6,000+ truck purchases), Power BI semantic layers, DAX modeling
+- BI platform expertise: Power BI across 5 companies; advanced DAX for risk analytics at Pretium
+- Analytics delivery: Pretium portfolio risk dashboards, FirstEnergy enterprise analytics at Fortune 200 scale
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No dbt experience — analytics engineer roles almost universally require dbt proficiency
+- Modern data stack (Airflow, Snowflake, dbt) not primary in background — Power BI/DAX-centric
+- Unknown company quality and comp range
+**Recommendation:** MAYBE
 
 ---
 

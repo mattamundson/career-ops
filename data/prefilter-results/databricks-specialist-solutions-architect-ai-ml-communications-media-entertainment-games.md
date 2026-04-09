@@ -1,6 +1,6 @@
 # Prefilter: Databricks — Specialist Solutions Architect - AI & ML (Communications, Media, Entertainment & Games)
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8480547002
 **company:** Databricks

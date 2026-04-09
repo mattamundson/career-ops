@@ -1,6 +1,6 @@
 # Prefilter: Unknown — AI Automation Engineer/ Data Analyst to Learn for Exciting Startup ...
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://wellfound.com/jobs/3357730-ai-automation-engineer-data-analyst-to-learn-for-exciting-startup-20hrs-week-no-cash-equity-only
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 2.0/5 — AI Automation Engineer at unknown startup — automation fit; company quality/comp unknown
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Off-archetype role
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

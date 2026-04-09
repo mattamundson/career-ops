@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Analytics Engineering Lead @ Novellia - Jobs
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/novellia/5e84374c-3f35-4431-8218-5e050387404b
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 3.0/5 — Analytics Engineering Lead — senior AE manager role; dbt leadership gap; COO leadership experience relevant
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- SQL + data modeling: Land O'Lakes SQL database (6,000+ truck purchases), Power BI semantic layers, DAX modeling
+- BI platform expertise: Power BI across 5 companies; advanced DAX for risk analytics at Pretium
+- Analytics delivery: Pretium portfolio risk dashboards, FirstEnergy enterprise analytics at Fortune 200 scale
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No dbt experience — analytics engineer roles almost universally require dbt proficiency
+- Modern data stack (Airflow, Snowflake, dbt) not primary in background — Power BI/DAX-centric
+- Unknown company quality and comp range
+**Recommendation:** MAYBE
 
 ---
 

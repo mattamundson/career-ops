@@ -1,6 +1,6 @@
 # Prefilter: Unknown — AI Automation & Systems Engineer @ Scale Army Careers - Jobs
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/Scale%20Army%20Careers/e1f23893-5557-4436-aab5-992f231e2b8a
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 2.0/5 — AI Automation Engineer at unknown startup — automation fit; company quality/comp unknown
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Off-archetype role
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

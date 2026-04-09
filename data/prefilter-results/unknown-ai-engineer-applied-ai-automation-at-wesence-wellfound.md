@@ -1,6 +1,6 @@
 # Prefilter: Unknown — AI Engineer (Applied AI & Automation) at Wesence - Wellfound
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://wellfound.com/jobs/3727503-ai-engineer-applied-ai-automation
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.0/5 — Unknown company/role — title adjacent to target archetypes; JD fetch required for accurate scoring
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Off-archetype role
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

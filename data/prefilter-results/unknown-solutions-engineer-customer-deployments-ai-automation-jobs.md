@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Solutions Engineer (Customer Deployments & AI Automation) - Jobs
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/statisfy/0fe576ea-7189-498e-bd34-b0f139f38a92
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.5/5 — Solutions Engineer — similar pre-sales role; no track record; company context needed
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI automation architecture: n8n cross-system closed-loop monitoring (4 systems, zero manual handoffs)
+- LLM-powered workflows: deployed AI automation across quoting, documentation, content generation at GMS
+- Production AI systems: Jarvis Trader (1,295 tests) + 23 Claude Code skills — reliability-first automation mindset
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Unknown company — quality, comp, and culture are uncertain
+- JD fetch required to identify specific skill gaps
+- Unknown remote policy
+**Recommendation:** MAYBE
 
 ---
 

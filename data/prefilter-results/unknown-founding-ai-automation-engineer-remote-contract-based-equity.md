@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Founding AI Automation Engineer (Remote, Contract-based, Equity ...
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://wellfound.com/jobs/3876322-founding-ai-automation-engineer-remote-contract-based-equity-revenue-share
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Contract/gig/temporary
+**Quick Score:** 1.5/5 — Contract, temp, or equity-only position — targeting full-time permanent roles
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Contract or temporary position
+- Equity-only compensation not acceptable
+- N/A
+**Recommendation:** SKIP
 
 ---
 

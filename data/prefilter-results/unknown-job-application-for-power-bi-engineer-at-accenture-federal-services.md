@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Job Application for Power BI Engineer at Accenture Federal Services
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://boards.greenhouse.io/accenturefederalservices/jobs/4671407006
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics Lead (Archetype 3)
+**Quick Score:** 3.0/5 — Power BI role — direct tool match; seniority and scope determine full fit
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Cross-company data and AI delivery across manufacturing, utilities, financial services, supply chain
+- COO technical operator: built complete tech stacks without outside contractors
+- AI/LLM depth: Claude Code practitioner with 23 production skills
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Unknown company — quality, comp, and culture are uncertain
+- JD fetch required to identify specific skill gaps
+- Unknown remote policy
+**Recommendation:** MAYBE
 
 ---
 

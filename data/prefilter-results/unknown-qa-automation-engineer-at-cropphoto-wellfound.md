@@ -1,6 +1,6 @@
 # Prefilter: Unknown — QA Automation Engineer at Crop.photo - Wellfound
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://wellfound.com/jobs/3915711-qa-automation-engineer
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Off-archetype role (QA, SWE, cybersecurity, product management)
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Off-archetype entirely
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Staff Analytics Engineer @ Kit - Jobs
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/kit/29e561b8-4fa4-4597-8096-6f1cb286c3a8
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 2.5/5 — Senior Analytics Engineer — SQL/BI background adjacent; dbt is the gap
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- SQL + data modeling: Land O'Lakes SQL database (6,000+ truck purchases), Power BI semantic layers, DAX modeling
+- BI platform expertise: Power BI across 5 companies; advanced DAX for risk analytics at Pretium
+- Analytics delivery: Pretium portfolio risk dashboards, FirstEnergy enterprise analytics at Fortune 200 scale
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No dbt experience — analytics engineer roles almost universally require dbt proficiency
+- Modern data stack (Airflow, Snowflake, dbt) not primary in background — Power BI/DAX-centric
+- Unknown company quality and comp range
+**Recommendation:** MAYBE
 
 ---
 

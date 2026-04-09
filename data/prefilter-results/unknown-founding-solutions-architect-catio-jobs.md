@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Founding Solutions Architect @ Catio - Jobs
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/catio/62ca5a34-2ab0-4462-aa27-f4c72ab95669
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.5/5 — SA role — archetype adjacent; pre-sales experience gap; company/stack context needed
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI architecture depth: 23 Claude Code skills, Jarvis Trader production AI system — holds LLM architecture conversations
+- Stakeholder advisory: COO presenting to senior leadership; Pretium $25B+ investment decisions
+- End-to-end builder: architected complete data/AI stacks without outside contractors — rare for SA candidates
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No pre-sales Solutions Architect track record — no AE partnership, POC delivery, or sales cycle experience
+- Company context unknown — industry vertical and technical stack may have gaps
+- Unknown remote policy and comp range
+**Recommendation:** MAYBE
 
 ---
 

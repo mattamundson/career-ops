@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Senior Software Engineer (Data Platform Team) - Sysdig - Lever
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.lever.co/sysdig/18c4ad78-42b9-4b50-81d6-adab350e6a4b
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.0/5 — Unknown company/role — title adjacent to target archetypes; JD fetch required for accurate scoring
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Off-archetype role
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

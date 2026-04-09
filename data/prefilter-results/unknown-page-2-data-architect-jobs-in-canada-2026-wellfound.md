@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Page 2: Data Architect Jobs in Canada - 2026 - Wellfound
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://wellfound.com/role/l/data-architect/canada-startups?page=2
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Wellfound search result page
+**Quick Score:** 1.0/5 — Firecrawl scraped a Wellfound search results page, not an individual job listing
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Not an individual job listing — Wellfound browse/search page
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

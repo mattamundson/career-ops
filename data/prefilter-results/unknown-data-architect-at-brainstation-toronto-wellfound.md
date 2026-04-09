@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Data Architect at BrainStation • Toronto | Wellfound
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://wellfound.com/jobs/4050713-data-architect
 **company:** Unknown
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — International location
+**Quick Score:** 1.0/5 — Non-US location detected in title
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-US location — Matt is Minneapolis-based, remote US preferred
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 
