@@ -14,6 +14,19 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+// Load .env for FIRECRAWL_API_KEY (simple parser, no extra dependency)
+{
+  const envCandidate = resolve(dirname(fileURLToPath(import.meta.url)), '..', '.env');
+  if (existsSync(envCandidate)) {
+    for (const line of readFileSync(envCandidate, 'utf8').split('\n')) {
+      const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+      if (m && !process.env[m[1]]) {
+        process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
@@ -590,6 +603,68 @@ async function fetchGreenhouse(apiUrl, companyName) {
 }
 
 // ---------------------------------------------------------------------------
+// Ashby ATS API
+// GET https://jobs.ashbyhq.com/api/non-admin/job-board?organizationHostedJobsPageName={slug}
+// Returns: { jobPostings: [{title, jobUrl, publishedDate, location}] }
+// ---------------------------------------------------------------------------
+async function fetchAshby(slug, companyName) {
+  const url = `https://jobs.ashbyhq.com/api/non-admin/job-board?organizationHostedJobsPageName=${slug}`;
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'career-ops-auto-scan/1.0' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!resp.ok) {
+      console.error(`  [WARN] ${companyName} (Ashby): HTTP ${resp.status}`);
+      return [];
+    }
+    const data = await resp.json();
+    const postings = data.jobPostings || [];
+    return postings.map(p => ({
+      title:     p.title || '',
+      url:       p.jobUrl || `https://jobs.ashbyhq.com/${slug}/${p.id}`,
+      company:   companyName,
+      source:    'ashby-api',
+      updatedAt: p.publishedDate || null,
+    }));
+  } catch (err) {
+    console.error(`  [ERROR] ${companyName} (Ashby): ${err.message}`);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lever ATS API
+// GET https://api.lever.co/v0/postings/{slug}?mode=json
+// Returns: [{text: title, hostedUrl: url, createdAt: ms-timestamp}]
+// ---------------------------------------------------------------------------
+async function fetchLever(slug, companyName) {
+  const url = `https://api.lever.co/v0/postings/${slug}?mode=json`;
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'career-ops-auto-scan/1.0' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!resp.ok) {
+      console.error(`  [WARN] ${companyName} (Lever): HTTP ${resp.status}`);
+      return [];
+    }
+    const postings = await resp.json();
+    if (!Array.isArray(postings)) return [];
+    return postings.map(p => ({
+      title:     p.text || '',
+      url:       p.hostedUrl || '',
+      company:   companyName,
+      source:    'lever-api',
+      updatedAt: p.createdAt ? new Date(p.createdAt).toISOString() : null,
+    }));
+  } catch (err) {
+    console.error(`  [ERROR] ${companyName} (Lever): ${err.message}`);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Date filter — keep only jobs updated within SINCE_DAYS
 // Greenhouse updated_at format: "2026-03-15T00:00:00.000Z"
 // ---------------------------------------------------------------------------
@@ -644,6 +719,58 @@ function appendHistory(rows) {
   ).join('\n') + '\n';
 
   writeFileSync(HISTORY_TSV, header + existing + newLines, 'utf8');
+}
+
+// ---------------------------------------------------------------------------
+// Job board queries via Firecrawl Search (Level 4 discovery)
+// Reads job_board_queries from portals.yml, executes via @mendable/firecrawl-js SDK.
+// Requires FIRECRAWL_API_KEY in .env. Skips gracefully if key is absent.
+// ---------------------------------------------------------------------------
+async function runJobBoardQueries(cfg) {
+  const queries = (cfg.job_board_queries || []).filter(q => q.enabled !== false);
+  const apiKey  = process.env.FIRECRAWL_API_KEY;
+
+  if (!queries.length) {
+    console.log('[job-boards] No job_board_queries configured — skipping.');
+    return [];
+  }
+  if (!apiKey || apiKey === 'your_key_here') {
+    console.log('[job-boards] Skipped — set FIRECRAWL_API_KEY in .env to enable.');
+    return [];
+  }
+
+  const { default: FirecrawlApp } = await import('@mendable/firecrawl-js');
+  const firecrawl = new FirecrawlApp({ apiKey });
+  const allResults = [];
+
+  for (const q of queries) {
+    console.log(`  [firecrawl] ${q.name}...`);
+    try {
+      const result = await firecrawl.search(q.query, { limit: 20, lang: 'en', country: 'us' });
+      const hits = (result.data ?? []).map(r => ({
+        url:     r.url,
+        title:   (r.title ?? '').replace(/\s+/g, ' ').trim(),
+        company: inferBoardName(r.url),
+        portal:  `firecrawl/${q.name}`,
+      }));
+      console.log(`    → ${hits.length} results`);
+      allResults.push(...hits);
+    } catch (e) {
+      console.warn(`  [firecrawl] ${q.name} failed: ${e.message}`);
+    }
+  }
+
+  return allResults;
+}
+
+function inferBoardName(url) {
+  if (/indeed\.com/i.test(url))        return 'Indeed';
+  if (/linkedin\.com/i.test(url))      return 'LinkedIn';
+  if (/ziprecruiter\.com/i.test(url))  return 'ZipRecruiter';
+  if (/monster\.com/i.test(url))       return 'Monster';
+  if (/careerbuilder\.com/i.test(url)) return 'CareerBuilder';
+  if (/glassdoor\.com/i.test(url))     return 'Glassdoor';
+  return 'Unknown';
 }
 
 // ---------------------------------------------------------------------------
@@ -760,6 +887,132 @@ async function main() {
       });
       totalNew++;
     }
+  }
+
+  // --- Ashby ATS companies (skipped when --greenhouse-only) ---
+  if (!GREENHOUSE_ONLY) {
+    const ashbyCompanies = (cfg.ashby_companies || []).filter(c => c.enabled !== false);
+    if (ashbyCompanies.length > 0) {
+      console.log(`Fetching Ashby APIs (${ashbyCompanies.length} companies)...`);
+      const ashbyResults = await Promise.all(
+        ashbyCompanies.map(c => fetchAshby(c.slug, c.name))
+      );
+      for (let idx = 0; idx < ashbyCompanies.length; idx++) {
+        const company = ashbyCompanies[idx];
+        const jobs    = ashbyResults[idx];
+        console.log(`  ${company.name}: ${jobs.length} jobs returned`);
+        totalFound += jobs.length;
+        for (const job of jobs) {
+          if (!job.url || !job.title) continue;
+          if (!isWithinWindow(job, SINCE_DAYS)) continue;
+          const filterResult = matchesFilter(job.title, titleFilter);
+          if (!filterResult.match) {
+            historyRows.push({ url: job.url, portal: `ashby/${company.name}`, title: job.title, company: company.name, status: 'skipped_title' });
+            totalSkipped++;
+            continue;
+          }
+          totalFiltered++;
+          if (seenUrls.has(job.url)) {
+            historyRows.push({ url: job.url, portal: `ashby/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          const appKey = normalizeKey(`${company.name}:${job.title}`);
+          if (appliedKeys.has(appKey)) {
+            historyRows.push({ url: job.url, portal: `ashby/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          toAdd.push(job);
+          historyRows.push({ url: job.url, portal: `ashby/${company.name}`, title: job.title, company: company.name, status: 'added' });
+          totalNew++;
+        }
+      }
+      console.log('');
+    }
+  }
+
+  // --- Lever ATS companies (skipped when --greenhouse-only) ---
+  if (!GREENHOUSE_ONLY) {
+    const leverCompanies = (cfg.lever_companies || []).filter(c => c.enabled !== false);
+    if (leverCompanies.length > 0) {
+      console.log(`Fetching Lever APIs (${leverCompanies.length} companies)...`);
+      const leverResults = await Promise.all(
+        leverCompanies.map(c => fetchLever(c.slug, c.name))
+      );
+      for (let idx = 0; idx < leverCompanies.length; idx++) {
+        const company = leverCompanies[idx];
+        const jobs    = leverResults[idx];
+        console.log(`  ${company.name}: ${jobs.length} jobs returned`);
+        totalFound += jobs.length;
+        for (const job of jobs) {
+          if (!job.url || !job.title) continue;
+          if (!isWithinWindow(job, SINCE_DAYS)) continue;
+          const filterResult = matchesFilter(job.title, titleFilter);
+          if (!filterResult.match) {
+            historyRows.push({ url: job.url, portal: `lever/${company.name}`, title: job.title, company: company.name, status: 'skipped_title' });
+            totalSkipped++;
+            continue;
+          }
+          totalFiltered++;
+          if (seenUrls.has(job.url)) {
+            historyRows.push({ url: job.url, portal: `lever/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          const appKey = normalizeKey(`${company.name}:${job.title}`);
+          if (appliedKeys.has(appKey)) {
+            historyRows.push({ url: job.url, portal: `lever/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          toAdd.push(job);
+          historyRows.push({ url: job.url, portal: `lever/${company.name}`, title: job.title, company: company.name, status: 'added' });
+          totalNew++;
+        }
+      }
+      console.log('');
+    }
+  }
+
+  // --- Job board queries via Firecrawl (skipped when --greenhouse-only) ---
+  if (!GREENHOUSE_ONLY) {
+    console.log('Fetching job board queries via Firecrawl...');
+    const boardJobs = await runJobBoardQueries(cfg);
+
+    for (const job of boardJobs) {
+      if (!job.url || !job.title) continue;
+      totalFound++;
+
+      const filterResult = matchesFilter(job.title, titleFilter);
+      if (!filterResult.match) {
+        historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'skipped_title' });
+        totalSkipped++;
+        continue;
+      }
+      totalFiltered++;
+
+      if (seenUrls.has(job.url)) {
+        historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'skipped_dup' });
+        totalDup++;
+        continue;
+      }
+
+      const appKey = normalizeKey(`${job.company}:${job.title}`);
+      if (appliedKeys.has(appKey)) {
+        historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'skipped_dup' });
+        totalDup++;
+        continue;
+      }
+
+      seenUrls.add(job.url);
+      toAdd.push(job);
+      historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'added' });
+      totalNew++;
+    }
+    console.log('');
   }
 
   // Summary
