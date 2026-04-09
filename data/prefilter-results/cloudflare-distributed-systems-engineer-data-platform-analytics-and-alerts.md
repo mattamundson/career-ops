@@ -1,6 +1,6 @@
 # Prefilter: Cloudflare — Distributed Systems Engineer - Data Platform - Analytics and Alerts
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://boards.greenhouse.io/cloudflare/jobs/7462803?gh_jid=7462803
 **company:** Cloudflare
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Distributed systems SWE at Cloudflare — off-archetype; requires production Rust/Go/C++ backend engineering.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Systems thinking
+- Data/analytics awareness
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Distributed systems engineering requires production backend SWE (Rust, Go) not in CV
+- Cloudflare data platform (edge computing, ClickHouse, Kafka) is infrastructure-heavy
+- Off-archetype entirely
+**Recommendation:** SKIP
 
 ---
 

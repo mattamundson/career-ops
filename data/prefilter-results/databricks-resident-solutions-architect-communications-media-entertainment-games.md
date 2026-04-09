@@ -1,6 +1,6 @@
 # Prefilter: Databricks — Resident Solutions Architect - Communications, Media, Entertainment & Games
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8461193002
 **company:** Databricks
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 2.5/5 — CME&G vertical — off-background; pre-sales SA gap remains
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Native AI practitioner: 23 Claude Code skills, Jarvis Trader autonomous AI system (1,295 tests, 5-layer regime detection)
+- LLM architecture knowledge: agentic systems, tool use, context engineering — can hold deep technical conversations
+- Production AI systems: built for reliability under real conditions, not demos — enterprise-grade mindset
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No pre-sales Solutions Architect experience — all deployments have been internal
+- Databricks expects MLflow/MLOps/Spark expertise alongside AI/GenAI knowledge
+- No enterprise customer POC or demo delivery track record
+**Recommendation:** MAYBE
 
 ---
 

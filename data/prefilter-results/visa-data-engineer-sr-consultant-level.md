@@ -1,6 +1,6 @@
 # Prefilter: Visa — Data Engineer - Sr. Consultant level
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000118634457
 **company:** Visa
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 2.5/5 — Sr. Consultant-level DE at Visa; financial services is strong vertical; payments-scale engineering is the gap.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data engineering background: SQL, ETL, Python scripting, BI platform integrations across multiple companies
+- Financial services: Pretium financial analytics, UltiMed healthcare — regulated data environments
+- Systems design: ERP API → BI → AI pipeline at GMS demonstrates end-to-end data architecture thinking
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No Spark/Hadoop/distributed data engineering at Visa scale (billions of transactions)
+- No payments domain knowledge — Visa card network, authorization flows, settlement are specialized
+- Sr. Consultant level implies dbt/Airflow/Snowflake proficiency not explicitly in CV
+**Recommendation:** MAYBE
 
 ---
 

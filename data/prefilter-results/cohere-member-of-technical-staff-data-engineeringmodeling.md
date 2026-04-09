@@ -1,6 +1,6 @@
 # Prefilter: Cohere — Member of Technical Staff, Data EngineeringModeling
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/cohere/0885b39d-b2f8-44be-af4c-e533be2b34af
 **company:** Cohere
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — MTS Data Engineering at AI company — requires ML engineering and distributed data systems depth not in CV.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data engineering fundamentals: SQL, ETL, Python scripting across multiple companies
+- AI/ML context: Jarvis Trader RL training pipeline, n-autoresearch framework
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- MTS = production ML engineer; no Spark/Flink/distributed ML pipeline engineering experience
+- Cohere trains frontier models — data engineering requires petabyte-scale ML data infrastructure
+- Off-archetype entirely for Matt's background
+**Recommendation:** SKIP
 
 ---
 

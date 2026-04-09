@@ -1,6 +1,6 @@
 # Prefilter: dbt Labs — Partner Solutions Architect - Japan
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://job-boards.greenhouse.io/dbtlabsinc/jobs/4673657005
 **company:** dbt Labs
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — International location
+**Quick Score:** 1.0/5 — Japan — non-US location.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-US location (Japan)
+- Not applicable
+- Not applicable
+**Recommendation:** SKIP
 
 ---
 

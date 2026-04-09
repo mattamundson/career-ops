@@ -1,6 +1,6 @@
 # Prefilter: Visa — Director - Data Engineering and ML
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000119333933
 **company:** Visa
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operations Technology Leader (Archetype 6)
+**Quick Score:** 2.5/5 — Director-level management — COO experience is relevant but no ML engineering leadership track record.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Leadership scope: COO managing entire tech stack and cross-functional teams at GMS
+- Technical credibility: can evaluate ML/data engineering work and set architecture standards
+- Enterprise data delivery: Pretium, FirstEnergy, Land O'Lakes — multi-company delivery track record
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Director DE&ML typically manages ML platform teams; no ML engineering team management at any company
+- No production ML pipeline ownership at enterprise scale (Visa processes billions of transactions)
+- Director at Visa (Fortune 50 financial infrastructure) expects fintech domain expertise and management track record
+**Recommendation:** MAYBE
 
 ---
 

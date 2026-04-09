@@ -1,6 +1,6 @@
 # Prefilter: Visa — Lead Data Architect
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000118929245
 **company:** Visa
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 3.5/5 — Lead Data Architect at Visa — strong archetype match; financial services background; payments domain is the primary gap.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data architecture across 5 companies: ERP→BI→AI pipelines, semantic model design, ETL orchestration — 10+ years end-to-end
+- Financial services depth: Pretium ($25B+ distressed debt portfolio analytics), UltiMed regulated healthcare data
+- Production AI integration: Jarvis Trader autonomous trading system + GMS AI-driven purchasing alerts — AI-native architect
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No payments domain knowledge — Visa card network authorization, settlement, clearing are highly specialized
+- Lead architect at Visa scale expects Spark/Databricks/Hadoop experience for petabyte-scale data
+- No formal Data Architect title in CV — 10+ years of architect-level work as COO/developer, not labeled as architect
+**Recommendation:** EVALUATE
 
 ---
 

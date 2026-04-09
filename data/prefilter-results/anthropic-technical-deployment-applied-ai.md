@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Technical Deployment, Applied AI
 
-**status:** evaluate
+**status:** promoted
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5017903008
 **company:** Anthropic
@@ -34,10 +34,12 @@ Thresholds:
 - No formal enterprise customer engagement (SOW/delivery management for external clients vs internal ops)
 - No explicit AI agent deployment track record in a customer-facing consulting context
 - Cities listed are Atlanta/Austin/Boston/Chicago/SF/NYC/DC — may require on-site presence, not fully remote
-**Recommendation:** EVALUATE
+**Recommendation:** SKIP — Location disqualifier: 25% in-office required at ATL/AUS/BOS/CHI/SF/NYC/DC; Matt is Minneapolis-based with no nearby office. Also 25-50% customer travel stacks on top.
 
 ---
 
 ## Notes
 
 <!-- Optional: manual notes, context, referrals, etc. -->
+
+**Outreach Template:** [View](../outreach/anthropic-technical-deployment-applied-ai.md)

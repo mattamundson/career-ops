@@ -1,6 +1,6 @@
 # Prefilter: Cohere — Applied AI Engineer - Agentic Workflows (Singapore)Applied-ML
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/cohere/9c18b199-cd1f-4ef3-9fab-ce05589348ae
 **company:** Cohere
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — International location
+**Quick Score:** 1.0/5 — Singapore — non-US.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-US location (Singapore)
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

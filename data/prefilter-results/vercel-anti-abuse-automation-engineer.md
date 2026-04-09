@@ -1,6 +1,6 @@
 # Prefilter: Vercel — Anti-Abuse Automation Engineer
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://job-boards.greenhouse.io/vercel/jobs/5843010004
 **company:** Vercel
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Anti-abuse/trust & safety engineering — off-archetype; no security or abuse detection background.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Technical engineering background
+- Automation thinking
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Anti-abuse requires trust & safety, fraud detection, or security engineering specialization not in CV
+- Vercel is frontend infrastructure — no frontend/web infra background
+- Off-archetype entirely
+**Recommendation:** SKIP
 
 ---
 

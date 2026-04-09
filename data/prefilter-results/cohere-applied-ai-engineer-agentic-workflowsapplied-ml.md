@@ -1,6 +1,6 @@
 # Prefilter: Cohere — Applied AI Engineer – Agentic WorkflowsApplied-ML
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/cohere/1fa01a03-9253-4f62-8f10-0fe368b38cb9
 **company:** Cohere
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 3.0/5 — Strong LLM/agentic alignment; production SWE and enterprise customer gaps are meaningful.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Agentic architecture: 23 Claude Code skills, OpenClaw WhatsApp gateway, Jarvis Trader multi-agent system
+- Frontier LLM depth: native Claude practitioner — tool use, context engineering, agentic patterns at production level
+- Eval mindset: WFE validation gate in Jarvis Trader is eval framework thinking applied to ML reliability
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Production SWE gap: "production engineering expertise in Python/TypeScript" implies SWE-grade coding, not scripting
+- No enterprise customer technical leadership — all work has been internal, no external deployment advisory
+- No RAG/vector store experience — Cohere expects retrieval-augmented generation system design
+**Recommendation:** MAYBE
 
 ---
 

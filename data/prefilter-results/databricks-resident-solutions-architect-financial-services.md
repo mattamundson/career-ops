@@ -1,6 +1,6 @@
 # Prefilter: Databricks — Resident Solutions Architect - Financial Services
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8461330002
 **company:** Databricks
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 3.0/5 — Fintech/financial SA — Pretium background relevant; pre-sales SA gap; likely Spark/Lakehouse depth required
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Fintech-adjacent: Pretium ($25B+ distressed debt analytics), UltiMed healthcare — regulated data with real stakes
+- AI/data architecture: Claude Code skills, Jarvis Trader production AI system, ERP-to-BI-to-AI pipeline at GMS
+- Stakeholder communication: COO presenting to senior leadership across complex investment decisions
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No pre-sales Solutions Architect experience — all work has been internal ops, not customer-facing advisory
+- No Databricks/Spark/Delta Lake hands-on — Databricks expects deep Lakehouse platform fluency
+- Financial services vertical at Databricks scale differs from Pretium portfolio analytics
+**Recommendation:** MAYBE
 
 ---
 

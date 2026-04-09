@@ -1,6 +1,6 @@
 # Prefilter: dbt Labs — Customer Solutions Architect, Manager (Dublin)
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://job-boards.greenhouse.io/dbtlabsinc/jobs/4669953005
 **company:** dbt Labs
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — International location
+**Quick Score:** 1.0/5 — Dublin, Ireland — non-US location; Matt is Minneapolis-based, remote-preferred.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-US location (Dublin, Ireland)
+- Not applicable
+- Not applicable
+**Recommendation:** SKIP
 
 ---
 

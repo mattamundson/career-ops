@@ -1,6 +1,6 @@
 # Prefilter: Visa — Analyst, Business Intelligence
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000119366667
 **company:** Visa
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Level mismatch
+**Quick Score:** 1.5/5 — BI Analyst — significantly below COO seniority; level mismatch.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Power BI expertise across 5 companies
+- SQL and DAX proficiency
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- COO to BI Analyst is 4-5 level step down in seniority
+- Below target comp range
+- Analyst role would not leverage senior leadership or architecture experience
+**Recommendation:** SKIP
 
 ---
 

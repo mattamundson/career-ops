@@ -1,6 +1,6 @@
 # Prefilter: Cohere — Applied AI Engineer – Agentic Workflows (Korea)Applied-ML
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/cohere/031c2335-db85-4265-8a88-a54b911be36a
 **company:** Cohere
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — International location
+**Quick Score:** 1.0/5 — Korea — non-US.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-US location (Korea)
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 

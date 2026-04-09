@@ -1,6 +1,6 @@
 # Prefilter: Spotify — Backend Engineer - Data Platform
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.lever.co/spotify/db6450c7-5017-4aa5-8a64-52e39f1ed525
 **company:** Spotify
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Backend SWE on data platform at Spotify — off-archetype; no production backend engineering at scale.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Python scripting
+- Data platform understanding
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Backend SWE requires CS-grade programming proficiency at scale not in CV
+- Spotify data platform (Java/Scala, Kafka, Backstage) is production backend engineering
+- Off-archetype entirely
+**Recommendation:** SKIP
 
 ---
 

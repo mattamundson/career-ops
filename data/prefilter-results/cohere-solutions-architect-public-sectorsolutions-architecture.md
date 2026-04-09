@@ -1,6 +1,6 @@
 # Prefilter: Cohere — Solutions Architect - Public SectorSolutions Architecture
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/cohere/6d0f0753-ff22-46fd-90e9-08998914a8e7
 **company:** Cohere
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.5/5 — Public sector SA at AI company — AI fit is strong but gov/public sector vertical and pre-sales gaps.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI architecture depth: 23 Claude skills, Jarvis Trader autonomous system — can hold LLM architecture conversations
+- Regulated industry adjacent: FirstEnergy (Fortune 200 utility) provides compliance-aware delivery context
+- COO stakeholder experience: executive communication across technical and business leaders
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No government/public sector experience — public sector SA requires procurement and compliance expertise
+- No pre-sales SA track record — all work has been internal operational deployment
+- Cohere is a competitor to Anthropic/Claude — demonstrating non-Claude AI expertise may be required
+**Recommendation:** MAYBE
 
 ---
 

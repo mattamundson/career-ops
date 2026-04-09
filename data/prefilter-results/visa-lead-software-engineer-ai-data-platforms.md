@@ -1,6 +1,6 @@
 # Prefilter: Visa — Lead  Software  Engineer (AI & Data Platforms)
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000118983487
 **company:** Visa
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Lead SWE on AI/Data Platforms — production backend engineering at scale; off-archetype.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI/data context
+- Python scripting
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Lead SWE requires CS-grade production engineering (Scala, Java, C++) not in background
+- Off-archetype entirely
+- N/A
+**Recommendation:** SKIP
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Notion — Data Engineer, FinanceEngineering
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/notion/4d1bce46-3cb1-4a26-b6c6-ac9b02ee413d
 **company:** Notion
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 2.5/5 — Finance data engineering at Notion; no dbt/modern data stack and not analyst-facing financial architecture.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Financial data: Pretium ($25B+ portfolio analytics), DST Market Services ($1M+ brokerage accounts)
+- ETL pipeline design: SQL database for 6,000+ Land O'Lakes truck purchases; GMS ERP→BI pipelines
+- Data modeling: designed semantic layers in Power BI; Inventory Health Index domain-specific model
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No dbt experience — Notion almost certainly uses dbt for transformations; gap is significant
+- Finance DE at product company differs from financial analytics — focus is on RevOps/FP&A pipelines, not investment analysis
+- No Airflow/Spark/modern data stack — Notion expects cloud-native orchestration tooling
+**Recommendation:** MAYBE
 
 ---
 

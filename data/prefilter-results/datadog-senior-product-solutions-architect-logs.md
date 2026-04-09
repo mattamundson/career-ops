@@ -1,6 +1,6 @@
 # Prefilter: Datadog — Senior Product Solutions Architect - Logs
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://careers.datadoghq.com/detail/7750751/?gh_jid=7750751
 **company:** Datadog
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Logs/observability SA — requires Kubernetes, cloud infrastructure expertise; off-archetype for data/AI focus.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Systems thinking
+- Technical architecture communication
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Kubernetes/container expertise required — not in background
+- Cloud infrastructure (networking, compute, storage) — not primary background
+- Observability engineering (Prometheus, Loki, log pipelines) is a different discipline
+**Recommendation:** SKIP
 
 ---
 

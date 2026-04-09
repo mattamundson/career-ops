@@ -1,6 +1,6 @@
 # Prefilter: Databricks — Resident Solutions Architect - Manufacturing
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8341313002
 **company:** Databricks
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 3.0/5 — Manufacturing/energy SA — GMS COO + FirstEnergy are strong vertical matches; pre-sales SA gap
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Manufacturing domain: GMS COO built entire operational tech stack in active manufacturing environment
+- Energy/regulated: FirstEnergy (Fortune 200 regulated utility) — compliance-intensive enterprise analytics
+- End-to-end data systems: ERP API → BI → AI automation with zero manual handoffs
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No pre-sales Solutions Architect track record — internal operator, not external technical advisor
+- No Databricks/Spark — Databricks expects Lakehouse platform fluency for vertical SA roles
+- Enterprise customer engagement (POCs, demos, sales cycles) not in background
+**Recommendation:** MAYBE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Datadog — Product Solutions Architect - Product Analytics and Experimentation
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://careers.datadoghq.com/detail/7732699/?gh_jid=7732699
 **company:** Datadog
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Product analytics SA (Amplitude/Mixpanel/Adobe Analytics) — off-archetype; web/mobile product analytics is not the focus.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- General analytics background: Power BI, DAX, SQL across 5 companies
+- Customer advisory: COO stakeholder communication
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Product analytics tools (Amplitude, Mixpanel, Adobe Analytics) not in background at all
+- Feature flag/experimentation systems (LaunchDarkly, Eppo) — no experience
+- Web/mobile analytics is a different domain than enterprise data architecture or AI automation
+**Recommendation:** SKIP
 
 ---
 

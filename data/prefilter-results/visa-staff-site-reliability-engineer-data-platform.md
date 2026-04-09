@@ -1,10 +1,10 @@
-# Prefilter: Visa — Staff Data Engineer (Bigdata + Golang/ Java/ Rust/ C/C++)
+# Prefilter: Visa — Staff Site Reliability Engineer, Data Platform
 
 **status:** skip
 **date:** 2026-04-09
-**url:** https://jobs.smartrecruiters.com/Visa/744000118834184
+**url:** https://jobs.smartrecruiters.com/Visa/744000119661327
 **company:** Visa
-**title:** Staff Data Engineer (Bigdata + Golang/ Java/ Rust/ C/C++)
+**title:** Staff Site Reliability Engineer, Data Platform
 
 ---
 
@@ -25,16 +25,22 @@ Thresholds:
 <!-- Fill in after running /prefilter mode -->
 
 **Archetype:** N/A — Off-archetype
-**Quick Score:** 1.5/5 — Staff DE (Golang/Java/Rust/C++) — compiled language engineering expertise; off-archetype.
+**Quick Score:** 1.5/5 — Staff SRE on Data Platform — reliability engineering and distributed systems; off-archetype.
 **Top 3 Matches:**
-- Data engineering conceptual awareness
+- Systems reliability mindset (Jarvis Trader ConsecutiveLossTracker, WFE validation gate)
 - N/A
 - N/A
 **Top 3 Gaps:**
-- Golang/Java/Rust/C++ proficiency required — not in background
-- Big data engineering (Hadoop, Spark at petabyte scale) not in CV
+- SRE requires production on-call, incident management, and infrastructure engineering expertise not in background
 - Off-archetype entirely
+- N/A
 **Recommendation:** SKIP
+
+---
+
+## Company Intel
+
+[../company-intel/visa.md](../company-intel/visa.md)
 
 ---
 

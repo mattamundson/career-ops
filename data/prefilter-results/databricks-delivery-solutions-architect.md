@@ -1,10 +1,10 @@
-# Prefilter: Databricks — Resident Solutions Architect - Healthcare & Life Sciences
+# Prefilter: Databricks — Delivery Solutions Architect
 
 **status:** maybe
 **date:** 2026-04-09
-**url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8371312002
+**url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8441894002
 **company:** Databricks
-**title:** Resident Solutions Architect - Healthcare & Life Sciences
+**title:** Delivery Solutions Architect
 
 ---
 
@@ -25,7 +25,7 @@ Thresholds:
 <!-- Fill in after running /prefilter mode -->
 
 **Archetype:** Applied AI / Solutions Architect (Archetype 5)
-**Quick Score:** 2.5/5 — Healthcare/life sciences vertical — regulated industry experience adjacent; no clinical background
+**Quick Score:** 2.5/5 — Resident/Delivery SA = post-sales embedded; closer fit than pre-sales but no formal post-sales delivery track record
 **Top 3 Matches:**
 - Architecture thinking: designed and implemented complete data stacks across 5 companies without outside contractors
 - Regulated industry: FirstEnergy Fortune 200 utility, Pretium financial services — compliance-aware delivery
@@ -35,6 +35,12 @@ Thresholds:
 - No Databricks/Spark/Delta Lake hands-on experience — platform depth expected for all SA roles
 - Sales cycle context (AE partnership, technical win rates, POC delivery) not in background
 **Recommendation:** MAYBE
+
+---
+
+## Company Intel
+
+[../company-intel/databricks.md](../company-intel/databricks.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Visa — Sr. Business Intelligence Engineer - Digital Experiences & Capabilities
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000118479118
 **company:** Visa
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics Lead (Archetype 3)
+**Quick Score:** 3.0/5 — Sr. BI Engineer at Visa — Power BI/analytics background is strong; digital product BI differs from enterprise analytics.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Power BI expertise: built executive dashboards across 5 companies (Pretium, FirstEnergy, Land O'Lakes, GMS, UltiMed)
+- Advanced DAX: custom risk measures for distressed debt at Pretium; domain-specific KPI models
+- Financial services context: Pretium investment analytics, UltiMed healthcare compliance
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Digital experiences BI at Visa focuses on web/mobile funnel analytics — different from enterprise operations BI
+- Visa scale (billions of transactions, global) differs from 50-person analytics team environments in background
+- No digital product analytics tools (Amplitude, Looker, product telemetry) — Power BI-centric background
+**Recommendation:** MAYBE
 
 ---
 

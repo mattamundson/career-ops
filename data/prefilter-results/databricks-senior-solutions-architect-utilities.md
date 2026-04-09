@@ -1,6 +1,6 @@
 # Prefilter: Databricks — Senior Solutions Architect (Utilities)
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8480817002
 **company:** Databricks
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 1.0/5 — Non-US location: London, United Kingdom
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Technical architecture background from COO role
+- AI/data systems knowledge
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-US location: London, United Kingdom
+- N/A
+- N/A
+**Recommendation:** SKIP
 
 ---
 
