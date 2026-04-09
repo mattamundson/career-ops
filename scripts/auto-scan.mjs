@@ -1048,6 +1048,18 @@ async function main() {
     if (toAdd.length > 0) {
       appendToPipeline(toAdd);
       console.log(`Written ${toAdd.length} entries to pipeline.md`);
+
+      // Auto-generate prefilter cards for newly-added entries
+      console.log('Generating prefilter cards...');
+      const { execFileSync } = await import('child_process');
+      try {
+        execFileSync(process.execPath, [resolve(__dir, 'prefilter-pipeline.mjs')], {
+          stdio: 'inherit',
+          cwd:   ROOT,
+        });
+      } catch (e) {
+        console.warn(`[WARN] prefilter-pipeline.mjs failed: ${e.message}`);
+      }
     }
     if (historyRows.length > 0) {
       appendHistory(historyRows);

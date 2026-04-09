@@ -102,6 +102,27 @@ function parsePrefilterCards() {
   });
 }
 
+function parseLivenessReports() {
+  const dir = join(ROOT, 'data');
+  if (!existsSync(dir)) return { lastRun: null, deadCount: 0, deadUrls: [] };
+  const reports = readdirSync(dir).filter(f => f.startsWith('liveness-') && f.endsWith('.md'));
+  if (!reports.length) return { lastRun: null, deadCount: 0, deadUrls: [] };
+  reports.sort().reverse();
+  const latest = reports[0];
+  const text = readFileSync(join(dir, latest), 'utf8');
+  // Parse dead URL entries: lines starting with "- **Company**"
+  const deadUrls = [];
+  for (const line of text.split('\n')) {
+    const m = line.match(/^- \*\*(.+?)\*\* — (.+)/);
+    if (m) deadUrls.push({ company: m[1], title: m[2] });
+  }
+  return {
+    lastRun:  latest.replace('liveness-', '').replace('.md', ''),
+    deadCount: deadUrls.length,
+    deadUrls,
+  };
+}
+
 function readReport(reportPath) {
   if (!reportPath) return null;
   const full = join(ROOT, reportPath);
@@ -143,6 +164,8 @@ const prefilterScored  = prefilterCards.filter(c => c.score !== null);
 const prefilterPassed  = prefilterScored.filter(c => c.score >= 3.5).length;
 const prefilterMaybe   = prefilterScored.filter(c => c.score >= 2.5 && c.score < 3.5).length;
 const prefilterSkip    = prefilterScored.filter(c => c.score < 2.5).length;
+
+const liveness = parseLivenessReports();
 
 const generatedAt = new Date().toLocaleString('en-US', {
   timeZone: 'America/Chicago',
@@ -412,6 +435,11 @@ const html = `<!DOCTYPE html>
     <div class="stat-card">
       <div class="label">Pipeline Inbox</div>
       <div class="value" style="color:var(--sky)">${pendingPipeline.length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Dead URLs</div>
+      <div class="value" style="color:${liveness.deadCount > 0 ? '#f38ba8' : '#a6e3a1'}">${liveness.deadCount}</div>
+      <div class="label" style="margin-top:2px">${liveness.lastRun ? 'checked ' + liveness.lastRun : 'never checked'}</div>
     </div>
   </div>
 
