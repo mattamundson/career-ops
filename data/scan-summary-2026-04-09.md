@@ -2,12 +2,13 @@
 
 | Metric | Value |
 |--------|-------|
-| Total found | 4141 |
-| Title-filtered (skipped) | 1028 |
-| Title-matched | 90 |
-| Duplicates | 89 |
-| **New added** | **1** |
+| Total found | 5043 |
+| Title-filtered (skipped) | 1509 |
+| Title-matched | 273 |
+| Duplicates | 271 |
+| **New added** | **2** |
 
 ## New Matches
 
-- [Resident Solutions Architect - Mumbai](https://databricks.com/company/careers/open-positions/job?gh_jid=8107166002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8441894002) — Databricks
+- [Staff Site Reliability Engineer, Data Platform](https://jobs.smartrecruiters.com/Visa/744000119661327) — Visa
