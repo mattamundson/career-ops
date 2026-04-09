@@ -180,6 +180,19 @@ let rejectionInsights = null;
   } catch { /* not enough data or script error — panel hidden */ }
 }
 
+// Filter Health — run tune-filters.mjs --json (30-day window)
+let filterHealth = null;
+{
+  const { execFileSync } = await import('child_process');
+  const { resolve: res } = await import('path');
+  try {
+    const out = execFileSync(process.execPath, [
+      res(ROOT, 'scripts', 'tune-filters.mjs'), '--json', '--days=30',
+    ], { cwd: ROOT, encoding: 'utf8' });
+    filterHealth = JSON.parse(out.trim());
+  } catch { /* no scan history yet — panel hidden */ }
+}
+
 const generatedAt = new Date().toLocaleString('en-US', {
   timeZone: 'America/Chicago',
   month: 'short', day: 'numeric', year: 'numeric',
@@ -540,6 +553,50 @@ const html = `<!DOCTYPE html>
               <span style="min-width:80px;color:var(--subtext)">${g.severity}</span>
               <span>${g.gap}</span>
             </div>`).join('')}
+        </div>` : ''}
+    </div>
+  </div>` : ''}
+
+  <!-- Filter Health (shown only when scan history exists) -->
+  ${filterHealth ? `
+  <div class="section">
+    <div class="section-header">
+      <h2>Filter Health</h2>
+      <span class="count">${filterHealth.added} added / ${filterHealth.skipped} skipped in ${filterHealth.window}d</span>
+    </div>
+    <div style="padding:16px 20px">
+      ${filterHealth.topKeywords?.length ? `
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Top Performing Keywords</div>
+          ${filterHealth.topKeywords.slice(0, 5).map(k => {
+            const pct = Math.round((k.count / filterHealth.topKeywords[0].count) * 100);
+            return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#a6e3a1;font-weight:700">${k.count}</span>
+              <span style="min-width:160px;color:var(--text)">${k.kw}</span>
+              <div style="flex:1;background:#313244;border-radius:2px;height:6px">
+                <div style="width:${pct}%;background:#a6e3a1;height:6px;border-radius:2px"></div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>` : ''}
+      ${filterHealth.deadKeywords?.length ? `
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Zero-Match Keywords (${filterHealth.window}d) — consider pruning</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${filterHealth.deadKeywords.slice(0, 10).map(kw =>
+              `<span style="background:#313244;color:#f38ba8;padding:2px 8px;border-radius:4px;font-size:11px">${kw}</span>`
+            ).join('')}
+          </div>
+        </div>` : ''}
+      ${filterHealth.novelPhrases?.length ? `
+        <div>
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Discovery — Common Skipped Phrases (add to positive filter?)</div>
+          ${filterHealth.novelPhrases.slice(0, 6).map(p =>
+            `<div style="display:flex;gap:8px;margin-bottom:4px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#f9e2af">${p.count}x</span>
+              <span style="color:var(--text)">"${p.phrase}"</span>
+            </div>`
+          ).join('')}
         </div>` : ''}
     </div>
   </div>` : ''}
