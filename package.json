@@ -9,12 +9,21 @@
     "dedup": "node dedup-tracker.mjs",
     "merge": "node merge-tracker.mjs",
     "pdf": "node generate-pdf.mjs",
-    "sync-check": "node cv-sync-check.mjs"
+    "sync-check": "node cv-sync-check.mjs",
+    "dashboard": "node scripts/generate-dashboard.mjs --open"
   },
-  "keywords": ["ai", "job-search", "claude-code", "career", "automation", "data"],
+  "keywords": [
+    "ai",
+    "job-search",
+    "claude-code",
+    "career",
+    "automation",
+    "data"
+  ],
   "author": "Matthew M. Amundson <MattMAmundson@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@mendable/firecrawl-js": "^4.18.1",
     "playwright": "^1.58.1"
   }
 }

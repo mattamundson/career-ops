@@ -1,0 +1,43 @@
+# Prefilter: Unknown — Solutions Architect @ Kira - Jobs
+
+**status:** pending
+**date:** 2026-04-09
+**url:** https://jobs.ashbyhq.com/kira/c711d878-392e-4a57-8f5a-27efa5882e89
+**company:** Unknown
+**title:** Solutions Architect @ Kira - Jobs
+
+---
+
+## Instructions
+
+Run the `prefilter` mode against this JD to fill in the scored output below.
+Command: paste URL or JD text into career-ops with `/prefilter` prefix.
+
+Thresholds:
+- >= 3.5 → EVALUATE (proceed to full A-F)
+- 2.5 – 3.4 → MAYBE (manual review)
+- < 2.5 → SKIP
+
+---
+
+## Prefilter Result
+
+<!-- Fill in after running /prefilter mode -->
+
+**Archetype:** _pending_
+**Quick Score:** _/5 — _
+**Top 3 Matches:**
+- _pending_
+- _pending_
+- _pending_
+**Top 3 Gaps:**
+- _pending_
+- _pending_
+- _pending_
+**Recommendation:** _EVALUATE | MAYBE | SKIP_
+
+---
+
+## Notes
+
+<!-- Optional: manual notes, context, referrals, etc. -->

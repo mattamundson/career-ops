@@ -85,14 +85,16 @@ If the candidate has a live demo/dashboard (check profile.yml), offer access in 
 
 **Minneapolis / Remote market ranges (2026):**
 
-| Archetype | Remote | Minneapolis local |
-|-----------|--------|-------------------|
-| Operational Data Architect | $120K–$160K | $100K–$140K |
-| AI Automation / Workflow Engineer | $130K–$170K | $110K–$150K |
-| BI & Analytics Lead | $110K–$150K | $95K–$135K |
-| Business Systems / ERP Specialist | $110K–$150K | $95K–$130K |
-| Applied AI / Solutions Architect | $140K–$180K | $120K–$160K |
-| Operations Technology Leader | $150K–$200K | $130K–$175K |
+| Archetype | Remote | Minneapolis local | Matt's Target |
+|-----------|--------|-------------------|---------------|
+| Operational Data Architect | $120K–$160K | $100K–$140K | $100K–$140K |
+| AI Automation / Workflow Engineer | $130K–$170K | $110K–$150K | $100K–$140K |
+| BI & Analytics Lead | $110K–$150K | $95K–$135K | $100K–$130K |
+| Business Systems / ERP Specialist | $110K–$150K | $95K–$130K | $100K–$130K |
+| Applied AI / Solutions Architect | $140K–$180K | $120K–$160K | $110K–$140K |
+| Operations Technology Leader | $150K–$200K | $130K–$175K | $120K–$140K |
+
+**Matt's floor: $100K minimum (from profile.yml). Do NOT score any role above 2.0 if total comp is below $100K.**
 
 **General guidance:**
 - Use WebSearch for current market data (Glassdoor, Levels.fyi, Blind)

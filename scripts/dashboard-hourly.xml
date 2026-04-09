@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<!--
+  dashboard-hourly.xml — Windows Task Scheduler definition for hourly dashboard regeneration
+  ===========================================================================================
+  Runs: node scripts/generate-dashboard.mjs
+  Schedule: Every 1 hour, starting at midnight. Generates a fresh dashboard.html
+            reflecting any updates to data/applications.md, data/pipeline.md, or reports/.
+  Working directory: C:\Users\mattm\career-ops\
+
+  IMPORT INSTRUCTIONS
+  -------------------
+  Open an elevated (Admin) Command Prompt and run:
+
+      schtasks /create /xml "C:\Users\mattm\career-ops\scripts\dashboard-hourly.xml" /tn "Career-Ops Dashboard" /f
+
+  To verify the task was created:
+      schtasks /query /tn "Career-Ops Dashboard" /fo LIST
+
+  To run immediately (for testing):
+      schtasks /run /tn "Career-Ops Dashboard"
+
+  To delete the task:
+      schtasks /delete /tn "Career-Ops Dashboard" /f
+
+  NOTE: The task runs as the current user (interactive). The HTML file is always
+  fresh when you reload the tab — the browser also auto-reloads every 60 minutes
+  via <meta http-equiv="refresh" content="3600"> in the generated page.
+  ===========================================================================================
+-->
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+
+  <RegistrationInfo>
+    <Date>2026-04-08T00:00:00</Date>
+    <Author>mattm</Author>
+    <Description>Regenerates dashboard.html every hour by reading data/applications.md, data/pipeline.md, and reports/. Open C:\Users\mattm\career-ops\dashboard.html in any browser — it auto-refreshes every 60 minutes.</Description>
+    <URI>\Career-Ops Dashboard</URI>
+  </RegistrationInfo>
+
+  <Triggers>
+    <TimeTrigger>
+      <StartBoundary>2026-04-08T00:00:00</StartBoundary>
+      <Enabled>true</Enabled>
+      <Repetition>
+        <Interval>PT1H</Interval>
+        <StopAtDurationEnd>false</StopAtDurationEnd>
+      </Repetition>
+    </TimeTrigger>
+  </Triggers>
+
+  <Principals>
+    <Principal id="Author">
+      <!-- LogonType 7 = TASK_LOGON_INTERACTIVE_TOKEN (runs as logged-in user, no stored password needed) -->
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>LeastPrivilege</RunLevel>
+    </Principal>
+  </Principals>
+
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>false</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+    <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT2M</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+
+  <Actions Context="Author">
+    <Exec>
+      <Command>C:\Program Files\nodejs\node.exe</Command>
+      <Arguments>scripts\generate-dashboard.mjs</Arguments>
+      <WorkingDirectory>C:\Users\mattm\career-ops\</WorkingDirectory>
+    </Exec>
+  </Actions>
+
+</Task>

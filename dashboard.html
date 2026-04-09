@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career-Ops Dashboard</title>
+<meta http-equiv="refresh" content="3600">
+<style>
+  :root {
+    --base:    #1e1e2e;
+    --mantle:  #181825;
+    --crust:   #11111b;
+    --surface0:#313244;
+    --surface1:#45475a;
+    --surface2:#585b70;
+    --overlay0:#6c7086;
+    --overlay1:#7f849c;
+    --text:    #cdd6f4;
+    --subtext: #a6adc8;
+    --mauve:   #cba6f7;
+    --blue:    #89b4fa;
+    --sapphire:#74c7ec;
+    --sky:     #89dceb;
+    --teal:    #94e2d5;
+    --green:   #a6e3a1;
+    --yellow:  #f9e2af;
+    --peach:   #fab387;
+    --red:     #f38ba8;
+    --pink:    #f5c2e7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--base); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Layout */
+  .header { background: var(--crust); border-bottom: 1px solid var(--surface0); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 18px; font-weight: 700; color: var(--mauve); letter-spacing: 0.5px; }
+  .header .subtitle { color: var(--subtext); font-size: 12px; }
+  .header .gen-time { margin-left: auto; color: var(--overlay0); font-size: 11px; }
+  .header .refresh-btn { background: var(--surface0); border: 1px solid var(--surface1); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .header .refresh-btn:hover { background: var(--surface1); }
+
+  .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+  /* Stats row */
+  .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-card { background: var(--mantle); border: 1px solid var(--surface0); border-radius: 8px; padding: 12px 16px; min-width: 120px; }
+  .stat-card .label { font-size: 11px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin-top: 2px; }
+
+  /* Section */
+  .section { background: var(--mantle); border: 1px solid var(--surface0); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+  .section-header { padding: 14px 20px; border-bottom: 1px solid var(--surface0); display: flex; align-items: center; gap: 10px; }
+  .section-header h2 { font-size: 14px; font-weight: 600; color: var(--text); }
+  .section-header .count { background: var(--surface0); color: var(--subtext); font-size: 11px; padding: 2px 7px; border-radius: 10px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; padding: 12px 20px 0; border-bottom: 1px solid var(--surface0); overflow-x: auto; }
+  .tab { padding: 8px 14px; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--subtext); border: 1px solid transparent; border-bottom: none; white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface0); }
+  .tab.active { color: var(--mauve); background: var(--surface0); border-color: var(--surface1); }
+  .tab .tab-count { background: var(--surface1); border-radius: 8px; padding: 1px 6px; font-size: 10px; margin-left: 5px; }
+
+  /* Sort bar */
+  .sort-bar { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-bottom: 1px solid var(--surface0); }
+  .sort-bar span { font-size: 11px; color: var(--subtext); }
+  .sort-btn { background: var(--surface0); border: 1px solid var(--surface1); color: var(--subtext); padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; }
+  .sort-btn:hover, .sort-btn.active { background: var(--surface1); color: var(--text); }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--crust); color: var(--subtext); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--surface0); position: sticky; top: 0; }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--surface0); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface0)22; }
+  .notes-row td { padding-top: 0; }
+  .notes-row:hover td { background: transparent; }
+
+  .num { color: var(--overlay0); font-size: 12px; font-family: monospace; white-space: nowrap; }
+  .date { color: var(--subtext); font-size: 12px; white-space: nowrap; }
+  .company strong { display: block; }
+  .salary { font-size: 11px; color: var(--green); margin-top: 2px; }
+  .arch { font-size: 11px; color: var(--subtext); margin-top: 2px; font-style: italic; }
+  .actions { white-space: nowrap; font-size: 16px; }
+  .actions a { margin-right: 6px; }
+
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid; white-space: nowrap; }
+
+  .score-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-num { font-size: 13px; font-weight: 600; min-width: 28px; }
+  .score-bar { flex: 1; height: 6px; background: var(--surface1); border-radius: 3px; min-width: 50px; }
+  .score-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .no-score { color: var(--overlay0); }
+
+  .notes { font-size: 12px; color: var(--subtext); background: var(--surface0)44; padding: 6px 10px; border-radius: 4px; border-left: 2px solid var(--surface1); }
+
+  .empty { text-align: center; padding: 32px; color: var(--overlay0); }
+
+  /* Pipeline section */
+  .pipeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .pipeline-col { padding: 0; }
+  .pipeline-col:first-child { border-right: 1px solid var(--surface0); }
+  .pipeline-col h3 { font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 16px; border-bottom: 1px solid var(--surface0); }
+  .pipeline-table td { padding: 7px 14px; font-size: 12px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .pipeline-grid { grid-template-columns: 1fr; }
+    .pipeline-col:first-child { border-right: none; border-bottom: 1px solid var(--surface0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>⚡ Career-Ops</h1>
+    <div class="subtitle">Job Search Command Center</div>
+  </div>
+  <div class="gen-time">Generated Apr 9, 2026, 10:00 AM CT</div>
+  <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
+</div>
+
+<div class="main">
+
+  <!-- Stats Row -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Total Apps</div>
+      <div class="value" style="color:var(--mauve)">2</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Evaluated</div>
+      <div class="value" style="color:var(--mauve)">2</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Applied</div>
+      <div class="value" style="color:var(--blue)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Interview</div>
+      <div class="value" style="color:var(--green)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Top ≥4</div>
+      <div class="value" style="color:var(--yellow)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg Score</div>
+      <div class="value" style="color:var(--peach)">3.5</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Pipeline Inbox</div>
+      <div class="value" style="color:var(--sky)">313</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Dead URLs</div>
+      <div class="value" style="color:#a6e3a1">0</div>
+      <div class="label" style="margin-top:2px">never checked</div>
+    </div>
+  </div>
+
+  <!-- Scan Sources -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Scan Sources</h2>
+      <span class="count">6,367 total scanned</span>
+    </div>
+    <div style="padding:16px 20px">
+      <table>
+        <thead>
+          <tr><th>Source</th><th>Scanned</th><th>Added</th><th>Hit Rate</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+              <td><strong>greenhouse</strong></td>
+              <td>5,630</td>
+              <td style="color:#a6e3a1">135</td>
+              <td>
+                <div class="score-wrap">
+                  <span class="score-num">2.4%</span>
+                  <div class="score-bar"><div class="score-fill" style="width:2.3978685612788633%;background:#a6e3a1"></div></div>
+                </div>
+              </td>
+            </tr><tr>
+              <td><strong>ashby</strong></td>
+              <td>398</td>
+              <td style="color:#a6e3a1">13</td>
+              <td>
+                <div class="score-wrap">
+                  <span class="score-num">3.3%</span>
+                  <div class="score-bar"><div class="score-fill" style="width:3.2663316582914574%;background:#a6e3a1"></div></div>
+                </div>
+              </td>
+            </tr><tr>
+              <td><strong>firecrawl</strong></td>
+              <td>226</td>
+              <td style="color:#a6e3a1">154</td>
+              <td>
+                <div class="score-wrap">
+                  <span class="score-num">68.1%</span>
+                  <div class="score-bar"><div class="score-fill" style="width:68.14159292035397%;background:#a6e3a1"></div></div>
+                </div>
+              </td>
+            </tr><tr>
+              <td><strong>smartrecruiters</strong></td>
+              <td>100</td>
+              <td style="color:#a6e3a1">10</td>
+              <td>
+                <div class="score-wrap">
+                  <span class="score-num">10.0%</span>
+                  <div class="score-bar"><div class="score-fill" style="width:10%;background:#a6e3a1"></div></div>
+                </div>
+              </td>
+            </tr><tr>
+              <td><strong>lever</strong></td>
+              <td>13</td>
+              <td style="color:#a6e3a1">1</td>
+              <td>
+                <div class="score-wrap">
+                  <span class="score-num">7.7%</span>
+                  <div class="score-bar"><div class="score-fill" style="width:7.6923076923076925%;background:#a6e3a1"></div></div>
+                </div>
+              </td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Prefilter Queue -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Prefilter Queue</h2>
+      <span class="count">241 cards</span>
+    </div>
+    <div style="padding:16px 20px;display:flex;gap:16px;flex-wrap:wrap">
+      <div class="stat-card">
+        <div class="label">Pending Score</div>
+        <div class="value" style="color:#f9e2af">241</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Evaluate (≥3.5)</div>
+        <div class="value" style="color:#a6e3a1">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Maybe (2.5–3.5)</div>
+        <div class="value" style="color:#fab387">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Skip (&lt;2.5)</div>
+        <div class="value" style="color:#6c7086">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rejection Insights (shown only when rejectionInsights.sufficient === true) -->
+  
+
+  <!-- Filter Health (shown only when scan history exists) -->
+  
+  <div class="section">
+    <div class="section-header">
+      <h2>Filter Health</h2>
+      <span class="count">313 added / 5743 skipped in 30d</span>
+    </div>
+    <div style="padding:16px 20px">
+      
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Top Performing Keywords</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#a6e3a1;font-weight:700">126</span>
+              <span style="min-width:160px;color:var(--text)">solutions architect</span>
+              <div style="flex:1;background:#313244;border-radius:2px;height:6px">
+                <div style="width:100%;background:#a6e3a1;height:6px;border-radius:2px"></div>
+              </div>
+            </div><div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#a6e3a1;font-weight:700">48</span>
+              <span style="min-width:160px;color:var(--text)">applied ai</span>
+              <div style="flex:1;background:#313244;border-radius:2px;height:6px">
+                <div style="width:38%;background:#a6e3a1;height:6px;border-radius:2px"></div>
+              </div>
+            </div><div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#a6e3a1;font-weight:700">47</span>
+              <span style="min-width:160px;color:var(--text)">data architect</span>
+              <div style="flex:1;background:#313244;border-radius:2px;height:6px">
+                <div style="width:37%;background:#a6e3a1;height:6px;border-radius:2px"></div>
+              </div>
+            </div><div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#a6e3a1;font-weight:700">37</span>
+              <span style="min-width:160px;color:var(--text)">analytics engineer</span>
+              <div style="flex:1;background:#313244;border-radius:2px;height:6px">
+                <div style="width:29%;background:#a6e3a1;height:6px;border-radius:2px"></div>
+              </div>
+            </div><div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#a6e3a1;font-weight:700">32</span>
+              <span style="min-width:160px;color:var(--text)">data engineer</span>
+              <div style="flex:1;background:#313244;border-radius:2px;height:6px">
+                <div style="width:25%;background:#a6e3a1;height:6px;border-radius:2px"></div>
+              </div>
+            </div>
+        </div>
+      
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Zero-Match Keywords (30d) — consider pruning</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="background:#313244;color:#f38ba8;padding:2px 8px;border-radius:4px;font-size:11px">data lead</span><span style="background:#313244;color:#f38ba8;padding:2px 8px;border-radius:4px;font-size:11px">analytics manager</span><span style="background:#313244;color:#f38ba8;padding:2px 8px;border-radius:4px;font-size:11px">data manager</span><span style="background:#313244;color:#f38ba8;padding:2px 8px;border-radius:4px;font-size:11px">erp analyst</span><span style="background:#313244;color:#f38ba8;padding:2px 8px;border-radius:4px;font-size:11px">operations analytics</span><span style="background:#313244;color:#f38ba8;padding:2px 8px;border-radius:4px;font-size:11px">ml engineer</span>
+          </div>
+        </div>
+      
+        <div>
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Discovery — Common Skipped Phrases (add to positive filter?)</div>
+          <div style="display:flex;gap:8px;margin-bottom:4px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#f9e2af">738x</span>
+              <span style="color:var(--text)">"software engineer"</span>
+            </div><div style="display:flex;gap:8px;margin-bottom:4px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#f9e2af">552x</span>
+              <span style="color:var(--text)">"account executive"</span>
+            </div><div style="display:flex;gap:8px;margin-bottom:4px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#f9e2af">257x</span>
+              <span style="color:var(--text)">"product manager"</span>
+            </div><div style="display:flex;gap:8px;margin-bottom:4px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#f9e2af">247x</span>
+              <span style="color:var(--text)">"engineering manager"</span>
+            </div><div style="display:flex;gap:8px;margin-bottom:4px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#f9e2af">240x</span>
+              <span style="color:var(--text)">"senior software"</span>
+            </div><div style="display:flex;gap:8px;margin-bottom:4px;font-size:12px">
+              <span style="min-width:24px;text-align:right;color:#f9e2af">234x</span>
+              <span style="color:var(--text)">"senior software engineer"</span>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Applications Table -->
+  <div class="section">
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-filter="ALL" onclick="setTab(this)">ALL<span class="tab-count">2</span></div><div class="tab" data-filter="Evaluated" onclick="setTab(this)">Evaluated<span class="tab-count">2</span></div><div class="tab" data-filter="Applied" onclick="setTab(this)">Applied<span class="tab-count">0</span></div><div class="tab" data-filter="Contact" onclick="setTab(this)">Contact<span class="tab-count">0</span></div><div class="tab" data-filter="Interview" onclick="setTab(this)">Interview<span class="tab-count">0</span></div><div class="tab" data-filter="TOP≥4" onclick="setTab(this)">TOP≥4<span class="tab-count">0</span></div><div class="tab" data-filter="SKIP" onclick="setTab(this)">SKIP<span class="tab-count">0</span></div>
+    </div>
+    <div class="sort-bar">
+      <span>Sort:</span>
+      <button class="sort-btn active" data-sort="num" onclick="setSort(this)">Entry #</button>
+      <button class="sort-btn" data-sort="score" onclick="setSort(this)">Score</button>
+      <button class="sort-btn" data-sort="date" onclick="setSort(this)">Date</button>
+      <button class="sort-btn" data-sort="company" onclick="setSort(this)">Company</button>
+      <button class="sort-btn" data-sort="status" onclick="setSort(this)">Status</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="apps-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Score</th>
+            <th>Status</th>
+            <th>Links</th>
+          </tr>
+        </thead>
+        <tbody id="apps-body">
+          <tr data-status="Evaluated" data-score="3.8">
+      <td class="num">#002</td>
+      <td class="date">2026-04-06</td>
+      <td class="company"><strong>Valtech</strong></td>
+      <td class="role">Data and AI Architect<div class="arch">Applied AI / Solutions Architect + Operational Data Architect (hybrid)</div></td>
+      <td class="score"><div class="score-wrap">
+    <span class="score-num">3.8</span>
+    <div class="score-bar"><div class="score-fill" style="width:76%;background:#f9e2af"></div></div>
+  </div></td>
+      <td class="status"><span class="badge" style="color:#cba6f7;border-color:#cba6f722;background:#cba6f711">Evaluated</span></td>
+      <td class="actions"><a href="https://job-boards.greenhouse.io/valtech/jobs/4632199101" target="_blank" title="Open job posting">↗</a> <a href="reports/002-valtech-2026-04-06.md" target="_blank" title="Open evaluation report">📄</a> <a href="output/cv-matt-valtech-2026-04-06.pdf" target="_blank" title="Open PDF">📑</a></td>
+    </tr>
+    <tr data-status="Evaluated" class="notes-row"><td colspan="7"><div class="notes">Remote/hybrid, enterprise data & AI architecture, Microsoft-core stack. Strong concept fit; Synapse/Fabric/RAG gap.</div></td></tr><tr data-status="Evaluated" data-score="3.2">
+      <td class="num">#001</td>
+      <td class="date">2026-04-06</td>
+      <td class="company"><strong>Panopto</strong><div class="salary">$140,000–$150,000 USD + bonus</div></td>
+      <td class="role">DataOps Engineer<div class="arch">Operational Data Architect (DevOps/DBA tilt)</div></td>
+      <td class="score"><div class="score-wrap">
+    <span class="score-num">3.2</span>
+    <div class="score-bar"><div class="score-fill" style="width:64%;background:#f9e2af"></div></div>
+  </div></td>
+      <td class="status"><span class="badge" style="color:#cba6f7;border-color:#cba6f722;background:#cba6f711">Evaluated</span></td>
+      <td class="actions"><a href="https://jobs.lever.co/panopto/cfd10ade-b230-4c3b-9626-f2e6aa8080d0" target="_blank" title="Open job posting">↗</a> <a href="reports/001-panopto-2026-04-06.md" target="_blank" title="Open evaluation report">📄</a> <a href="output/cv-matt-panopto-2026-04-06.pdf" target="_blank" title="Open PDF">📑</a></td>
+    </tr>
+    <tr data-status="Evaluated" class="notes-row"><td colspan="7"><div class="notes">Remote US, $140-150K. Strong concept fit; AWS/SQL Server DBA gap.</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pipeline Inbox -->
+  <div class="section">
+    <div class="section-header">
+      <h2>📥 Pipeline Inbox</h2>
+      <span class="count">313 pending</span>
+      <span class="count" style="margin-left:4px">0 processed</span>
+    </div>
+    <div style="padding:12px 20px;border-bottom:1px solid #313244">
+        <div style="font-size:11px;color:#a6adc8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">By Company</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Unknown</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:100%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">154</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Databricks</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:43.506493506493506%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">67</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Anthropic</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:31.818181818181817%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">49</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Cohere</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:6.493506493506493%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">10</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Visa</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:6.493506493506493%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">10</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">dbt Labs</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:3.896103896103896%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">6</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Vercel</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:3.2467532467532463%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">5</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Brex</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:2.5974025974025974%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">4</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Datadog</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:1.948051948051948%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">3</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Notion</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:1.948051948051948%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">3</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Cloudflare</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:0.6493506493506493%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">1</span>
+          </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="min-width:140px;font-size:12px;text-align:right;color:#cdd6f4">Spotify</span>
+            <div style="flex:1;height:8px;background:#313244;border-radius:4px">
+              <div style="width:0.6493506493506493%;height:100%;background:#89dceb;border-radius:4px"></div>
+            </div>
+            <span style="min-width:24px;font-size:12px;color:#a6adc8">1</span>
+          </div>
+      </div>
+    <div class="pipeline-grid">
+      <div class="pipeline-col">
+        <h3>Pending (313)</h3>
+        <div style="overflow-x:auto">
+          <table class="pipeline-table">
+            <tbody>
+              <tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Mumbai</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8107166002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Vercel</strong></td>
+    <td class="role">Anti-Abuse Automation Engineer</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/vercel/jobs/5843010004" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Vercel</strong></td>
+    <td class="role">Manager, Solutions Architecture</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/vercel/jobs/5806456004" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Vercel</strong></td>
+    <td class="role">Solutions Architect</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/vercel/jobs/5796302004" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Vercel</strong></td>
+    <td class="role">Solutions Architect</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/vercel/jobs/5804110004" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Vercel</strong></td>
+    <td class="role">Solutions Architect</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/vercel/jobs/5806749004" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Datadog</strong></td>
+    <td class="role">Product Solutions Architect - LLM Observability</td>
+    <td class="actions"><a href="https://careers.datadoghq.com/detail/7627531/?gh_jid=7627531" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Datadog</strong></td>
+    <td class="role">Product Solutions Architect - Product Analytics and Experimentation</td>
+    <td class="actions"><a href="https://careers.datadoghq.com/detail/7732699/?gh_jid=7732699" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Datadog</strong></td>
+    <td class="role">Senior Product Solutions Architect - Logs</td>
+    <td class="actions"><a href="https://careers.datadoghq.com/detail/7750751/?gh_jid=7750751" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cloudflare</strong></td>
+    <td class="role">Distributed Systems Engineer - Data Platform - Analytics and Alerts</td>
+    <td class="actions"><a href="https://boards.greenhouse.io/cloudflare/jobs/7462803?gh_jid=7462803" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Delivery Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8289852002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Lead Solutions Architect  (CDO/CTO - Banking, Capital Markets, AI/ML/Data)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=7642125002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Network Automation Engineer</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8459908002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461193002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461258002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461251002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461245002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461243002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461241002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461239002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461226002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461222002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461220002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461219002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461218002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494153002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461168002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461163002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Communications, Media, Entertainment & Games</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8341311002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Digital Native Business</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8488399002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461330002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461325002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461328002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8456965002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8456969002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8456966002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461327002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8456948002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Financial Services</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461326002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Healthcare & Life Sciences</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8371312002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Healthcare & Life Sciences</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494144002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Healthcare & Life Sciences</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494148002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Healthcare & Life Sciences</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494145002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Healthcare & Life Sciences</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494142002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Healthcare & Life Sciences</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494146002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Healthcare & Life Sciences</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494143002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Manufacturing</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8341313002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Manufacturing</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494155002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Manufacturing</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494156002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Manufacturing</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494154002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494137002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8461321002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494147002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494149002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8456975002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8456973002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8423296002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494107002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494108002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494128002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8494130002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Resident Solutions Architect - Public Sector</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8356289002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Senior Solutions Architect (DS/ML/GenAI/LLM)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8340837002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Senior Solutions Architect (Strategic Account - Energy)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8401771002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Senior Solutions Architect (Utilities)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8480817002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Solutions Architect</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8437032002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Solutions Architect (Hong-Kong)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8437010002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Solutions Architect (Indonesia)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8438763002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Solutions Architect (Pre-sales)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8449358002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Solutions Architect (Taiwan)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8499585002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Specialist Solutions Architect - AI & ML (Communications, Media, Entertainment & Games)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8480547002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Specialist Solutions Architect - AI & ML (Financial Services)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8434243002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Sr. Solutions Architect</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8349417002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Sr. Solutions Architect - Communications</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8476403002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Sr. Solutions Architect - Financial Services (Wealth and Asset Management)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8480646002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Databricks</strong></td>
+    <td class="role">Sr. Specialist Solutions Architect - Data Warehousing (Financial Services)</td>
+    <td class="actions"><a href="https://databricks.com/company/careers/open-positions/job?gh_jid=8183320002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Notion</strong></td>
+    <td class="role">Data Engineer, FinanceEngineering</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/notion/4d1bce46-3cb1-4a26-b6c6-ac9b02ee413d" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Notion</strong></td>
+    <td class="role">Data Engineer, Go-To-MarketEngineering</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/notion/655b047b-5e58-4b0c-82f0-8c16b2c03318" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Notion</strong></td>
+    <td class="role">Software Engineer, Data PlatformEngineering</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/notion/91156750-4050-4621-aa45-0fb068308d2c" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Applied AI Engineer - Agentic Workflows (Singapore)Applied-ML</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/9c18b199-cd1f-4ef3-9fab-ce05589348ae" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Applied AI Engineer – Agentic WorkflowsApplied-ML</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/1fa01a03-9253-4f62-8f10-0fe368b38cb9" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Applied AI Engineer – Agentic Workflows (Korea)Applied-ML</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/031c2335-db85-4265-8a88-a54b911be36a" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Member of Technical Staff, Data EngineeringModeling</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/0885b39d-b2f8-44be-af4c-e533be2b34af" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Solutions ArchitectSolutions Architecture</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/afba8779-3bb1-4cf6-81be-705fb36f0ac9" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Solutions ArchitectSolutions Architecture</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/ab11983e-2657-45b4-8f4b-318415e3d0c6" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Solutions ArchitectSolutions Architecture</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/ca446389-c793-459b-b07a-a3544defea04" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Solutions Architect - Public SectorSolutions Architecture</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/6d0f0753-ff22-46fd-90e9-08998914a8e7" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Solutions Architect - Public SectorSolutions Architecture</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/1bc73d85-e6f4-4338-b53a-9ffb609a950d" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Cohere</strong></td>
+    <td class="role">Solutions Architect - San Francisco Solutions Architecture</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cohere/eb58bff6-645c-4434-9893-b34586d69be7" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Spotify</strong></td>
+    <td class="role">Backend Engineer - Data Platform</td>
+    <td class="actions"><a href="https://jobs.lever.co/spotify/db6450c7-5017-4aa5-8a64-52e39f1ed525" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Staff Data Engineer</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000119463263" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Analyst, Business Intelligence</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000119366667" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Director - Data Engineering and ML</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000119333933" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">AI Engineer, Digital Sales</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000119332632" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Lead  Software  Engineer (AI & Data Platforms)</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000118983487" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Lead Data Architect</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000118929245" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Staff Data Engineer (Bigdata + Golang/ Java/ Rust/ C/C++)</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000118834184" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Staff Data Engineer</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000118639397" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Data Engineer - Sr. Consultant level</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000118634457" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Visa</strong></td>
+    <td class="role">Sr. Business Intelligence Engineer - Digital Experiences & Capabilities</td>
+    <td class="actions"><a href="https://jobs.smartrecruiters.com/Visa/744000118479118" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ LiveKit - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/livekit/10c672df-37aa-412e-8011-3408f517f672" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Data Engineer - Cortex AI @ Techtorch - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/techtorch/57deea5d-6374-49dc-ae60-947cb0859dc5" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">ML Data Engineer @ Ekumen - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/Ekumenlabs/af985550-db68-4000-b1d8-defb4eb7a792" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ RevenueBase Inc - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/revenuebase-inc/1a9f2caa-d293-4297-a90d-8162e0f7972e?utm_source=jobs.bvp.com" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ GovWorx - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/govworx/39acc42e-c8a9-480c-9ae4-34a5466abbe1" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ Enode - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/enode/dd7343a9-a9ff-4f86-8cfd-3a921e94da4b" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ Arbor - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/arbor/78972d7d-8135-44ea-afa6-60ac1fde1172" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ Tavus - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/tavus/a29d6e98-3a83-461c-b651-fc0dc387c4c7" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Engineer / Analyst @ NewtonX - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/newtonx/7142b950-55c4-444d-ae24-678b2ddd727c" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Engineer @ Halter - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/halter/979efa93-ae65-452c-8f56-5686d719bb55" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer (Senior) @ Spear AI - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/spear-ai/94ca65b0-7085-4fc3-a6a1-b7d55513d42f" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ XBOW - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/xbowcareers/d74eb47d-8f26-440b-987e-8b19280da0dd" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ Screenverse - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/screenverse/3cd30483-e951-423f-861a-3b7262e17426" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ Sweed - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/sweedpos.com/65545a53-4698-4efb-95db-853b757f9feb" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ Whatnot - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/whatnot/9fd6fef1-619f-48dd-97b0-c91063432df3" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Engineer @ Carwow - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/carwow/c9bab3f1-0288-4015-a558-6cd5d4110a27" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Engineer @ Solace - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/solace/f19207b3-5fad-4cd4-9a7e-5dd64fb78401" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Engineer @ Leap - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/leap/b51c86fb-1a6f-4dfe-8cfd-86638b607b7d" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Engineer @ Socure - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/socure/6b0e7888-8842-49ca-a9d0-97eddde7003a" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Staff Analytics Engineer @ tem - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/tem/66b06873-4d08-4347-9d16-dc5c24ae481c" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer @ Socure - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/socure/51d388fa-fbbb-4424-9d49-1644dae1652f" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Analytics Engineer (Remote) @ Optro - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/optro/36117f50-ce81-481b-b9ce-9306c1472a7b" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer @ Freshpaint - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/freshpaint/09a33259-9ddc-4d0a-b651-3f1f663bfd37" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Analytics Engineer, GTM Analytics @ Vanta - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/vanta/06cfc36b-8761-4bbd-b23e-59c3129d0c63" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer @ Lexroom - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/lexroom/9963d624-22b2-4dde-9fe0-d98dae51ff21" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer @ Ncontracts - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/ncontracts/c2b4cd71-bbdd-41d8-88b8-c6564f00f5c7?embed=js" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer @ Sardine - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/sardine/ca1e0aab-4a2c-4b8b-aedf-6e58de58e382" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Analytics Engineer @ AirGarage - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/airgarage/6435ca68-2f07-4fc1-863f-5883cb7aa915" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer, Treasury & Payments @ KOHO - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/koho/d84dba01-b05d-450f-ab6c-68dfad8bcd5d" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Staff Analytics Engineer @ Kit - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/kit/29e561b8-4fa4-4597-8096-6f1cb286c3a8" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Analytics Engineer @ Synthesia - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/synthesia/c11f83bc-46db-4c7b-a2ea-38f2ace507ba" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Product Analytics Engineer @ XBOW - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/xbowcareers/40ffc940-f52d-46c3-9564-698b66d3119e" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Staff Analytics Engineer @ ClassDojo - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/ClassDojo/0aa8d535-882e-42dd-bf87-49ad9714e361" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">RevOps Analytics Engineer @ Lean Layer - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/leanlayer/395cb6c6-5bdb-41da-add0-b5de20c39c04" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer @ Kognity - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/kognity/83ffd54a-fc2b-46a3-a93d-1303c24c404c" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Analytics Engineer @ Jellyfish - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/jellyfish/bcb5a334-6299-4111-882e-5d5232b740c5" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineering Lead @ Novellia - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/novellia/5e84374c-3f35-4431-8218-5e050387404b" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation & Agents Coach (Contract) @ Leland - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/leland/1312ec97-2931-4ff7-9b37-e6876da19b03" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer @ Pyyne - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/Pyyne/11176bae-e8bf-4163-9f07-949941f80c84" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer @ Bestow - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/bestow/f26d0870-0439-4519-b651-50c502ab73ef" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer @ Cosuno - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cosuno/564a3a0b-4748-493c-84ba-d8625913bf85" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Workflow Automation Manager @ Hire Hangar - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/hirehangar/600d4e99-7840-4a73-b2fc-dcd3ef89290d" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer @ Pragmatico - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/pragmatico/6b1dab42-2cc4-4273-b92a-eea0a993b2a2" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation & Systems Engineer @ Scale Army Careers - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/Scale%20Army%20Careers/e1f23893-5557-4436-aab5-992f231e2b8a" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Engineer (Customer Deployments & AI Automation) - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/statisfy/0fe576ea-7189-498e-bd34-b0f139f38a92" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer @ Pyyne - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/Pyyne/11176bae-e8bf-4163-9f07-949941f80c84/application" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer @ Cosuno - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/cosuno/564a3a0b-4748-493c-84ba-d8625913bf85/application" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect- Remote (USA) @ Orb - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/orb/a0adb5b6-88f5-4d4d-a3e8-ea387dcedd7e" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect @ Kira - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/kira/c711d878-392e-4a57-8f5a-27efa5882e89" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect @ Oscilar - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/oscilar/071abb5c-38c2-433b-a818-4067a0675e5e" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Founding Solutions Architect @ Catio - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/catio/62ca5a34-2ab0-4462-aa27-f4c72ab95669" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect @ EvenUp - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/evenup/1f730b5c-1863-4537-b07e-782e5da24dff" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect @ Roboflow - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/roboflow/fa06d985-6671-4cdd-afff-dc67344db1d6" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Solutions Architect (Pre-sales) @ TRM Labs - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/trm-labs/7073d845-8c97-4947-9e71-25b3ba067427?utm_source=carob.app&utm_medium=referral" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Solutions Architect @ AirOps - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/airops/0d24bc05-0145-4d9a-bb18-348bb9507edd" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect @ Vantage - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/vantage/66c47a79-f167-4067-b31a-a865bd37e62d" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect (San Francisco, CA) @ Deepgram - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/Deepgram/f2a6e436-a13d-4a2c-99cd-fc631e37b2fd" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">RevOps Solutions Architect (Remote; US or LATAM) @ Go Nimbly</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/go-nimbly/f5ef4572-c020-4a81-817f-ea10396d0d57" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect @ Agility IO - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/agility.io/38e53ba8-0aac-4c0f-9636-f38baa0b86b7" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect @ Lorikeet - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/lorikeet/a00d35af-2d47-4ed6-8d99-2cb1fb86e44f" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">US</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/Infinite%20Lambda/4ca40e67-f04a-48d7-92c6-06e8179e4dde" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Solutions Architect - Data & AI @ Rescale - Jobs</td>
+    <td class="actions"><a href="https://jobs.ashbyhq.com/rescale/2f43e26a-a331-4648-8523-d83c258bd8a2" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Job Application for Salesforce Data Architect at Orion Global Solutions</td>
+    <td class="actions"><a href="https://boards.greenhouse.io/12jlkfsk/jobs/4654735006" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Job Application for Senior Data Architect at AOT Technologies</td>
+    <td class="actions"><a href="https://boards.greenhouse.io/aottechnologies/jobs/5166321008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Analytics Engineer</td>
+    <td class="actions"><a href="https://boards.greenhouse.io/grafanalabs/jobs/5850008004" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Staff Analytics Engineer - Foundational Data - Careers at Airbnb</td>
+    <td class="actions"><a href="https://boards.greenhouse.io/airbnb/jobs/7733495" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Job Application for Senior Data Analytics Engineer at MariaDB plc</td>
+    <td class="actions"><a href="https://boards.greenhouse.io/mariadbplc/jobs/4822600101" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Job Application for Power BI Engineer at Accenture Federal Services</td>
+    <td class="actions"><a href="https://boards.greenhouse.io/accenturefederalservices/jobs/4671407006" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">ARC'TERYX - Data Architect (Temporary - 14 months) - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/arcteryx.com/49f935ce-5eba-4f05-a876-eadd52ccf866" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Jobgether - Remote Data Architect - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/jobgether/62c01d8f-8170-4f8f-8dde-de56912227ed/apply" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Big Data Architect (Remote, Full-Time) [IS002] - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/smart-working-solutions/44bdb512-aeb3-445c-90ff-963d1742345a/apply" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Architect - SwingDev–a hippo company - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/swingdev/a2548593-0887-457f-864b-2d35b8748ebd" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Staff Software Engineer, Data Platform - US (Remote) - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/luxurypresence/619322cf-c699-4060-a23c-b4e0b90debcd" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Magnet Forensics - Data Architect (Distributed Systems Engineering)</td>
+    <td class="actions"><a href="https://jobs.lever.co/magnetforensics/a0d6caec-6eab-491f-92b6-1e128d14b7b2" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Enterprise Data Architect - Aledade - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/aledade/3532b394-a4d4-4248-adfa-b22d61b3b634" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">ARC'TERYX - Data Architect (Temporary - 14 months) - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/arcteryx.com/49f935ce-5eba-4f05-a876-eadd52ccf866/apply" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Anchorage Digital - Member of Product, Data Platform - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/anchorage/0e730f61-a2e4-4152-8277-3f6383cc69a6" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Caseware - Principal Software Developer – AI Data Architect - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/caseware/d648444c-6a9e-440a-8588-a13138143821" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Best Egg - Data Platform Engineer II - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/BestEgg/0569542d-826d-471a-bfb4-44261a0d53ea" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Innovative Solutions - AI Data Architect - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/innovativesol-2/562f10e5-3187-4832-ab82-56aa52f284f1" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Egen - Principal Data Architect - GCP Expertise* - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/egen/a6b6bc0e-b168-4f91-9cde-ca7952d2a654" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Jobgether - Sr. Data Architect - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/jobgether/2f1edd4a-f6b5-47af-a42f-2e2fcd35671d" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">MoonPay - Senior Data Platform Engineer - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/moonpay/116b705f-a922-4209-9238-4edf93a2116c?lever-source%5B%5D=careers.mantisvc.com" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Data Architect - Innovative Solutions - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/innovativesol-2/562f10e5-3187-4832-ab82-56aa52f284f1/apply" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Zus Health - Senior Software Engineer, Data Platform - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/zushealth/4fcfed68-ab78-459e-81f3-9cd3b3e7a188" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">PointClickCare - Principal Data Architect - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/pointclickcare/d52bed37-9abe-4a33-8801-b0215e4a606b" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Vida Health - Lead Data Engineer, Data Platform - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/vida/c6b61fcb-d847-4f0e-9cc5-c11dc36983f7" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Software Engineer (Data Platform Team) - Sysdig - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/sysdig/18c4ad78-42b9-4b50-81d6-adab350e6a4b" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Lead Analytics Engineer - HighLevel - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/gohighlevel/710ec13c-7d13-4872-a3f8-5f3f9654bfb0" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Spreedly - Analytics Engineer - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/spreedly/18ffdf76-1d29-43f4-856d-8df03534422a/apply?lever-origin=applied&lever-source%5B%5D=BuiltInNationwide" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer - Swile - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/swile/ff3db7d9-c3b9-48bc-bc42-000a95f4d22c" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer - Metabase - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/metabase/5eca795c-48dd-496a-be23-2181068a5450" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Jobgether - Remote Business Analytics Lead - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/jobgether/c814e3c9-551c-491a-a464-3d20e72ad21c" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">HighLevel - Lead Analytics Engineer - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/gohighlevel/710ec13c-7d13-4872-a3f8-5f3f9654bfb0/apply?lever-origin=applied&lever-source%5B%5D=BuiltInNationwide" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer II - Tala - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/tala/5fe27251-ae2d-4581-a444-57c62846ecc1?lever-source%5B%5D=jobs.gv.com" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Veeva Systems - Analytics Engineer - OpenData EMEA (Remote)</td>
+    <td class="actions"><a href="https://jobs.lever.co/veeva/dc0b5a84-05ac-4ff4-941b-01cef16048f2" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Analytics Engineer - Okendo - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/okendo/0c2c9d03-3e01-4e2e-988f-6dac2754b6a9?utm_source=Base10+job+board&utm_medium=getro.com&gh_src=Base10+job+board" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">HighLevel - Senior Analytics Engineer – Product & Customer ... - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/gohighlevel/f7bf0739-1d81-4a58-9fb4-9724cd0d4769" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Mistral AI - Data/Analytics Engineer - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/mistral/6f28da96-76f9-44bb-9b85-4e3519fde6d4" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Analytics Engineer - Tala - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/tala/a7877846-bd81-4da8-a304-3720312b1da8" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Gurobi Optimization - Senior Data & Analytics Engineer (USA - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/GurobiOptimization/3c6cac21-dd4d-440b-8b92-089d304a95b2" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Spotify - Analytics Engineer - User Platform - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/spotify/620debfd-72fa-4ea6-9abf-02d0d8a4cfa6/apply?lever-origin=applied&lever-source%5B%5D=Jobgether&utm_campaign=search&utm_medium=website" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Luxury Presence - Senior Analytics Engineer - US (Remote) - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/luxurypresence/5556e042-a64a-4cff-9261-b57c28f89260/apply" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Cority - Sr Analytics Engineer - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/cority/97c7c8fc-76c3-4ac0-9d90-59dbc2f8ee0a" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">HighLevel - Lead Analytics Engineer - Lever</td>
+    <td class="actions"><a href="https://jobs.lever.co/gohighlevel/710ec13c-7d13-4872-a3f8-5f3f9654bfb0/apply" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 21: Remote Data Architect Jobs in 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/data-architect?page=21" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 4: Remote Data Architect Jobs in 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/data-architect?page=4" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 7: Remote Data Architect Jobs in 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/data-architect?page=7" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 16: Remote Data Architect Jobs in 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/data-architect?page=16" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 5: Remote Data Architect Jobs in 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/data-architect?page=5" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Remote Data Architect Jobs in 2026 - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/data-architect" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect at BrainStation • Toronto</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/4050713-data-architect" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 2: Data Architect Jobs in Canada - 2026 - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/canada-startups?page=2" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect Jobs - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/data-architect" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect Jobs in Ontario, Canada - 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/ontario" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 21: Data Architect Jobs in North America - 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/north-america?page=21" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect Jobs in Menlo Park, CA - 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/menlo-park" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 11: Data Architect Jobs in North America - 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/north-america?page=11" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 3: Data Architect Jobs in Earth - 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/earth?page=3" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 20: Data Architect Jobs - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/data-architect?page=20" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect Jobs in San Francisco Bay Area - 2026 - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/san-francisco-bay-area?page=2" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect Jobs in Gurugram - 2026 - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/gurugram-hr" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Denodo Data Architect / Engineer at Fx31 Labs Ahmedabad</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/4053111-denodo-data-architect-engineer" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect Jobs in Seoul, South Korea - 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/data-architect/seoul" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Remote Automation Engineer Jobs in 2026 - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/automation-engineer" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Founding AI Automation Engineer (Remote, Contract-based, Equity ...</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3876322-founding-ai-automation-engineer-remote-contract-based-equity-revenue-share" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Automation Engineer (Make.com, APIs, Workflow Automation)</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3989424-automation-engineer-make-com-apis-workflow-automation" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Automation Engineer Jobs - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/automation-engineer" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer - Help Build the Future of Work at NordX</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3530299-ai-automation-engineer-help-build-the-future-of-work-at-nordx" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation & Integration Specialist at AtlantaOps • Seattle ...</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3934805-ai-automation-integration-specialist" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer/ Data Analyst to Learn for Exciting Startup ...</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3357730-ai-automation-engineer-data-analyst-to-learn-for-exciting-startup-20hrs-week-no-cash-equity-only" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 35: Remote AI Engineer Jobs in 2026 - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/ai-engineer?page=35" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Page 18: Remote Automation Engineer Jobs in 2026</td>
+    <td class="actions"><a href="https://wellfound.com/role/r/automation-engineer?page=18" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation & Agents Coach (Contract) at Leland - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3996155-ai-automation-agents-coach-contract" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Automation Engineer at Novada Labs • Frankfurt</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3938141-ai-automation-engineer" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Product Manager (AI & Workflow Automation) - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3991751-senior-product-manager-ai-workflow-automation" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">AI Engineer (Applied AI & Automation) at Wesence - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3727503-ai-engineer-applied-ai-automation" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Automation Engineer Jobs in San Francisco, CA - 2026 - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/role/l/automation-engineer/san-francisco" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">QA Automation Engineer at Crop.photo - Wellfound</td>
+    <td class="actions"><a href="https://wellfound.com/jobs/3915711-qa-automation-engineer" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Whiteshield: Data Architect - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/whiteshield/j/9DBFFBD79B/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Full-Stack BI Architect / Fabric Data Engineer</td>
+    <td class="actions"><a href="https://apply.workable.com/proactive-technology-management/j/37EAFAD822/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Power BI Architect - V4C.ai - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/v4c/j/084E1FAE7B/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Scientific Data Architect - Boston - TetraScience - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/tetrascience/j/8DB5187216/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect - Databricks / Azure - Workana - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/workana-premium/j/F39DA41EA7" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect - Bitful Consulting - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/bitful-consulting/j/8CECD87DC8/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Cyber Data Architect - Avint - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/avint/j/6A260BDFF6/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect - Solirius Reply - Application - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/solirius-consulting-1/j/FFBBCAD3EE/apply/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Enterprise Data Architect - Energy Trust of Oregon - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/energy-trust-of-oregon/j/3F1A95077C/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Snowflake Data Architect - Tiger Analytics Inc. - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/tiger-analytics/j/BF6BDEED63/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect - Pathogen - Ellison Institute of Technology</td>
+    <td class="actions"><a href="https://apply.workable.com/ellison-institute-of-technology/j/99E7AE8253/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect - Zenara Health - xponentiate - Jobs By Workable</td>
+    <td class="actions"><a href="https://apply.workable.com/xponentiate/j/D6339BD079/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Sr Data Architect - Patient Services (Life Sciences) - Tiger Analytics ...</td>
+    <td class="actions"><a href="https://apply.workable.com/tiger-analytics/j/6ADF490889/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Data Architect (Azure Synapse Analytics & Microsoft Fabric) (Ready)</td>
+    <td class="actions"><a href="https://apply.workable.com/multiplicatalent/j/B85AB78444/" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Unknown</strong></td>
+    <td class="role">Senior Data Engineer - Remote at UnitedHealth Group</td>
+    <td class="actions"><a href="https://careers.unitedhealthgroup.com/job/richmond/senior-data-engineer-remote/34088/93720797600" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>dbt Labs</strong></td>
+    <td class="role">Customer Solutions Architect (Austin)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/dbtlabsinc/jobs/4664399005" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>dbt Labs</strong></td>
+    <td class="role">Customer Solutions Architect, Manager (Dublin)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/dbtlabsinc/jobs/4669953005" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>dbt Labs</strong></td>
+    <td class="role">GTM Automation Engineer</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/dbtlabsinc/jobs/4674836005" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>dbt Labs</strong></td>
+    <td class="role">Partner Solutions Architect - Japan</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/dbtlabsinc/jobs/4673657005" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>dbt Labs</strong></td>
+    <td class="role">Partner Solutions Architect - North America</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/dbtlabsinc/jobs/4673630005" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>dbt Labs</strong></td>
+    <td class="role">Solutions Architect, Commercial</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/dbtlabsinc/jobs/4671489005" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Applied AI Engineer</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5014500008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Applied AI Engineer</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5055488008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Applied AI Engineer</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5116274008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Applied AI Engineer, Beneficial Deployments</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5068226008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Applied AI Engineer (Digital Natives Business)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5057647008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Applied AI Engineer, Life Sciences (Beneficial Deployments)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5111942008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Applied AI Engineer (Startups)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5073277008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Business Systems Analyst, Data Enrichment</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5127289008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Claude Evangelist, Applied AI (Startups)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5116927008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Data Engineer, Safeguards</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5156057008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Forward Deployed Engineer, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4985877008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Forward Deployed Engineer, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5012991008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Forward Deployed Engineer, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5121563008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Forward Deployed Engineer, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5121561008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Forward Deployed Engineer, Applied AI (Federal Civilian)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5079562008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">GRC Automation Engineering Lead</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4980335008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Head of Solutions Architects, Applied AI (Korea)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5064817008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Manager, Applied AI Solutions Architecture - Partnerships</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5173031008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Manager, Applied AI (Startups)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5142110008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Manager of Solutions Architecture, Applied AI (Industries)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4964610008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Manager of Solutions Architecture, Applied AI (Industries)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5117652008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Manager of Solutions Architecture, Applied AI (Industries)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5115884008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Manager of Solutions Architecture, Applied AI (Partnerships)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5146999008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Partner Solutions Architect, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4950664008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Partner Solutions Architect, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5112493008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Partner Solutions Architect, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5112486008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Security Architect, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5101433008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Senior Business Systems Analyst, Finance Systems</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4991194008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5117581008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5076109008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5117589008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Beneficial Deployments)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5062712008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Beneficial Deployments)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5146028008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Creatives)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5124533008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Digital Native Business)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5065835008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Federal Civilian)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5079540008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Government Technology)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5140405008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Industries)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4977624008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Industries)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4977626008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Industries)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4461444008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Industries)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5031670008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (National Security)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5079511008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Startups)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/4968059008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (Startups)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5057258008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, Applied AI (State and Local Government, West)</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5140403008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Solutions Architect, National Security</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5126080008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Technical Deployment, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5017903008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Technical Deployment Lead, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5153761008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Anthropic</strong></td>
+    <td class="role">Technical Deployment Lead, Applied AI</td>
+    <td class="actions"><a href="https://job-boards.greenhouse.io/anthropic/jobs/5153754008" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Brex</strong></td>
+    <td class="role">Data Engineer</td>
+    <td class="actions"><a href="https://www.brex.com/careers/8366850002?gh_jid=8366850002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Brex</strong></td>
+    <td class="role">Senior Software Engineer, Product Data Platform</td>
+    <td class="actions"><a href="https://www.brex.com/careers/8430182002?gh_jid=8430182002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Brex</strong></td>
+    <td class="role">Senior Software Engineer, Product Data Platform</td>
+    <td class="actions"><a href="https://www.brex.com/careers/8430196002?gh_jid=8430196002" target="_blank">↗ View</a></td>
+  </tr><tr>
+    <td class="company"><strong>Brex</strong></td>
+    <td class="role">Senior Software Engineer, Product Data Platform</td>
+    <td class="actions"><a href="https://www.brex.com/careers/8430197002?gh_jid=8430197002" target="_blank">↗ View</a></td>
+  </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pipeline-col">
+        <h3>Processed (0)</h3>
+        <div style="overflow-x:auto">
+          <table class="pipeline-table">
+            <tbody>
+              <tr><td class="empty">None yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board Status -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Board Status</h2>
+      <span class="count">42 active</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr><th>Board / Portal</th><th>Status</th><th>Last Seen</th><th>Scanned</th><th>Added</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>greenhouse/Databricks</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>580</td>
+            <td style="color:#a6e3a1">67</td>
+          </tr><tr>
+            <td><strong>greenhouse/Anthropic</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>1,636</td>
+            <td style="color:#a6e3a1">49</td>
+          </tr><tr>
+            <td><strong>firecrawl/Lever — Data Platform</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">20</td>
+          </tr><tr>
+            <td><strong>firecrawl/Ashby — Data Engineer</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">19</td>
+          </tr><tr>
+            <td><strong>firecrawl/Wellfound — Data Architect</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">19</td>
+          </tr><tr>
+            <td><strong>firecrawl/Ashby — Analytics Engineer</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">18</td>
+          </tr><tr>
+            <td><strong>firecrawl/Lever — Analytics Engineer</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">17</td>
+          </tr><tr>
+            <td><strong>firecrawl/Ashby — Solutions Architect</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">15</td>
+          </tr><tr>
+            <td><strong>firecrawl/Wellfound — AI Automation</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">15</td>
+          </tr><tr>
+            <td><strong>firecrawl/Workable — BI Architect</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">14</td>
+          </tr><tr>
+            <td><strong>ashby/Cohere</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>120</td>
+            <td style="color:#a6e3a1">10</td>
+          </tr><tr>
+            <td><strong>smartrecruiters/Visa</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>100</td>
+            <td style="color:#a6e3a1">10</td>
+          </tr><tr>
+            <td><strong>firecrawl/Ashby — AI Automation</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">10</td>
+          </tr><tr>
+            <td><strong>greenhouse/dbt Labs</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>200</td>
+            <td style="color:#a6e3a1">6</td>
+          </tr><tr>
+            <td><strong>greenhouse/Vercel</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>237</td>
+            <td style="color:#a6e3a1">5</td>
+          </tr><tr>
+            <td><strong>greenhouse/Brex</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>1,506</td>
+            <td style="color:#a6e3a1">4</td>
+          </tr><tr>
+            <td><strong>ashby/Notion</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>160</td>
+            <td style="color:#a6e3a1">3</td>
+          </tr><tr>
+            <td><strong>greenhouse/Datadog</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>126</td>
+            <td style="color:#a6e3a1">3</td>
+          </tr><tr>
+            <td><strong>firecrawl/Greenhouse — Analytics Engineer</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>7</td>
+            <td style="color:#a6e3a1">3</td>
+          </tr><tr>
+            <td><strong>firecrawl/Greenhouse — Data Architect</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>6</td>
+            <td style="color:#a6e3a1">2</td>
+          </tr><tr>
+            <td><strong>greenhouse/Cloudflare</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>160</td>
+            <td style="color:#a6e3a1">1</td>
+          </tr><tr>
+            <td><strong>firecrawl/UnitedHealth — Data Architect</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">1</td>
+          </tr><tr>
+            <td><strong>lever/Spotify</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>13</td>
+            <td style="color:#a6e3a1">1</td>
+          </tr><tr>
+            <td><strong>firecrawl/Greenhouse — BI Engineer</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>4</td>
+            <td style="color:#a6e3a1">1</td>
+          </tr><tr>
+            <td><strong>greenhouse/Sigma Computing</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>330</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Okta</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>194</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Fivetran</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>153</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Reddit</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>134</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Carta</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>108</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Duolingo</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>105</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>ashby/Replit</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>81</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/ClickHouse</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>45</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Figma</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>33</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Scale AI</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>31</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Hightouch</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>21</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>ashby/Linear</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>20</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>ashby/Character.ai</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>17</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Starburst</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>15</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/CockroachLabs</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>12</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>firecrawl/Microsoft — Analytics Engineer</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>8</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>greenhouse/Dremio</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>4</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr><tr>
+            <td><strong>firecrawl/US Bank — BI Architect</strong></td>
+            <td><span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span></td>
+            <td class="date">2026-04-09</td>
+            <td>1</td>
+            <td style="color:#a6e3a1">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = [{"num":"002","date":"2026-04-06","company":"Valtech","role":"Data and AI Architect","score":3.8,"status":"Evaluated","hasPdf":true,"reportPath":"reports/002-valtech-2026-04-06.md","notes":"Remote/hybrid, enterprise data & AI architecture, Microsoft-core stack. Strong concept fit; Synapse/Fabric/RAG gap.","reportMeta":{"archetype":"Applied AI / Solutions Architect + Operational Data Architect (hybrid)","url":"https://job-boards.greenhouse.io/valtech/jobs/4632199101","salary":null,"why":"Strong conceptual alignment with Matt’s ERP-to-BI-to-AI pipeline architecture and AI automation experience. The consultancy framing (“raise AI literacy company-wide”, “influence without authority”) maps to Matt’s COO experience translating technical systems to business operators. Key gaps: no Microsoft Fabric/Synapse/ADF hands-on experience, and no production Gen-AI copilot/RAG system deployment in a multi-national enterprise. These are meaningful but not blocking — adjacent experience covers the architecture thinking, and the specific tools are learnable."},"jobUrl":"https://job-boards.greenhouse.io/valtech/jobs/4632199101"},{"num":"001","date":"2026-04-06","company":"Panopto","role":"DataOps Engineer","score":3.2,"status":"Evaluated","hasPdf":true,"reportPath":"reports/001-panopto-2026-04-06.md","notes":"Remote US, $140-150K. Strong concept fit; AWS/SQL Server DBA gap.","reportMeta":{"archetype":"Operational Data Architect (DevOps/DBA tilt)","url":"https://jobs.lever.co/panopto/cfd10ade-b230-4c3b-9626-f2e6aa8080d0","salary":"$140,000–$150,000 USD + bonus","why":"Strong conceptual match (bridging operational ↔ analytics ↔ AI layers, automation-first thinking, end-to-end ownership), solid comp ($140–150K remote fits target range), full US remote. The gap: Panopto needs deep AWS/SQL Server DBA execution — EC2, S3, CloudWatch, SQL Server schema migrations, IaC. Matt's pipeline experience is application-layer and BI-layer, not cloud DBA. This is a meaningful skill gap that needs active mitigation."},"jobUrl":"https://jobs.lever.co/panopto/cfd10ade-b230-4c3b-9626-f2e6aa8080d0"}];
+let currentFilter = 'ALL';
+let currentSort = 'num';
+let sortDir = 1;
+
+function setTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = el.dataset.filter;
+  render();
+}
+
+function setSort(el) {
+  const newSort = el.dataset.sort;
+  if (currentSort === newSort) sortDir *= -1;
+  else { currentSort = newSort; sortDir = -1; }
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function render() {
+  let filtered = DATA.filter(a => {
+    if (currentFilter === 'ALL') return true;
+    if (currentFilter === 'TOP≥4') return (a.score ?? 0) >= 4;
+    return a.status === currentFilter;
+  });
+
+  filtered.sort((a, b) => {
+    let va, vb;
+    if (currentSort === 'score')   { va = a.score ?? -1; vb = b.score ?? -1; }
+    else if (currentSort === 'num')   { va = parseInt(a.num); vb = parseInt(b.num); }
+    else if (currentSort === 'date')  { va = a.date; vb = b.date; }
+    else if (currentSort === 'company') { va = a.company.toLowerCase(); vb = b.company.toLowerCase(); }
+    else if (currentSort === 'status') { va = a.status.toLowerCase(); vb = b.status.toLowerCase(); }
+    if (va < vb) return -1 * sortDir;
+    if (va > vb) return 1 * sortDir;
+    return 0;
+  });
+
+  const tbody = document.getElementById('apps-body');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No applications match this filter.</td></tr>';
+    return;
+  }
+
+  const statusColors = {"Evaluated":"#cba6f7","Applied":"#89b4fa","Responded":"#89dceb","Contact":"#fab387","Interview":"#a6e3a1","Offer":"#f9e2af","Rejected":"#f38ba8","Discarded":"#6c7086","SKIP":"#585b70"};
+  tbody.innerHTML = filtered.map(app => {
+    const scoreHtml = app.score !== null
+      ? `<div class="score-wrap"><span class="score-num">${app.score.toFixed(1)}</span><div class="score-bar"><div class="score-fill" style="width:${(app.score/5*100)}%;background:${app.score>=4?'#a6e3a1':app.score>=3?'#f9e2af':'#f38ba8'}"></div></div></div>`
+      : '<span class="no-score">—</span>';
+    const color = statusColors[app.status] || '#cdd6f4';
+    const badgeHtml = `<span class="badge" style="color:${color};border-color:${color}22;background:${color}11">${app.status}</span>`;
+    const urlLink = app.jobUrl ? `<a href="${app.jobUrl}" target="_blank" title="Job posting">↗</a>` : '—';
+    const rptLink = app.reportPath ? `<a href="${app.reportPath}" target="_blank" title="Report">📄</a>` : '';
+    const arch = app.reportMeta?.archetype ? `<div class="arch">${app.reportMeta.archetype}</div>` : '';
+    const salary = app.reportMeta?.salary ? `<div class="salary">${app.reportMeta.salary}</div>` : '';
+    const notesRow = app.notes ? `<tr data-status="${app.status}" class="notes-row"><td colspan="7"><div class="notes">${app.notes}</div></td></tr>` : '';
+    return `<tr data-status="${app.status}" data-score="${app.score ?? -1}">
+      <td class="num">#${app.num}</td>
+      <td class="date">${app.date}</td>
+      <td class="company"><strong>${app.company}</strong>${salary}</td>
+      <td class="role">${app.role}${arch}</td>
+      <td class="score">${scoreHtml}</td>
+      <td class="status">${badgeHtml}</td>
+      <td class="actions">${urlLink} ${rptLink}</td>
+    </tr>${notesRow}`;
+  }).join('');
+}
+</script>
+</body>
+</html>

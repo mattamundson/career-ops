@@ -41,3 +41,7 @@ dashboard/career-dashboard.exe
 
 # Batch merged output
 batch/tracker-additions/merged/
+
+# Secrets
+.env
+.env.local

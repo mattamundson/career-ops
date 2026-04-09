@@ -20,8 +20,9 @@ Read `portals.yml` which contains:
 - `search_queries`: List of WebSearch queries with `site:` filters per portal (broad discovery)
 - `tracked_companies`: Specific companies with `careers_url` for direct navigation
 - `title_filter`: Positive/negative/seniority_boost keywords for title filtering
+- `job_board_queries`: Firecrawl site: search queries for major job boards (Level 4 — requires `FIRECRAWL_API_KEY`)
 
-## Discovery strategy (3 levels)
+## Discovery strategy (4 levels)
 
 ### Level 1 — Direct Playwright (PRIMARY)
 
@@ -41,10 +42,29 @@ For companies on Greenhouse, the JSON API (`boards-api.greenhouse.io/v1/boards/{
 
 The `search_queries` with `site:` filters cover portals broadly (all Ashby, all Greenhouse, etc.). Useful for discovering NEW companies not yet in `tracked_companies`, but results may be stale.
 
+### Level 4 — Firecrawl Job Board Search (BROAD DISCOVERY — Major Job Boards)
+
+The `job_board_queries` section contains `site:` Google search queries executed via **Firecrawl Search** (`@mendable/firecrawl-js` SDK in `auto-scan.mjs`). This is the ToS-compliant method for discovering jobs on LinkedIn, Indeed, ZipRecruiter, Monster, CareerBuilder, and Glassdoor — which all block direct Playwright scraping.
+
+**Requirements:**
+- `FIRECRAWL_API_KEY` environment variable must be set (system env or `.env` file in project root)
+- SDK installed: `pnpm add @mendable/firecrawl-js`
+- Run without `--greenhouse-only` flag: `node scripts/auto-scan.mjs`
+
+**How it works:**
+- `auto-scan.mjs` calls `firecrawl.search(query, { limit: 20, lang: 'en', country: 'us' })`
+- Results are structured JSON: `{ url, title, description }`
+- Company column is set to the board name (e.g., "Indeed", "LinkedIn") via `inferBoardName()`
+- All standard title filtering + dedup applies identically to Greenhouse results
+- Portal column in scan-history.tsv shows: `firecrawl/{query_name}` (e.g., `firecrawl/Indeed — Data/AI/Analytics`)
+
+**Query tuning:** If a query returns 0 results, simplify the boolean operators — Firecrawl's search may not support complex nested OR groups. Simpler queries with 2-3 keywords perform best.
+
 **Execution priority:**
 1. Level 1: Playwright → all `tracked_companies` with `careers_url`
 2. Level 2: API → all `tracked_companies` with `api:`
 3. Level 3: WebSearch → all `search_queries` with `enabled: true`
+4. Level 4: Firecrawl → all `job_board_queries` with `enabled: true`
 
 Levels are additive — all run, results are merged and deduplicated.
 
