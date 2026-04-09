@@ -44,6 +44,7 @@ const PIPELINE       = resolve(ROOT, 'data', 'pipeline.md');
 const argv = process.argv.slice(2);
 const DRY_RUN         = argv.includes('--dry-run');
 const GREENHOUSE_ONLY = argv.includes('--greenhouse-only');
+const JOBSPY_ONLY     = argv.includes('--jobspy-only');
 
 function getSinceDays() {
   const flag = argv.find(a => a.startsWith('--since='));
@@ -1007,9 +1008,93 @@ async function autoPromoteHighScores() {
 }
 
 // ---------------------------------------------------------------------------
+// JobSpy Python scanner — spawns scan-jobspy.py as a child process
+// Returns number of new jobs found (parsed from summary line), or 0 on error.
+// ---------------------------------------------------------------------------
+async function runJobSpyScan() {
+  console.log('');
+  console.log('Running JobSpy Python scan...');
+  console.log('━'.repeat(40));
+
+  const { spawn } = await import('child_process');
+
+  const scriptPath = resolve(__dir, 'scan-jobspy.py');
+  const spawnArgs  = [scriptPath];
+  if (DRY_RUN) spawnArgs.push('--dry-run');
+
+  return new Promise(resolve_ => {
+    let proc;
+    try {
+      proc = spawn('python', spawnArgs, {
+        cwd:   ROOT,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env:   { ...process.env },
+      });
+    } catch (err) {
+      console.warn(`[jobspy] Failed to launch Python: ${err.message}`);
+      console.warn('[jobspy] Skipping JobSpy scan — install python and python-jobspy to enable.');
+      return resolve_(0);
+    }
+
+    let stdout = '';
+    let stderr = '';
+    proc.stdout.on('data', chunk => { stdout += chunk; });
+    proc.stderr.on('data', chunk => { stderr += chunk; });
+
+    proc.on('error', err => {
+      console.warn(`[jobspy] Python process error: ${err.message}`);
+      console.warn('[jobspy] Skipping JobSpy scan.');
+      resolve_(0);
+    });
+
+    proc.on('close', code => {
+      // Print all stdout from JobSpy (it has its own summary lines)
+      for (const line of stdout.split('\n')) {
+        if (line.trim()) console.log(`  ${line}`);
+      }
+      if (stderr.trim()) {
+        // Filter out noisy library log lines (INFO/WARNING/ERROR from jobspy logger)
+        // Only surface Python tracebacks and import errors
+        const stderrLines = stderr.split('\n').filter(line => {
+          const t = line.trim();
+          if (!t) return false;
+          // Skip standard jobspy logging output (INFO, WARNING, ERROR lines from the logging module)
+          if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - (INFO|WARNING|ERROR|DEBUG)/.test(t)) return false;
+          if (t.includes('DeprecationWarning') || t.includes('UserWarning')) return false;
+          return true;
+        });
+        for (const line of stderrLines) {
+          console.warn(`  [jobspy stderr] ${line}`);
+        }
+      }
+      if (code !== 0 && code !== null) {
+        console.warn(`[jobspy] scan-jobspy.py exited with code ${code} — continuing.`);
+      }
+
+      // Parse "Total new: N" from the summary output
+      const match = stdout.match(/Total new:\s*(\d+)/);
+      const newCount = match ? parseInt(match[1], 10) : 0;
+      console.log('');
+      resolve_(newCount);
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
+  // --jobspy-only: run ONLY the JobSpy Python scan and exit
+  if (JOBSPY_ONLY) {
+    const newCount = await runJobSpyScan();
+    if (newCount > 0) {
+      console.log(`→ Run /career-ops pipeline to evaluate the ${newCount} new offer(s).`);
+    } else {
+      console.log('→ No new JobSpy offers found.');
+    }
+    return;
+  }
+
   console.log('');
   console.log(`Portal Scan — ${new Date().toISOString().slice(0, 10)}`);
   console.log('━'.repeat(40));
@@ -1326,6 +1411,13 @@ async function main() {
     console.log('');
   }
 
+  // --- JobSpy Python scan (skipped when --greenhouse-only) ---
+  let jobspyNewCount = 0;
+  if (!GREENHOUSE_ONLY) {
+    jobspyNewCount = await runJobSpyScan();
+    totalNew += jobspyNewCount;
+  }
+
   // Summary
   console.log('');
   console.log('━'.repeat(40));
@@ -1333,7 +1425,7 @@ async function main() {
   console.log(`Filtered by title:        ${totalSkipped} skipped`);
   console.log(`Title-matched:            ${totalFiltered}`);
   console.log(`Duplicates (deduped):     ${totalDup}`);
-  console.log(`New added to pipeline:    ${totalNew}`);
+  console.log(`New added to pipeline:    ${totalNew - jobspyNewCount} (ATS) + ${jobspyNewCount} (JobSpy) = ${totalNew} total`);
   console.log('');
 
   if (toAdd.length > 0) {
