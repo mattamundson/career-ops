@@ -1,6 +1,6 @@
 # Prefilter: Method — Principal Data Architect
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4396592708
 **company:** Method

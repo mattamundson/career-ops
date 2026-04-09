@@ -1,6 +1,6 @@
 # Prefilter: Databricks — Specialist Solutions Architect - AI & ML (Financial Services)
 
-**status:** evaluate
+**status:** skip
 **date:** 2026-04-09
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8434243002
 **company:** Databricks

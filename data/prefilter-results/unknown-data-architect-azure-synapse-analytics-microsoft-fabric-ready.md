@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Data Architect (Azure Synapse Analytics & Microsoft Fabric) (Ready)
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://apply.workable.com/multiplicatalent/j/B85AB78444/
 **company:** Unknown

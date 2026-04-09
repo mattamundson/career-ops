@@ -1,6 +1,6 @@
 # Prefilter: Tiger Analytics — Power BI Architect
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4335455918
 **company:** Tiger Analytics
@@ -46,4 +46,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+2026-04-09: Location research completed. LinkedIn job listing and Tiger Analytics company jobs page both confirm Houston TX — no remote/hybrid designation. Downgraded from EVALUATE to MAYBE. Do not apply unless Tiger Analytics posts a remote version of this role. Skills match remains strong (3.5/5) if remote ever becomes available.

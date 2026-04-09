@@ -1,6 +1,6 @@
 # Prefilter: Visa — Lead Data Architect
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000118929245
 **company:** Visa

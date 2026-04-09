@@ -1,6 +1,6 @@
 # Prefilter: Artemis Consultants — Power BI Architect
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4371022647
 **company:** Artemis Consultants
