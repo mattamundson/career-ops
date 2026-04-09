@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Forward Deployed Engineer, Applied AI (Federal Civilian)
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5079562008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.5/5 — Federal context likely requires clearance; technical fit is real but gov context gaps are significant.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Technical AI deployment capability: Jarvis Trader production system, full stack engineering
+- Enterprise delivery management: COO managing complex multi-system implementations
+- US person status: clearable if needed
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Federal civilian likely requires active security clearance or extensive background investigation
+- No government contracting or federal agency experience
+- DC-centric role may require relocation or frequent travel
+**Recommendation:** MAYBE
 
 ---
 

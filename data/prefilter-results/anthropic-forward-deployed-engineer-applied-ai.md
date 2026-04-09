@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Forward Deployed Engineer, Applied AI
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/4985877008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect + AI Automation Engineer (hybrid)
+**Quick Score:** 3.5/5 — Embeds with strategic customers to ship AI — matches builder identity and COO stakeholder skills.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Builds production AI systems: Jarvis Trader, career-ops, OpenClaw — demonstrated ability to ship AI in production
+- Stakeholder management: COO bridging technical and executive stakeholders; Pretium senior leadership presentations
+- Hands-on architecture: designed and implemented complete stacks — not just advisory, actually builds
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No external customer embedded engagement experience (all deployments have been internal)
+- US cities listed likely require some on-site presence — not fully remote
+- Sales cycle context (AE partnership, POCs) not documented
+**Recommendation:** EVALUATE
 
 ---
 

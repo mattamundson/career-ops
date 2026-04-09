@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Partner Solutions Architect, Applied AI
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/4950664008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.0/5 — Too many hard gaps: no GSI/SI partnership experience, no AWS/GCP platform depth, no indirect revenue GTM.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- LLM technical credibility: 23 Claude skills + Jarvis Trader production AI
+- Architecture conversations: can hold technical discussions at depth
+- Cross-functional influence: COO operated across all functions
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No GSI/SI partnership experience (Accenture, Deloitte, etc.) — core of the role
+- No AWS/GCP platform expertise — role requires enabling cloud partner AI practices
+- No indirect revenue GTM / partner enablement track record
+**Recommendation:** SKIP
 
 ---
 

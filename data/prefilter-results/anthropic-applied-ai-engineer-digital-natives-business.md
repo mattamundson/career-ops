@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Applied AI Engineer (Digital Natives Business)
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5057647008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 3.5/5 — Strong AI engineering + enterprise product context; pre-sales advisory gap present.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Production AI systems: Jarvis Trader autonomous system + 23 Claude skills demonstrates advanced Claude usage
+- Enterprise product context: Pretium ($25B portfolio analytics), FirstEnergy (Fortune 200 enterprise)
+- Technical depth: can hold architecture conversations on LLM integration, context engineering, eval design
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No formal customer-facing pre-sales SE track record
+- Digital native SaaS companies differ from manufacturing/financial services background
+- Eval harness development not explicitly documented
+**Recommendation:** EVALUATE
 
 ---
 

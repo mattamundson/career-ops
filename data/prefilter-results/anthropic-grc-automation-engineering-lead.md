@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — GRC Automation Engineering Lead
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/4980335008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — GRC (Governance/Risk/Compliance) — off-archetype for data/AI/ops focus.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Technical background provides some credibility
+- Automation engineering is adjacent
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- GRC specialization requires compliance/risk domain expertise not in background
+- Off-archetype entirely
+- N/A
+**Recommendation:** SKIP
 
 ---
 

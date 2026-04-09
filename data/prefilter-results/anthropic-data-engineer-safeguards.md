@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Data Engineer, Safeguards
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5156057008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — International location
+**Quick Score:** 1.0/5 — Non-US location; Matt is US-based, remote-preferred.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- N/A
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-US location (India/Korea/London/Germany/France)
+- Not applicable
+- Not applicable
+**Recommendation:** SKIP
 
 ---
 

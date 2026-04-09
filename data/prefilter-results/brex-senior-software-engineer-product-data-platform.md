@@ -1,6 +1,6 @@
 # Prefilter: Brex — Senior Software Engineer, Product Data Platform
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-08
 **url:** https://www.brex.com/careers/8430182002?gh_jid=8430182002
 **company:** Brex
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 2.0/5 — Senior SWE on data platform requires production backend engineering at scale — significant gap.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Python scripting: Jarvis Trader Python engine, GMS pipeline scripts
+- Data platform thinking: understands what data consumers need from a platform
+- Technical depth: can discuss system design concepts
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No production backend software engineering experience at scale (distributed systems, load handling)
+- SWE role requires CS-grade programming proficiency — career has been data/analytics, not software engineering
+- Brex data platform (Go/Python at high throughput) differs significantly from BI/analytics tooling in CV
+**Recommendation:** SKIP
 
 ---
 

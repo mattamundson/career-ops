@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Applied AI Engineer (Startups)
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5073277008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 3.5/5 — Strong AI engineering match; startup operator COO story is authentic fit for this vertical.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Claude/agentic AI engineering: 23 Claude Code skills, OpenClaw gateway, career-ops pipeline — native Claude builder
+- Startup operating context: COO of bootstrapped manufacturing company, built entire tech stack solo without team
+- Hands-on prototyping: Jarvis Trader from concept to 1,295-test production system
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No external customer-facing technical advisory track record
+- No startup investing or VC ecosystem network
+- Pair programming with external partner codebases not documented
+**Recommendation:** EVALUATE
 
 ---
 

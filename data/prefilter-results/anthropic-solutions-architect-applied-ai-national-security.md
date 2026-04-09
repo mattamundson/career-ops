@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Solutions Architect, Applied AI (National Security)
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5079511008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 1.5/5 — National security requires TS/SCI clearance — not applicable without existing clearance.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Technical AI expertise
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Active TS/SCI clearance almost certainly required
+- No government/defense contracting background
+- DC-based role
+**Recommendation:** SKIP
 
 ---
 

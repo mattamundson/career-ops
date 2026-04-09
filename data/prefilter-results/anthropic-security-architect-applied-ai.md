@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Security Architect, Applied AI
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5101433008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype
+**Quick Score:** 1.5/5 — Security architecture — off-archetype; no security engineering background.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Technical architecture thinking
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Security architecture requires AppSec/cloud security specialization not in CV
+- Off-archetype entirely
+- N/A
+**Recommendation:** SKIP
 
 ---
 

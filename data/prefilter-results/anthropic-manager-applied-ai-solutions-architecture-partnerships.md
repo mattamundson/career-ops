@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Manager, Applied AI Solutions Architecture - Partnerships
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5173031008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.5/5 — COO management credentials exist but no SA team management or partnership GTM experience.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Leadership experience: managed operations across manufacturing company as COO
+- Technical depth: can credibly evaluate and mentor technical SA work
+- Strategic thinking: COO experience with vendor and partner relationships
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No Solutions Architecture team management — COO managed operations, not technical IC SA teams
+- No partnership or channel GTM experience (managing relationships with SIs, cloud partners)
+- Manager roles typically require previous SA IC experience for peer credibility
+**Recommendation:** MAYBE
 
 ---
 

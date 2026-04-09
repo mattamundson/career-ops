@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Business Systems Analyst, Data Enrichment
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5127289008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Level mismatch
+**Quick Score:** 1.5/5 — BSA level is significantly below COO background; would be a major step down in seniority.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Business systems understanding from COO role
+- N/A
+- N/A
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- COO to BSA is a 3-5 level step down in seniority/scope
+- Below target comp range
+- N/A
+**Recommendation:** SKIP
 
 ---
 

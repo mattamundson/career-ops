@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Solutions Architect, Applied AI (Creatives)
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5124533008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 3.0/5 — SA skills transfer; creative industries vertical is off-background but Claude advocacy angle is strong.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI architecture for enterprise Claude integration: demonstrated across career-ops and jarvis-trader
+- Cross-functional advisory: COO navigated business and technical stakeholders simultaneously
+- Claude native: 23 production Claude Code skills — can speak authentically to Claude capabilities
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No creative industry background (media, entertainment, design agencies)
+- Pre-sales SA experience gap applies here as well
+- Creative sector has different AI maturity than enterprise B2B
+**Recommendation:** MAYBE
 
 ---
 

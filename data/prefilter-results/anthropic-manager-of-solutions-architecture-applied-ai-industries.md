@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Manager of Solutions Architecture, Applied AI (Industries)
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/4964610008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.5/5 — Industry expertise is real; SA team management and pre-sales leadership gaps are meaningful.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Management experience: COO managing cross-functional teams
+- Industry expertise: manufacturing, financial services, utilities, supply chain — real industry depth
+- Technical credibility: can evaluate technical work and set architecture standards
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No SA team hiring or management at a SaaS/AI company
+- No experience managing customer-facing pre-sales teams
+- Manager roles typically require prior SA IC experience for credibility
+**Recommendation:** MAYBE
 
 ---
 

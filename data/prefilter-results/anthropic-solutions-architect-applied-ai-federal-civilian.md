@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Solutions Architect, Applied AI (Federal Civilian)
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5079540008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 2.0/5 — Federal context requires clearance; SA experience gap compounds the challenge.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI technical depth: 23 Claude skills, production AI systems
+- Enterprise delivery: FirstEnergy regulated environment
+- Technical credibility for architecture conversations
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Active security clearance likely required for federal civilian SA roles
+- No government contracting experience
+- Pre-sales SA experience gap applies
+**Recommendation:** MAYBE
 
 ---
 

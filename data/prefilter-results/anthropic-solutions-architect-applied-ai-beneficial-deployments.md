@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Solutions Architect, Applied AI (Beneficial Deployments)
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5062712008
 **company:** Anthropic
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 3.5/5 — Strong technical advisory + AI architecture match; mission-sector gap mitigated by COO operator narrative.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Claude/LLM technical expertise: 23 Claude Code skills, OpenClaw WhatsApp gateway, career-ops agentic pipeline — Claude Code native
+- AI system architecture: Jarvis Trader (5-layer regime detection, autonomous production AI), GMS ERP→BI→AI pipeline
+- Trusted advisor across organizational levels: COO bridging operational staff to executive stakeholders; Pretium senior leadership presentations
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No nonprofit/mission-driven sector background (Beneficial Deployments = nonprofits/research)
+- No external customer-facing pre-sales experience (COO operated internal systems, not client advisory)
+- SF/NYC office presence likely expected — Matt is Minneapolis-based, remote-first preference
+**Recommendation:** EVALUATE
 
 ---
 
