@@ -1,6 +1,6 @@
 # Prefilter: FutureStack AI Inc — Senior AI/ML Engineer — Builder Wanted - AI Tech Startup
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=d0503c5c69f5d27c
 **company:** FutureStack AI Inc
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Undetermined
+**Quick Score:** 2/5 — Title and company require manual review to determine fit.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Matches positive title filter
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Archetype fit uncertain
+- Domain and company unknown
+- Manual review recommended
+**Recommendation:** MAYBE
 
 ---
 

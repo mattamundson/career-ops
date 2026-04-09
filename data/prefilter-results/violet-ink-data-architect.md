@@ -1,6 +1,6 @@
 # Prefilter: Violet Ink — Data Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=9fe60e0b6f79b280
 **company:** Violet Ink
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 3/5 — Data Architect at Violet Ink (healthcare data company). Healthcare domain + data architecture = regulated operational data match.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data Architect = archetype 1
+- Healthcare data = regulated domain (FirstEnergy-adjacent)
+- Likely remote-first
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Violet Ink is a small/unknown company — evaluate stability
+- Healthcare data domain (not manufacturing/energy)
+- Salary band unknown for smaller firm
+**Recommendation:** MAYBE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Ascendion — Power BI and SQL Server Consultant
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4387729503
 **company:** Ascendion
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics (Archetype 3 — partial)
+**Quick Score:** 2.5/5 — Power BI Consultant/developer. Power BI skills align with archetype 3 but consultant title is below BI Architect seniority.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Power BI skills = archetype 3
+- Data visualization and reporting
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Consultant ≠ Architect scope
+- Staffing firm placement
+- SQL Server = legacy stack vs Fabric/modern
+**Recommendation:** MAYBE
 
 ---
 

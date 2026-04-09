@@ -1,6 +1,6 @@
 # Prefilter: Protagona — Data Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4314891286
 **company:** Protagona
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 3/5 — Data Architect at Protagona. Data Architect title = direct archetype 1. Company unknown — verify domain and size.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data Architect = archetype 1
+- Remote LinkedIn listing
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Protagona is unknown company — research required
+- Domain and stack entirely unknown
+- Salary and remote policy unconfirmed
+**Recommendation:** MAYBE
 
 ---
 

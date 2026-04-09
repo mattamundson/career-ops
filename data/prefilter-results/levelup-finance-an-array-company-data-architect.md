@@ -1,6 +1,6 @@
 # Prefilter: LevelUp Finance - An Array Company — Data Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4395457370
 **company:** LevelUp Finance - An Array Company
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect — Fintech (Archetype 1)
+**Quick Score:** 3/5 — Data Architect at LevelUp Finance (Array Company). Fintech data architecture; financial services aligns with Pretium background.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data Architect = archetype 1
+- Fintech/financial services = Pretium experience transferable
+- Likely remote
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- LevelUp Finance / Array Company is a startup — evaluate size/stability
+- Fintech stack unknown
+- Salary range for startup vs target
+**Recommendation:** MAYBE
 
 ---
 

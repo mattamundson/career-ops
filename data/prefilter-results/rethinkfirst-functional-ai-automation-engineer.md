@@ -1,6 +1,6 @@
 # Prefilter: RethinkFirst — Functional AI Automation Engineer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4390185904
 **company:** RethinkFirst
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation (Archetype 2 — partial)
+**Quick Score:** 2/5 — Functional AI Automation Engineer at RethinkFirst (special education tech). "Functional" suggests test/QA automation, not workflow AI.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI automation keywords
+- Healthcare-adjacent domain
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Functional = likely QA/test automation (not data workflow)
+- Special ed tech is a niche domain
+- AI scope unclear
+**Recommendation:** MAYBE
 
 ---
 

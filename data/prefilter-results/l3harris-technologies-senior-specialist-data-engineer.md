@@ -1,6 +1,6 @@
 # Prefilter: L3Harris Technologies — Senior Specialist, Data Engineer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4398574275
 **company:** L3Harris Technologies
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Data Engineer (Archetype 1 — adjacent)
+**Quick Score:** 2/5 — Senior Data Engineer at named company. Relevant data skills but DE scope differs from Data Architect architecture ownership.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data engineering = archetype 1 adjacent skills
+- Named employer brand
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Data Engineer ≠ Data Architect (schema design, governance, modeling ownership)
+- Domain may be off-archetype
+- Architecture scope not implied
+**Recommendation:** MAYBE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: ArcheSys Inc — AWS Solutions Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4399834118
 **company:** ArcheSys Inc
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Cloud/Infrastructure SA (off-archetype)
+**Quick Score:** 2/5 — AWS Solutions Architect is cloud infrastructure focused, not data architecture. Off-archetype without data/analytics qualifier.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Senior SA seniority
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- AWS cloud infra = off primary archetypes
+- No data/analytics qualifier in title
+- Consulting firm placement
+**Recommendation:** MAYBE
 
 ---
 

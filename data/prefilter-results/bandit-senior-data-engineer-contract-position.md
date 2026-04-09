@@ -1,6 +1,6 @@
 # Prefilter: Bandit — Senior Data Engineer (Contract Position)
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4398566127
 **company:** Bandit
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Data Engineer (Archetype 1 — adjacent, contract)
+**Quick Score:** 2/5 — Senior Data Engineer (Contract) — relevant skills but contract term and below Data Architect seniority.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data engineering skills relevant
+- Senior level
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Contract term (not perm)
+- Data Engineer ≠ Data Architect scope
+- Architecture ownership not implied
+**Recommendation:** MAYBE
 
 ---
 

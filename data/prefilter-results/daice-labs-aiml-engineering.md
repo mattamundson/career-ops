@@ -1,6 +1,6 @@
 # Prefilter: Daice Labs — AI/ML Engineering
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4397742468
 **company:** Daice Labs
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / ML Engineer (Archetype 5 — partial)
+**Quick Score:** 2.5/5 — AI/ML Engineering at Daice Labs (AI startup). LLM/ML skills relevant but scope unclear for a small unknown company.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI/ML skills relevant to archetype 5
+- Startup = likely agentic/LLM work
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Daice Labs is unknown startup — evaluate viability
+- ML Engineering vs Applied AI distinction unclear
+- Salary/equity unknown
+**Recommendation:** MAYBE
 
 ---
 

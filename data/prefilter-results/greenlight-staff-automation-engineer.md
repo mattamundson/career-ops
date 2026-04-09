@@ -1,6 +1,6 @@
 # Prefilter: Greenlight — Staff Automation Engineer
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4398355029
 **company:** Greenlight
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A — Off-archetype automation
+**Quick Score:** 1.5/5 — Automation Engineer role is off-archetype (industrial/QA/government/security automation, not data or AI workflow).
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Automation keyword match
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Non-data, non-AI automation (QA, GxP, packaging, security, government IT)
+- Off all 6 archetypes
+- Likely below target compensation
+**Recommendation:** SKIP
 
 ---
 

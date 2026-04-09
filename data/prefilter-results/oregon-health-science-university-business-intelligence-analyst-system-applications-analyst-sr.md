@@ -1,6 +1,6 @@
 # Prefilter: Oregon Health & Science University — Business Intelligence Analyst (System Applications Analyst, Sr.)
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=148e6f60540db822
 **company:** Oregon Health & Science University
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics Lead (Archetype 3 — below seniority)
+**Quick Score:** 2/5 — BI Analyst. Archetype 3 skills but below Data Architect/BI Lead seniority threshold.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- BI skills relevant to archetype 3
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- BI Analyst = below target seniority
+- No architecture scope
+- Reporting/dashboards vs design/architecture
+**Recommendation:** MAYBE
 
 ---
 

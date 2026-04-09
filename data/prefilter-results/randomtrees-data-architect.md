@@ -1,6 +1,6 @@
 # Prefilter: RandomTrees — Data Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4398280729
 **company:** RandomTrees
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 2.5/5 — Data Architect title is archetype 1 match. Company domain and stack need verification.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data Architect = archetype 1 keyword match
+- Remote US likely
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Company domain unconfirmed
+- Stack not confirmed
+- Salary band unknown
+**Recommendation:** MAYBE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Fractal — Data Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4395479747
 **company:** Fractal
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 3/5 — Data Architect at Fractal Analytics (AI/analytics consulting). Good archetype 1 match with consulting delivery context.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data Architect title = archetype 1
+- Fractal is a major analytics consulting firm
+- Client delivery = external stakeholder experience
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Consulting travel likely
+- Fractal stack (Python/ML/cloud?) may skew more ML than data arch
+- Salary band for consulting roles varies widely
+**Recommendation:** MAYBE
 
 ---
 

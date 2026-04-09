@@ -1,6 +1,6 @@
 # Prefilter: Tiger Analytics — Power BI Architect
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4335455918
 **company:** Tiger Analytics
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics Lead / Power BI Architect (Archetype 3)
+**Quick Score:** 3.5/5 — Power BI Architect title is direct archetype 3 match. Strong demand for Fabric/Power Platform skills.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Power BI Architect = direct archetype 3 title
+- Power Platform + DAX + data modeling skills align
+- Remote US likely
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Power Platform stack not confirmed vs DAX/Fabric
+- Company domain TBD
+- Salary band not confirmed
+**Recommendation:** EVALUATE
 
 ---
 

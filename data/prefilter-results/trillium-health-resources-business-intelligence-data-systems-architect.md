@@ -1,6 +1,6 @@
 # Prefilter: Trillium Health Resources — Business Intelligence Data Systems Architect
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=8ab6cda6d4c6daf8
 **company:** Trillium Health Resources
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics Lead + Operational Data (Archetype 3 + 1)
+**Quick Score:** 3.5/5 — Business Intelligence Data Systems Architect at Trillium Health Resources (public behavioral health). Hybrid BI + systems architecture in regulated healthcare.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- BI Data Systems Architect = hybrid archetype 1+3 title
+- Regulated healthcare = operational data focus
+- Architecture ownership implied
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Public sector salary may be capped
+- NC-based Trillium may require on-site hybrid
+- Stack (SQL/Power BI/SSRS?) not confirmed
+**Recommendation:** EVALUATE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Daman — Data Architect (MDM and Data Governance)
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4395997579
 **company:** Daman
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect — MDM/Governance (Archetype 1)
+**Quick Score:** 3.5/5 — Data Architect with MDM + Data Governance focus is a strong archetype 1 signal. MDM is a critical operational data domain.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- MDM + Data Governance = core operational data architecture
+- Senior Data Architect title confirmed
+- Data quality and governance experience aligns
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Platform/stack not confirmed
+- Company Daman is insurance/financial services — domain transfer needed
+- Location/remote policy unknown
+**Recommendation:** EVALUATE
 
 ---
 

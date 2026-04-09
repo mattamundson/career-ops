@@ -1,6 +1,6 @@
 # Prefilter: Bestow — AI Automation Engineer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4385590611
 **company:** Bestow
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation / Workflow Engineer (Archetype 2)
+**Quick Score:** 2.5/5 — AI Automation Engineer title is archetype 2 match. Scope varies widely — verify whether role involves LLM/Claude orchestration vs RPA.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI Automation = archetype 2 keyword
+- Remote likely for AI roles
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- AI scope unclear (LLM agent vs RPA vs test automation)
+- Company size/domain varies
+- Salary band unknown
+**Recommendation:** MAYBE
 
 ---
 

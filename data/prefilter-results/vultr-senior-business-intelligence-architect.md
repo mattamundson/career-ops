@@ -1,6 +1,6 @@
 # Prefilter: Vultr — Senior Business Intelligence Architect
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4355082925
 **company:** Vultr
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics Lead (Archetype 3)
+**Quick Score:** 3.5/5 — Senior Business Intelligence Architect at Vultr (cloud infrastructure provider). Strong BI Architect match at a growth-stage cloud company.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Senior BI Architect title = direct archetype 3
+- Cloud company = strong data culture likely
+- Remote-first company
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Cloud infra domain (not operations/manufacturing)
+- Power BI vs Tableau stack unknown
+- Salary band not confirmed
+**Recommendation:** EVALUATE
 
 ---
 

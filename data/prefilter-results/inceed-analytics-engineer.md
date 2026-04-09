@@ -1,6 +1,6 @@
 # Prefilter: Inceed — Analytics Engineer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4374046311
 **company:** Inceed
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Analytics Engineer (Archetype 1 — adjacent)
+**Quick Score:** 2/5 — Analytics Engineer via staffing firm. IC role below Data Architect seniority; staffing placement adds uncertainty.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Analytics Engineering skills relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Staffing placement — client unknown
+- Below target seniority level
+- Role scope unclear
+**Recommendation:** MAYBE
 
 ---
 

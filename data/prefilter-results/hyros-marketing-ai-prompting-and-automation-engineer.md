@@ -1,6 +1,6 @@
 # Prefilter: Hyros — Marketing AI Prompting and Automation Engineer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4319924322
 **company:** Hyros
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** AI Automation (Archetype 2 — partial)
+**Quick Score:** 2/5 — Marketing AI Prompting and Automation at Hyros. AI automation skills apply but marketing attribution domain is off-archetype.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI + automation keywords
+- Prompting/LLM skills relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Marketing attribution is off primary archetypes
+- Hyros is a small ad-tracking company
+- Engineering scope likely narrow
+**Recommendation:** MAYBE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Zayo Group — Data Analytics Engineer - Network Data Solutions
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=9ba38c8b2c1db3d9
 **company:** Zayo Group
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Analytics Engineer (Archetype 1 — adjacent)
+**Quick Score:** 2/5 — Analytics Engineer role. IC data role relevant to archetype 1 skills but below target seniority (Data Architect level).
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- dbt/SQL/warehouse skills relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Below target seniority
+- Architecture ownership not implied
+- Company domain varies
+**Recommendation:** MAYBE
 
 ---
 

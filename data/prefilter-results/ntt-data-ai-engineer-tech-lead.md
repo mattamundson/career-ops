@@ -1,6 +1,6 @@
 # Prefilter: NTT DATA — AI Engineer Tech Lead
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=544af1125c41fb9b
 **company:** NTT DATA
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Operations Technology (Archetype 5 + 6)
+**Quick Score:** 3/5 — AI Engineer Tech Lead at NTT DATA (global IT consulting). AI leadership in enterprise consulting context = archetype 5+6.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Tech Lead = leadership seniority
+- AI Engineer + consulting = archetype 5 adjacent
+- Global enterprise clients match experience scale
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- NTT DATA is generalist IT consulting (not data-specialist)
+- Consulting travel likely
+- AI scope (ML ops vs applied AI?) unclear
+**Recommendation:** MAYBE
 
 ---
 

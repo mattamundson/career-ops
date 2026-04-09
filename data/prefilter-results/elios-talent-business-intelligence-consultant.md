@@ -1,6 +1,6 @@
 # Prefilter: Elios Talent — Business Intelligence Consultant
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4391609921
 **company:** Elios Talent
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics (Archetype 3 — partial)
+**Quick Score:** 2/5 — BI Consultant title is below BI Architect/Lead seniority. Staffing firm placement.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- BI consulting skills relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Consultant ≠ Architect (scope and seniority)
+- Staffing placement — client unknown
+- Engagement type unclear
+**Recommendation:** MAYBE
 
 ---
 

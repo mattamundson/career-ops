@@ -1,6 +1,6 @@
 # Prefilter: NielsenIQ — Data Architect - T7
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4385930431
 **company:** NielsenIQ
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 3/5 — Data Architect - T7 at NielsenIQ (market research/consumer data). Enterprise data at scale, but CPG/retail domain is peripheral.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data Architect title = archetype 1
+- Enterprise data at large scale
+- T7 = senior/staff level implied
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- CPG/market research domain is off primary archetypes
+- NielsenIQ undergoing ownership changes (potential instability)
+- Stack unknown
+**Recommendation:** MAYBE
 
 ---
 

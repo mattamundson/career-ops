@@ -1,6 +1,6 @@
 # Prefilter: Experian — Identity Governance & Administration Solutions Architect - Remote
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4389930269
 **company:** Experian
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** IAM / Security SA (off-archetype)
+**Quick Score:** 2/5 — Identity Governance SA at Experian is IAM/security focused, not data architecture. Off-archetype despite strong company.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Experian is a strong data company brand
+- Remote role
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- IGA/IAM = identity security, not data architecture
+- No data/analytics qualifier
+- Seniority level may mismatch
+**Recommendation:** MAYBE
 
 ---
 

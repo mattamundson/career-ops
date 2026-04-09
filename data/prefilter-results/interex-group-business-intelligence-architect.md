@@ -1,6 +1,6 @@
 # Prefilter: InterEx Group — Business Intelligence Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4395022902
 **company:** InterEx Group
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics Lead (Archetype 3)
+**Quick Score:** 3/5 — Business Intelligence Architect at InterEx Group (staffing/consulting). BI Architect title is strong archetype 3; staffing firm placement is the main unknown.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- BI Architect = direct archetype 3 title
+- Architecture seniority implied
+- Power BI/BI stack likely
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Staffing firm — client company unknown
+- Engagement type (perm/contract) unclear
+- Salary and location depend on client
+**Recommendation:** MAYBE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: K1X, Inc. — Data Engineer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4397290291
 **company:** K1X, Inc.
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Data Engineer (Archetype 1 — adjacent)
+**Quick Score:** 2/5 — Data Engineer at K1X (insurance data platform). Fintech-adjacent domain. DE not DA.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Insurance/fintech domain relevant (Pretium background)
+- Data engineering skills
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- DE ≠ DA
+- K1X is small/startup
+- Stack unknown
+**Recommendation:** MAYBE
 
 ---
 

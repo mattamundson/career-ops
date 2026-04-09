@@ -1,6 +1,6 @@
 # Prefilter: Scout Global — Solutions Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4398285327
 **company:** Scout Global
@@ -24,17 +24,16 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Solutions Architect (Archetype 5 — partial)
+**Quick Score:** 2/5 — Solutions Architect title is archetype 5 adjacent. Without "data" or "AI" qualifier, fit is uncertain.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- SA title aligns with archetype 5 pattern
+- Remote likely
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No data/analytics qualifier in title
+- Staffing firm — client and scope unknown
+- Pre-sales experience gap
+**Recommendation:** MAYBE
 
 ---
 

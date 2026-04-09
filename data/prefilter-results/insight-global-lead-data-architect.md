@@ -1,6 +1,6 @@
 # Prefilter: Insight Global — Lead Data Architect
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4394493889
 **company:** Insight Global
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect (Archetype 1)
+**Quick Score:** 3/5 — Lead Data Architect at Insight Global (major staffing firm). Placement role — actual client company and domain unknown.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Lead Data Architect = strong archetype 1 title
+- Lead-level seniority matches experience
+- Insight Global has enterprise client roster
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Staffing placement — client company identity unknown
+- Contract vs perm unclear (Insight Global places both)
+- Location and remote policy dependent on client
+**Recommendation:** MAYBE
 
 ---
 

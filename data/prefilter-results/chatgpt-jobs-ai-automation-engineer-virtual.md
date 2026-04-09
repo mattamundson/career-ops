@@ -1,6 +1,6 @@
 # Prefilter: ChatGPT Jobs — AI Automation Engineer - Virtual
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4356331339
 **company:** ChatGPT Jobs
@@ -24,17 +24,14 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A
+**Quick Score:** 1.5/5 — Unverified source ("ChatGPT Jobs") virtual posting. Cannot verify legitimacy.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- AI Automation title matches
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Source unverified — "ChatGPT Jobs" is not a legitimate company
+- Virtual = likely contract/gig or scam posting
+**Recommendation:** SKIP
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: CRG — Data Engineer II
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4394785611
 **company:** CRG
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Data Engineer (Archetype 1 — adjacent)
+**Quick Score:** 2/5 — Data Engineer role is archetype 1 adjacent. IC data engineering without architecture ownership.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data engineering skills relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- DE ≠ DA — architecture scope differs
+- Below target seniority in most cases
+- Company/domain TBD
+**Recommendation:** MAYBE
 
 ---
 

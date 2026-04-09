@@ -1,6 +1,6 @@
 # Prefilter: Method — Principal Data Architect
 
-**status:** pending
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4396592708
 **company:** Method
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect — Senior IC (Archetype 1)
+**Quick Score:** 3.5/5 — Principal Data Architect = highest IC data architecture title. Strong archetype 1 match.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Principal level = senior individual contributor, matches experience level
+- Data Architect core archetype
+- Architecture ownership implied
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Stack and domain unknown
+- Company size and remote policy TBD
+- Salary verification needed
+**Recommendation:** EVALUATE
 
 ---
 

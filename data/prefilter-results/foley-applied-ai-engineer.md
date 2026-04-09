@@ -1,6 +1,6 @@
 # Prefilter: Foley — Applied AI Engineer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=3df3a15b80404cb2
 **company:** Foley
@@ -24,17 +24,17 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect (Archetype 5)
+**Quick Score:** 3/5 — Applied AI Engineer at Foley (legal tech). Claude/LLM deployment skills align; legal tech is regulated domain. Pre-sales/deployment experience gap.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Applied AI = direct archetype 5 keyword
+- Legal tech = regulated domain (compliance-heavy)
+- LLM/Claude deployment experience relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Legal domain knowledge gap
+- Pre-sales/consulting track record not demonstrated
+- Stack unknown
+**Recommendation:** MAYBE
 
 ---
 

@@ -1,6 +1,6 @@
 # Prefilter: Oregon Health & Science University — Business Intelligence Analyst (System Application Analyst, Entry)
 
-**status:** pending
+**status:** skip
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=6e7945367f636878
 **company:** Oregon Health & Science University
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** N/A
+**Quick Score:** 1.5/5 — Entry-level BI Analyst. Below target seniority threshold.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- BI skills relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Entry level = off target seniority
+- Healthcare public sector pay band
+- No architecture ownership
+**Recommendation:** SKIP
 
 ---
 

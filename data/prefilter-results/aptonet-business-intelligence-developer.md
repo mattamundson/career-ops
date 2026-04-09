@@ -1,6 +1,6 @@
 # Prefilter: Aptonet — Business Intelligence Developer
 
-**status:** pending
+**status:** maybe
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4389819277
 **company:** Aptonet
@@ -24,17 +24,15 @@ Thresholds:
 
 <!-- Fill in after running /prefilter mode -->
 
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** BI & Analytics (Archetype 3 — IC level)
+**Quick Score:** 2/5 — BI Developer is IC implementation role, not architecture. Below target seniority.
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- BI development skills (Power BI, reports) relevant
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Developer ≠ Architect
+- IC role without design ownership
+- Company size/domain unknown
+**Recommendation:** MAYBE
 
 ---
 
