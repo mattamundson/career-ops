@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Job Application for Power BI Engineer at Accenture Federal Services
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://boards.greenhouse.io/accenturefederalservices/jobs/4671407006
 **company:** Unknown
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: Requires US citizenship (no dual citizenship) + Secret clearance eligibility. Salary $70.5K–$136.7K is below target floor. DoD Secret preferred. Hard disqualifier.

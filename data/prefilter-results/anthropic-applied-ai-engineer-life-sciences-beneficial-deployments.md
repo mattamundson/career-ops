@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Applied AI Engineer, Life Sciences (Beneficial Deployments)
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5111942008
 **company:** Anthropic
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: SF/NYC hybrid 25%+ in-office. Requires deep life sciences/biomedical research background. No pharma/biotech/clinical experience in background. Two hard blockers: location + vertical.

@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Solutions Architect, Applied AI (Digital Native Business)
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5065835008
 **company:** Anthropic
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: SF/NYC hybrid 3 days/week in office required. Requires 5+ years pre-sales SA experience (discovery → POC → contract). Both location and pre-sales background are hard blockers. Salary $240K–$315K OTE.

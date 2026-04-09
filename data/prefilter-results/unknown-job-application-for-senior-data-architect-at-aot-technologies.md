@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Job Application for Senior Data Architect at AOT Technologies
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://boards.greenhouse.io/aottechnologies/jobs/5166321008
 **company:** Unknown
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: Canada-only position. Must have Canadian work authorization. Salary $115K–$145K CAD (~$85K–$107K USD). Hard disqualifier: not US-eligible.

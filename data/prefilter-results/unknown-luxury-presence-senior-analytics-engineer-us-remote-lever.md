@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: JD blocked (Lever 403). Luxury Presence is a real estate marketing SaaS. US Remote confirmed in title. Senior Analytics Engineer — prefilter notes dbt gap. Real estate domain not in background. Manual JD verification needed to confirm dbt hard requirement vs. nice-to-have.

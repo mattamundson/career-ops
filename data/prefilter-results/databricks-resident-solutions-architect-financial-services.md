@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: Databricks JD not accessible via WebFetch (CSS/JS-only render). Databricks SA roles universally require: Spark/Delta Lake hands-on, pre-sales experience (POC delivery, AE partnership), and Databricks platform fluency. All three are gaps. Unless JD shows unusual flexibility, this is a borderline skip — keep MAYBE only because Pretium financial services domain is a partial fit.

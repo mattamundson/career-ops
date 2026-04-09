@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Enterprise Data Architect - Energy Trust of Oregon - Jobs By Workable
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://apply.workable.com/energy-trust-of-oregon/j/3F1A95077C/
 **company:** Unknown
@@ -40,4 +40,6 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: Salary confirmed $133,900–$184,700 (strong range). JD body inaccessible via WebFetch (JS-rendered). Company is a nonprofit utility/energy efficiency nonprofit in Portland OR. Remote policy UNKNOWN — manual verification needed. Given archetype match (Enterprise Data Architect) and salary, worth a manual JD read before skipping.
+
+**2026-04-09 JD fetch (Playwright)**: DISQUALIFIED — LOCATION FAIL. Job is explicitly listed as **Hybrid, Portland OR**. "Office Location: Portland Metro Area, Oregon, USA." Candidates must report to Portland office quarterly at minimum and "represent Energy Trust in public settings." We are open to OR/WA candidates only. Minneapolis/remote-US does not fit. Stack is Microsoft-heavy (SQL Server, SSRS, SSIS, Microsoft Fabric, Azure DevOps) — strong match. Salary strong. But non-negotiable in-region hybrid requirement. → SKIP.

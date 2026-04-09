@@ -1,6 +1,6 @@
 # Prefilter: Visa — Sr. Business Intelligence Engineer - Digital Experiences & Capabilities
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.smartrecruiters.com/Visa/744000118479118
 **company:** Visa
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: Austin TX hybrid (office days required, hiring manager confirmed). Salary $180K–$262K is in range but on-site is disqualifying for remote-only constraint.

@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Caseware - Principal Software Developer – AI Data Architect - Lever
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.lever.co/caseware/d648444c-6a9e-440a-8588-a13138143821
 **company:** Unknown
@@ -40,4 +40,7 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: JD blocked (Lever 403). Caseware is audit/accounting software company. Title "Principal Software Developer – AI Data Architect" is unusual — likely heavy SWE coding component (C#/.NET typically). AI Data Architect framing is interesting. Manual JD verification needed — SWE coding depth may be a hard blocker.
+
+**2026-04-09 JD fetch (Playwright)**: DISQUALIFIED — LOCATION FAIL. The JD explicitly states: "📍 Location: This is a **fully remote position located in Colombia**." Benefits package is Colombian (Contrato a termino Indefinido, Prepaid Medicine, Colombian labor law). This is a LATAM hire, not a US remote role. Despite the interesting AI Data Architect scope (AWS lakehouse, Spark, RAG/embedding pipelines, medallion architecture) and strong technical depth, the role is not open to US-based candidates.
+→ SKIP.

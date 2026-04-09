@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: Databricks Specialist SA — Data Warehousing. This is the most technical of the Databricks roles. Specialist SA typically requires deep Databricks SQL Warehouse hands-on (Photon, DLT, Unity Catalog). No DW migration experience with Databricks in background. Likely harder gap than the vertical-focused SA roles. Keep MAYBE but lowest priority Databricks card.

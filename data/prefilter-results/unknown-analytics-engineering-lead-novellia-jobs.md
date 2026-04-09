@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Analytics Engineering Lead @ Novellia - Jobs
 
-**status:** maybe
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/novellia/5e84374c-3f35-4431-8218-5e050387404b
 **company:** Unknown
@@ -40,4 +40,12 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**UPGRADED TO EVALUATE — 2026-04-09**
+
+JD confirmed via WebFetch:
+- Salary: $150,000–$190,000 base + equity, remote US only
+- No visa sponsorship — US authorization required
+- dbt explicitly required — this is a gap but role is leadership/lead, not IC AE
+- Stack: Snowflake/BigQuery/Redshift + AWS/GCP + Looker/Tableau/Metabase
+- COO background (first analytics hire, built stack from zero) is strong for lead-level role
+- Risk: dbt gap is real — worth flagging in application as "learning actively"; leadership framing helps

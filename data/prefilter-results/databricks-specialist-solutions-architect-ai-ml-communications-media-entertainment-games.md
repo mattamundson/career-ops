@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: AI/ML SA for CME&G vertical — weakest domain match (no media/entertainment background). JD not accessible. Databricks MLflow/MLOps gap + CME domain gap + pre-sales gap = three compounding blockers. Lowest priority of Databricks group. Consider skipping unless pipeline is thin.

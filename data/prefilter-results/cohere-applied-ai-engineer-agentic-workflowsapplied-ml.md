@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: Remote-flexible (SF/Toronto/NY/London/Paris offices), 25% travel. Salary undisclosed. Requires production SWE engineering grade (Python/TypeScript) + RAG/vector store experience. Strong agentic LLM alignment but production SWE + RAG are real gaps. Cohere competes with Anthropic — Claude-native framing needs reframe. Keep MAYBE.

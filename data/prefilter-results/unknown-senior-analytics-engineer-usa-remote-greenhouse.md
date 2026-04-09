@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: Grafana Labs Sr. Analytics Engineer — USA Remote. Greenhouse job page redirected to Grafana careers but specific job 5850008004 returned 404 (may be expired). Grafana is observability company. Title suggests dbt likely required. Keep as MAYBE pending manual verification that posting is still live.

@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Egen - Principal Data Architect - GCP Expertise* - Lever
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.lever.co/egen/a6b6bc0e-b168-4f91-9cde-ca7952d2a654
 **company:** Unknown
@@ -40,4 +40,7 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: JD blocked (Lever 403). Egen is a tech consulting firm. "GCP Expertise*" in title — asterisk suggests GCP preferred not required. Principal Data Architect — archetype match strong. Consulting firms typically remote-friendly. GCP gap (Azure-primary background) but not necessarily hard blocker. Manual JD verification needed.
+
+**2026-04-09 JD fetch**: DISQUALIFIED — STACK FAIL. Original Lever URL (a6b6bc0e) is 404 (expired/removed). Retrieved JD details via web search. Key finding: requires "5+ years architecting data platforms on GCP and/or **Databricks**" and "proven hands-on experience designing and deploying Data Lakehouse platforms" using BigQuery, GCS, BigLake, Dataplex. GCP + Databricks are hard requirements at the architectural level (not just familiarity). Despite the asterisk in the title suggesting preferred, the JD body treats GCP as a core required skill. Also a second Lever posting (08e02a65) for Egen's "Streaming & Data Platforms" variant is also 404'd. The asterisk was misleading — GCP expertise is a hard requirement.
+→ SKIP.

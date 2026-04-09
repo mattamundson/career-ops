@@ -1,6 +1,6 @@
 # Prefilter: Brex — Data Engineer
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-08
 **url:** https://www.brex.com/careers/8366850002?gh_jid=8366850002
 **company:** Brex
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: SF hybrid 3 days/week in office (Mon/Wed/Thu). Hard disqualifier for remote-only. Also requires dbt 2+ years and Snowflake/Airflow — stack mismatch compounds the location issue.

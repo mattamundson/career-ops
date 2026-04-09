@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Staff Analytics Engineer - Foundational Data - Careers at Airbnb
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://boards.greenhouse.io/airbnb/jobs/7733495
 **company:** Unknown
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: Airbnb careers page returned 403/redirect. Confirmed from prefilter notes: dbt/Airflow/Spark required — modern data stack is primary gap. Prestige company but stack mismatch (Power BI-centric background vs. Airbnb's data stack) is too significant without dbt experience.

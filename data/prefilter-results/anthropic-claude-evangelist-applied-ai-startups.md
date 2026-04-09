@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Claude Evangelist, Applied AI (Startups)
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5116927008
 **company:** Anthropic
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: SF/NYC only, 25%+ in-office required. Requires 7+ years DevRel/evangelism track record + conference speaking history. Salary $240K–$315K is attractive but location and track record are hard blockers.

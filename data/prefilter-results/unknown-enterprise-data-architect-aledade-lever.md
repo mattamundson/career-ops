@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Enterprise Data Architect - Aledade - Lever
 
-**status:** maybe
+**status:** evaluate
 **date:** 2026-04-09
 **url:** https://jobs.lever.co/aledade/3532b394-a4d4-4248-adfa-b22d61b3b634
 **company:** Unknown
@@ -40,4 +40,13 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: JD blocked (Lever 403). Aledade is a healthcare/primary care company. Enterprise Data Architect — strong archetype match. Lever typically has remote-friendly roles. Healthcare domain (UltiMed, FirstEnergy compliance) adjacent. Manual JD verification needed to confirm remote policy and comp.
+
+**2026-04-09 JD fetch (Playwright)**: UPGRADED TO EVALUATE. All criteria pass:
+- **Location**: Listed "Bethesda, MD / Remote" — explicitly tagged Remote. Company is "remote-first culture" with "flexible work schedules and the ability to work remotely available for many roles." Minneapolis-based applicant fits.
+- **Salary**: Not listed in JD. No disqualifier.
+- **Stack**: Snowflake (hard req), MuleSoft (hard req), DataHub (preferred). No Databricks/Spark/cloud ML engineering as hard requirements.
+- **Clearance**: None mentioned.
+- **Role fit**: Level 8 strategic leadership role. Architect MDM strategy and Business Data Warehouse. Links fragmented data across customer lifecycle (Salesforce → Ironclad → NetSuite/QuickCap). Strong archetype 1 match — exactly Matt's ERP→BI→integration architecture profile. Healthcare SaaS (HIPAA governance preferred, not required).
+- **Gaps**: No formal healthcare data domain experience; Snowflake architecture depth (have used, not architected at scale); MuleSoft unfamiliar. These are rampable.
+- **Score upgrade**: 3.0 → 3.8 with full JD context. Proceed to full A-F evaluation.

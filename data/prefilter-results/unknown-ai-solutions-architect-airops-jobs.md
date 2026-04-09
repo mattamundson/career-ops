@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: AirOps is an AI workflow/automation company. AI SA role — archetype match on Claude/LLM depth is strong. NYC/SF preferred but listed as hybrid telecommute — unclear if Minneapolis fully remote is viable. No salary disclosed. No explicit quota. Pre-sales SA experience gap still applies but lighter than traditional SA roles. Worth manual inquiry if other options thin out.

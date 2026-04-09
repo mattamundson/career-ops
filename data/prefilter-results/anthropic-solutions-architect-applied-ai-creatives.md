@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Solutions Architect, Applied AI (Creatives)
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5124533008
 **company:** Anthropic
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: SF/NYC hybrid in-office required. Creative industries vertical (media/entertainment/design) not in background. Pre-sales SA experience gap applies. Three compounding blockers.

@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: Databricks JD not accessible. Wealth/Asset Management vertical aligns with Pretium ($25B+ AUM). Same hard gaps as other Databricks roles: Spark + pre-sales. Sr. level likely requires Databricks Certified Associate minimum. Keep MAYBE — Pretium domain makes this worth manual JD verification.

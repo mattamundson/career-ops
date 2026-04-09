@@ -1,6 +1,6 @@
 # Prefilter: Datadog — Product Solutions Architect - LLM Observability
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://careers.datadoghq.com/detail/7627531/?gh_jid=7627531
 **company:** Datadog
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: Hybrid role with office presence in Boston/Denver/NYC/SF + 40% client travel. Minneapolis-based remote-only constraint is a hard blocker. Salary $151.5K–$222K is attractive but travel/location disqualifies.

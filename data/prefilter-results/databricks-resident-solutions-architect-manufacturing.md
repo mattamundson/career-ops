@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**2026-04-09 second-pass review**: Databricks JD not accessible via WebFetch. Manufacturing vertical (GMS COO) is the strongest domain match across all Databricks roles here. Same hard gaps: Spark/Delta Lake + pre-sales track record. Of the Databricks cards, this one has the best domain story — keep MAYBE but manual JD review needed.

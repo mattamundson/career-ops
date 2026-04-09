@@ -1,6 +1,6 @@
 # Prefilter: Cohere — Solutions ArchitectSolutions Architecture
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/cohere/afba8779-3bb1-4cf6-81be-705fb36f0ac9
 **company:** Cohere
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: Singapore-based role. Not eligible for US remote. Also requires 5+ years pre/post-sales SA experience and LLM/NLP architecture background — multiple blockers.

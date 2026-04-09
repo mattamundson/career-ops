@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Solutions Architect- Remote (USA) @ Orb - Jobs
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.ashbyhq.com/orb/a0adb5b6-88f5-4d4d-a3e8-ea387dcedd7e
 **company:** Unknown
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: $200K–$275K OTE includes commission. This is a quota-carrying pre-sales role with quarterly in-person required. Hard blocker: sales quota + billing niche domain knowledge needed.

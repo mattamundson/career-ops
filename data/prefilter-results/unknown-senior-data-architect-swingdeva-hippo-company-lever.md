@@ -1,6 +1,6 @@
 # Prefilter: Unknown — Senior Data Architect - SwingDev–a hippo company - Lever
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://jobs.lever.co/swingdev/a2548593-0887-457f-864b-2d35b8748ebd
 **company:** Unknown
@@ -40,4 +40,4 @@ Thresholds:
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+**SKIPPED — 2026-04-09**: Canada remote only, Canadian work authorization required, salary $115K–$145K CAD. Hard disqualifier: not US-eligible. Also requires 4+ years Databricks hands-on.
