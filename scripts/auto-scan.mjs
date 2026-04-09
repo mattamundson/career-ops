@@ -964,10 +964,45 @@ async function autoPromoteHighScores() {
   }
   writeFileSync(PIPELINE, updatedPipeline);
 
-  // Update card status to "promoted"
+  // Update card status to "promoted" + auto-generate outreach template if archetype is set
+  const { execFileSync: execSync } = await import('child_process');
+  const outreachDir = resolve(ROOT, 'data', 'outreach');
+  const { mkdirSync } = await import('fs');
+  mkdirSync(outreachDir, { recursive: true });
+
   for (const c of toPromote) {
-    const text = readFileSync(c.file, 'utf8');
+    const text    = readFileSync(c.file, 'utf8');
+    const archetypeMatch = text.match(/\*\*Archetype:\*\*\s*(.+)/i);
+    const archetype = archetypeMatch ? archetypeMatch[1].trim() : null;
+
+    // Write updated card status
     writeFileSync(c.file, text.replace(/\*\*status:\*\*\s*\w+/, '**status:** promoted'));
+
+    // Auto-generate outreach template when archetype is filled in (not "_pending_")
+    if (archetype && !archetype.startsWith('_')) {
+      const outreachSlug = `${c.company}-${c.title}`
+        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+      const outreachPath = resolve(outreachDir, `${outreachSlug}.md`);
+      try {
+        const templateOut = execSync(process.execPath, [
+          resolve(__dir, 'select-template.mjs'),
+          '--scenario=recruiter',
+          `--archetype=${archetype}`,
+          '--channel=linkedin',
+          `--company=${c.company}`,
+          `--role=${c.title}`,
+        ], { cwd: ROOT, encoding: 'utf8' });
+        writeFileSync(outreachPath, `# Outreach Template — ${c.company}: ${c.title}\n\n` + templateOut);
+        console.log(`  Outreach template → ${outreachPath.replace(ROOT, '').replace(/\\/g, '/')}`);
+        // Append link to the prefilter card
+        const updatedCard = readFileSync(c.file, 'utf8');
+        if (!updatedCard.includes('Outreach Template')) {
+          writeFileSync(c.file, updatedCard.trimEnd() + `\n\n**Outreach Template:** [View](../outreach/${outreachSlug}.md)\n`);
+        }
+      } catch (e) {
+        console.warn(`  [WARN] select-template failed for ${c.company}: ${e.message.slice(0, 60)}`);
+      }
+    }
   }
 }
 

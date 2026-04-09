@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { resolve, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
+import { execFileSync } from 'child_process';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -24,6 +25,7 @@ const ROOT = resolve(__dir, '..');
 const PIPELINE         = resolve(ROOT, 'data', 'pipeline.md');
 const PREFILTER_DIR    = resolve(ROOT, 'data', 'prefilter-results');
 const MATCH_JD_DIR     = resolve(ROOT, 'data', 'match-jd');  // optional semantic scores
+const INTEL_DIR        = resolve(ROOT, 'data', 'company-intel');
 
 // ---------------------------------------------------------------------------
 // CLI flags
@@ -135,6 +137,20 @@ function buildTemplate(entry, semanticScore) {
     ? `\n**Semantic Score:** ${semanticScore} (from match-jd output)\n`
     : '';
 
+  // Auto-generate company intel template (creates data/company-intel/{slug}.md if absent)
+  const intelSlug = toSlug(company);
+  const intelPath = resolve(INTEL_DIR, `${intelSlug}.md`);
+  if (!DRY_RUN && !existsSync(intelPath)) {
+    try {
+      execFileSync(process.execPath, [resolve(__dir, 'company-intel.mjs'), `--company=${company}`], {
+        cwd: ROOT, stdio: 'ignore',
+      });
+    } catch { /* non-fatal */ }
+  }
+  const intelLink = existsSync(intelPath)
+    ? `[../company-intel/${intelSlug}.md](../company-intel/${intelSlug}.md)`
+    : `_not yet generated — run: node scripts/company-intel.mjs --company="${company}"_`;
+
   return `# Prefilter: ${company} — ${title}
 
 **status:** pending
@@ -172,6 +188,12 @@ Thresholds:
 - _pending_
 - _pending_
 **Recommendation:** _EVALUATE | MAYBE | SKIP_
+
+---
+
+## Company Intel
+
+${intelLink}
 
 ---
 
