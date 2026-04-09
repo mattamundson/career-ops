@@ -747,7 +747,7 @@ async function runJobBoardQueries(cfg) {
     console.log(`  [firecrawl] ${q.name}...`);
     try {
       const result = await firecrawl.search(q.query, { limit: 20, lang: 'en', country: 'us' });
-      const hits = (result.data ?? []).map(r => ({
+      const hits = (result.web ?? result.data ?? []).map(r => ({
         url:     r.url,
         title:   (r.title ?? '').replace(/\s+/g, ' ').trim(),
         company: inferBoardName(r.url),
