@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Forward Deployed Engineer, Applied AI
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/4985877008
 **company:** Anthropic
@@ -34,7 +34,7 @@ Thresholds:
 - No external customer embedded engagement experience (all deployments have been internal)
 - US cities listed likely require some on-site presence — not fully remote
 - Sales cycle context (AE partnership, POCs) not documented
-**Recommendation:** EVALUATE
+**Recommendation:** MAYBE — Location disqualifier: 25% in-office required (no Anthropic office in MN); Minneapolis-based candidate disqualified. Skills match is genuine (3.5/5).
 
 ---
 

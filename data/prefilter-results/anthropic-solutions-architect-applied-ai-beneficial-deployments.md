@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Solutions Architect, Applied AI (Beneficial Deployments)
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5062712008
 **company:** Anthropic
@@ -34,7 +34,7 @@ Thresholds:
 - No nonprofit/mission-driven sector background (Beneficial Deployments = nonprofits/research)
 - No external customer-facing pre-sales experience (COO operated internal systems, not client advisory)
 - SF/NYC office presence likely expected — Matt is Minneapolis-based, remote-first preference
-**Recommendation:** EVALUATE
+**Recommendation:** MAYBE — Location disqualifier: 25% in-office required (no Anthropic office in MN); Minneapolis-based candidate disqualified. Skills match is genuine (3.5/5).
 
 ---
 

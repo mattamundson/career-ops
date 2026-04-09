@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Applied AI Engineer (Startups)
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5073277008
 **company:** Anthropic
@@ -34,7 +34,7 @@ Thresholds:
 - No external customer-facing technical advisory track record
 - No startup investing or VC ecosystem network
 - Pair programming with external partner codebases not documented
-**Recommendation:** EVALUATE
+**Recommendation:** MAYBE — Location disqualifier: 25% in-office required (no Anthropic office in MN); Minneapolis-based candidate disqualified. Skills match is genuine (3.5/5).
 
 ---
 

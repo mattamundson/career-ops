@@ -1,6 +1,6 @@
 # Prefilter: Anthropic — Applied AI Engineer, Beneficial Deployments
 
-**status:** evaluate
+**status:** maybe
 **date:** 2026-04-08
 **url:** https://job-boards.greenhouse.io/anthropic/jobs/5068226008
 **company:** Anthropic
@@ -34,7 +34,7 @@ Thresholds:
 - No social impact / mission-driven sector experience (org is seeking someone with nonprofit/social sector context)
 - No pair programming track record with external partner codebases (built solo systems)
 - Hands-on code contributions to partner projects requires client relationship management not documented in CV
-**Recommendation:** EVALUATE
+**Recommendation:** MAYBE — Location disqualifier: 25% in-office required (no Anthropic office in MN); Minneapolis-based candidate disqualified. Skills match is genuine (3.5/5).
 
 ---
 
