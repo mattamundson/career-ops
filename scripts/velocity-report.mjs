@@ -352,9 +352,29 @@ function main() {
 
   const metrics = computeMetrics(entries);
 
+  // Staleness alert: warn if > 3 days since last application
+  const lastAppDate = entries.length > 0
+    ? [...entries].sort((a, b) => b.date.localeCompare(a.date))[0].date
+    : null;
+  const daysSinceLast = lastAppDate
+    ? Math.floor((new Date(TODAY) - new Date(lastAppDate)) / 86400000)
+    : Infinity;
+
   if (JSON_MODE) {
-    console.log(JSON.stringify({ generatedAt: TODAY, entries, metrics }, null, 2));
+    console.log(JSON.stringify({
+      generatedAt: TODAY,
+      entries,
+      metrics,
+      staleness: { lastAppDate, daysSinceLast, stale: daysSinceLast > 3 },
+    }, null, 2));
     return;
+  }
+
+  if (daysSinceLast > 3) {
+    const msg = lastAppDate
+      ? `⚠ WARNING: ${daysSinceLast} days since last application (${lastAppDate})`
+      : '⚠ WARNING: No applications recorded yet';
+    console.warn(`\n${msg}\n`);
   }
 
   const reportMd = renderMarkdown(entries, metrics, TODAY);
