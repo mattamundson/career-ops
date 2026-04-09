@@ -256,11 +256,20 @@ function listPrefilterResults() {
     return { filename, status, score, recommendation, company, title, date };
   });
 
-  // Group by status
+  // Group by status — explicit status field takes precedence over recommendation field
   const pending  = results.filter(r => r.status === 'pending');
-  const evaluate = results.filter(r => r.status === 'evaluate' || r.recommendation === 'EVALUATE');
-  const maybe    = results.filter(r => r.status === 'maybe'    || r.recommendation === 'MAYBE');
-  const skip     = results.filter(r => r.status === 'skip'     || r.recommendation === 'SKIP');
+  const evaluate = results.filter(r => {
+    if (r.status && r.status !== 'pending') return r.status === 'evaluate';
+    return r.recommendation === 'EVALUATE';
+  });
+  const maybe = results.filter(r => {
+    if (r.status && r.status !== 'pending') return r.status === 'maybe';
+    return r.recommendation === 'MAYBE';
+  });
+  const skip = results.filter(r => {
+    if (r.status && r.status !== 'pending') return r.status === 'skip';
+    return r.recommendation === 'SKIP';
+  });
 
   const WIDTH = 60;
   const divider = '━'.repeat(WIDTH);
