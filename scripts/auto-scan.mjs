@@ -607,30 +607,50 @@ async function fetchGreenhouse(apiUrl, companyName) {
 // GET https://jobs.ashbyhq.com/api/non-admin/job-board?organizationHostedJobsPageName={slug}
 // Returns: { jobPostings: [{title, jobUrl, publishedDate, location}] }
 // ---------------------------------------------------------------------------
-async function fetchAshby(slug, companyName) {
-  const url = `https://jobs.ashbyhq.com/api/non-admin/job-board?organizationHostedJobsPageName=${slug}`;
+// Ashby via Playwright — JSON API returns 404 for all slugs; page scrape works.
+// Launches ONE browser instance shared across all companies to minimise overhead.
+// URL pattern: jobs.ashbyhq.com/{slug}/{uuid} (not /jobs/)
+// Link text: "Title • Location • Type" — we take everything before the first •
+async function fetchAshbyPlaywright(companies) {
+  if (!companies.length) return [];
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch({ headless: true });
+  const results = []; // [{ company, jobs[] }]
   try {
-    const resp = await fetch(url, {
-      headers: { 'User-Agent': 'career-ops-auto-scan/1.0' },
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!resp.ok) {
-      console.error(`  [WARN] ${companyName} (Ashby): HTTP ${resp.status}`);
-      return [];
+    for (const { slug, name } of companies) {
+      const page = await browser.newPage();
+      try {
+        await page.goto(`https://jobs.ashbyhq.com/${slug}`, {
+          waitUntil: 'networkidle',
+          timeout: 30000,
+        });
+        const raw = await page.$$eval(
+          'a[href]',
+          (anchors, slug) => anchors
+            .map(a => ({ text: a.textContent?.trim() || '', href: a.getAttribute('href') || '' }))
+            // URL shape: /{slug}/{uuid} — exclude homepage /{slug} and external links
+            .filter(j => j.href.startsWith(`/${slug}/`) && j.href.length > slug.length + 2),
+          slug
+        );
+        const jobs = raw.map(j => ({
+          title:     j.text.split('•')[0].trim(),
+          url:       `https://jobs.ashbyhq.com${j.href}`,
+          company:   name,
+          source:    'ashby-playwright',
+          updatedAt: null,
+        })).filter(j => j.title);
+        results.push({ company: { slug, name }, jobs });
+      } catch (err) {
+        console.warn(`  [WARN] ${name} (Ashby Playwright): ${err.message}`);
+        results.push({ company: { slug, name }, jobs: [] });
+      } finally {
+        await page.close();
+      }
     }
-    const data = await resp.json();
-    const postings = data.jobPostings || [];
-    return postings.map(p => ({
-      title:     p.title || '',
-      url:       p.jobUrl || `https://jobs.ashbyhq.com/${slug}/${p.id}`,
-      company:   companyName,
-      source:    'ashby-api',
-      updatedAt: p.publishedDate || null,
-    }));
-  } catch (err) {
-    console.error(`  [ERROR] ${companyName} (Ashby): ${err.message}`);
-    return [];
+  } finally {
+    await browser.close();
   }
+  return results;
 }
 
 // ---------------------------------------------------------------------------
@@ -1017,22 +1037,17 @@ async function main() {
     }
   }
 
-  // --- Ashby ATS companies (skipped when --greenhouse-only) ---
+  // --- Ashby ATS companies via Playwright (skipped when --greenhouse-only) ---
   if (!GREENHOUSE_ONLY) {
     const ashbyCompanies = (cfg.ashby_companies || []).filter(c => c.enabled !== false);
     if (ashbyCompanies.length > 0) {
-      console.log(`Fetching Ashby APIs (${ashbyCompanies.length} companies)...`);
-      const ashbyResults = await Promise.all(
-        ashbyCompanies.map(c => fetchAshby(c.slug, c.name))
-      );
-      for (let idx = 0; idx < ashbyCompanies.length; idx++) {
-        const company = ashbyCompanies[idx];
-        const jobs    = ashbyResults[idx];
-        console.log(`  ${company.name}: ${jobs.length} jobs returned`);
+      console.log(`Fetching Ashby (Playwright) (${ashbyCompanies.length} companies)...`);
+      const ashbyResults = await fetchAshbyPlaywright(ashbyCompanies);
+      for (const { company, jobs } of ashbyResults) {
+        console.log(`  ${company.name}: ${jobs.length} jobs`);
         totalFound += jobs.length;
         for (const job of jobs) {
           if (!job.url || !job.title) continue;
-          if (!isWithinWindow(job, SINCE_DAYS)) continue;
           const filterResult = matchesFilter(job.title, titleFilter);
           if (!filterResult.match) {
             historyRows.push({ url: job.url, portal: `ashby/${company.name}`, title: job.title, company: company.name, status: 'skipped_title' });
