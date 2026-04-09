@@ -813,6 +813,95 @@ function inferBoardName(url) {
 }
 
 // ---------------------------------------------------------------------------
+// Auto-promote: scan prefilter-results/*.md for score >= 4.0 still in pipeline.md
+// Appends promoted entries to applications.md and marks them [x] in pipeline.md
+// ---------------------------------------------------------------------------
+async function autoPromoteHighScores() {
+  const { readdirSync } = await import('fs');
+  const prefilterDir = resolve(ROOT, 'data', 'prefilter-results');
+  if (!existsSync(prefilterDir)) return;
+
+  const PROMOTE_THRESHOLD = 4.0;
+  const files = readdirSync(prefilterDir).filter(f => f.endsWith('.md'));
+  if (!files.length) return;
+
+  // Parse all cards for score and metadata
+  const candidates = [];
+  for (const file of files) {
+    const text = readFileSync(resolve(prefilterDir, file), 'utf8');
+    const scoreMatch   = text.match(/\*\*Quick Score:\*\*\s*([\d.]+)/);
+    const statusMatch  = text.match(/\*\*status:\*\*\s*(\w+)/);
+    const urlMatch     = text.match(/\*\*url:\*\*\s*(https?:\/\/\S+)/);
+    const companyMatch = text.match(/\*\*company:\*\*\s*(.+)/);
+    const titleMatch   = text.match(/\*\*title:\*\*\s*(.+)/);
+
+    if (!scoreMatch || !urlMatch) continue;
+    const score  = parseFloat(scoreMatch[1]);
+    const status = statusMatch ? statusMatch[1].trim() : 'pending';
+    if (score < PROMOTE_THRESHOLD) continue;
+    if (status === 'promoted') continue; // already promoted
+
+    candidates.push({
+      score,
+      url:     urlMatch[1].trim(),
+      company: companyMatch ? companyMatch[1].trim() : '',
+      title:   titleMatch   ? titleMatch[1].trim()   : '',
+      file:    resolve(prefilterDir, file),
+    });
+  }
+
+  if (!candidates.length) return;
+
+  // Check which candidates are still pending in pipeline.md (not yet in applications.md)
+  const appsText     = existsSync(APPLICATIONS) ? readFileSync(APPLICATIONS, 'utf8') : '';
+  const pipelineText = existsSync(PIPELINE)     ? readFileSync(PIPELINE,     'utf8') : '';
+
+  const toPromote = candidates.filter(c =>
+    pipelineText.includes(c.url) && !appsText.includes(c.url)
+  );
+
+  if (!toPromote.length) return;
+
+  console.log(`Auto-promoting ${toPromote.length} high-score entrie(s) (score >= ${PROMOTE_THRESHOLD}):`);
+
+  // Determine next application number
+  const numMatches = [...appsText.matchAll(/^\|\s*(\d+)\s*\|/gm)];
+  const maxNum = numMatches.length > 0
+    ? Math.max(...numMatches.map(m => parseInt(m[1], 10)))
+    : 0;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Append rows to applications.md
+  const newRows = toPromote.map((c, i) => {
+    const num = String(maxNum + i + 1).padStart(3, '0');
+    const role = c.title.length > 50 ? c.title.slice(0, 47) + '...' : c.title;
+    console.log(`  → [${num}] ${c.company} | ${c.title} (${c.score}/5)`);
+    return `| ${num} | ${today} | ${c.company} | ${role} | ${c.score}/5 | Evaluating | — | — | Auto-promoted (score ${c.score}) |`;
+  });
+
+  const appsLines = appsText.trimEnd().split('\n');
+  const updatedApps = [...appsLines, ...newRows, ''].join('\n');
+  writeFileSync(APPLICATIONS, updatedApps);
+
+  // Mark pipeline entries as [x]
+  let updatedPipeline = pipelineText;
+  for (const c of toPromote) {
+    updatedPipeline = updatedPipeline.replace(
+      new RegExp(`^- \\[ \\] ${c.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'm'),
+      `- [x] ${c.url}`
+    );
+  }
+  writeFileSync(PIPELINE, updatedPipeline);
+
+  // Update card status to "promoted"
+  for (const c of toPromote) {
+    const text = readFileSync(c.file, 'utf8');
+    writeFileSync(c.file, text.replace(/\*\*status:\*\*\s*\w+/, '**status:** promoted'));
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
@@ -1141,6 +1230,9 @@ async function main() {
       appendHistory(historyRows);
       console.log(`Written ${historyRows.length} rows to scan-history.tsv`);
     }
+
+    // Auto-promote: scan ALL prefilter cards for score >= 4.0, promote to applications.md
+    await autoPromoteHighScores();
   } else {
     console.log('[DRY RUN] No files written.');
     if (historyRows.length > 0) {
