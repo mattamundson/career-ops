@@ -1148,6 +1148,33 @@ async function main() {
     }
   }
 
+  // Write daily scan summary (live runs only)
+  if (!DRY_RUN) {
+    const today = new Date().toISOString().slice(0, 10);
+    const summaryPath = resolve(ROOT, 'data', `scan-summary-${today}.md`);
+    const summaryLines = [
+      `# Scan Summary ${today}`,
+      '',
+      '| Metric | Value |',
+      '|--------|-------|',
+      `| Total found | ${totalFound} |`,
+      `| Title-filtered (skipped) | ${totalSkipped} |`,
+      `| Title-matched | ${totalFiltered} |`,
+      `| Duplicates | ${totalDup} |`,
+      `| **New added** | **${totalNew}** |`,
+      '',
+    ];
+    if (toAdd.length > 0) {
+      summaryLines.push('## New Matches', '');
+      for (const j of toAdd) {
+        summaryLines.push(`- [${j.title}](${j.url}) — ${j.company}`);
+      }
+      summaryLines.push('');
+    }
+    writeFileSync(summaryPath, summaryLines.join('\n'));
+    console.log(`Summary written: ${summaryPath}`);
+  }
+
   console.log('');
   if (totalNew > 0) {
     console.log(`→ Run /career-ops pipeline to evaluate the ${totalNew} new offer(s).`);
