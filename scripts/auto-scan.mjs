@@ -665,6 +665,38 @@ async function fetchLever(slug, companyName) {
 }
 
 // ---------------------------------------------------------------------------
+// SmartRecruiters ATS API
+// GET https://api.smartrecruiters.com/v1/companies/{slug}/postings?q={query}&limit=100
+// Returns: { content: [{id, name, releasedDate, location}] }
+// Public job URL: https://jobs.smartrecruiters.com/{slug}/{id}
+// ---------------------------------------------------------------------------
+async function fetchSmartRecruiters(slug, companyName, query = '') {
+  const qs   = query ? `?q=${encodeURIComponent(query)}&limit=100` : '?limit=100';
+  const url  = `https://api.smartrecruiters.com/v1/companies/${slug}/postings${qs}`;
+  try {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'career-ops-auto-scan/1.0' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!resp.ok) {
+      console.error(`  [WARN] ${companyName} (SmartRecruiters): HTTP ${resp.status}`);
+      return [];
+    }
+    const data = await resp.json();
+    return (data.content || []).map(p => ({
+      title:     p.name || '',
+      url:       `https://jobs.smartrecruiters.com/${slug}/${p.id}`,
+      company:   companyName,
+      source:    'smartrecruiters-api',
+      updatedAt: p.releasedDate || null,
+    }));
+  } catch (err) {
+    console.error(`  [ERROR] ${companyName} (SmartRecruiters): ${err.message}`);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Date filter — keep only jobs updated within SINCE_DAYS
 // Greenhouse updated_at format: "2026-03-15T00:00:00.000Z"
 // ---------------------------------------------------------------------------
@@ -977,6 +1009,50 @@ async function main() {
           seenUrls.add(job.url);
           toAdd.push(job);
           historyRows.push({ url: job.url, portal: `lever/${company.name}`, title: job.title, company: company.name, status: 'added' });
+          totalNew++;
+        }
+      }
+      console.log('');
+    }
+  }
+
+  // --- SmartRecruiters ATS companies (skipped when --greenhouse-only) ---
+  if (!GREENHOUSE_ONLY) {
+    const srCompanies = (cfg.smartrecruiters_companies || []).filter(c => c.enabled !== false);
+    if (srCompanies.length > 0) {
+      console.log(`Fetching SmartRecruiters APIs (${srCompanies.length} companies)...`);
+      const srResults = await Promise.all(
+        srCompanies.map(c => fetchSmartRecruiters(c.slug, c.name, c.query || ''))
+      );
+      for (let idx = 0; idx < srCompanies.length; idx++) {
+        const company = srCompanies[idx];
+        const jobs    = srResults[idx];
+        console.log(`  ${company.name}: ${jobs.length} jobs returned`);
+        totalFound += jobs.length;
+        for (const job of jobs) {
+          if (!job.url || !job.title) continue;
+          if (!isWithinWindow(job, SINCE_DAYS)) continue;
+          const filterResult = matchesFilter(job.title, titleFilter);
+          if (!filterResult.match) {
+            historyRows.push({ url: job.url, portal: `smartrecruiters/${company.name}`, title: job.title, company: company.name, status: 'skipped_title' });
+            totalSkipped++;
+            continue;
+          }
+          totalFiltered++;
+          if (seenUrls.has(job.url)) {
+            historyRows.push({ url: job.url, portal: `smartrecruiters/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          const appKey = normalizeKey(`${company.name}:${job.title}`);
+          if (appliedKeys.has(appKey)) {
+            historyRows.push({ url: job.url, portal: `smartrecruiters/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          toAdd.push(job);
+          historyRows.push({ url: job.url, portal: `smartrecruiters/${company.name}`, title: job.title, company: company.name, status: 'added' });
           totalNew++;
         }
       }

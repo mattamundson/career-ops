@@ -167,6 +167,19 @@ const prefilterSkip    = prefilterScored.filter(c => c.score < 2.5).length;
 
 const liveness = parseLivenessReports();
 
+// Rejection insights — run analyze-rejections.mjs --json (needs --min-data=3 terminal entries)
+let rejectionInsights = null;
+{
+  const { execFileSync } = await import('child_process');
+  const { resolve: res } = await import('path');
+  try {
+    const out = execFileSync(process.execPath, [
+      res(ROOT, 'scripts', 'analyze-rejections.mjs'), '--json', '--min-data=3',
+    ], { cwd: ROOT, encoding: 'utf8' });
+    rejectionInsights = JSON.parse(out.trim());
+  } catch { /* not enough data or script error — panel hidden */ }
+}
+
 const generatedAt = new Date().toLocaleString('en-US', {
   timeZone: 'America/Chicago',
   month: 'short', day: 'numeric', year: 'numeric',
@@ -500,6 +513,36 @@ const html = `<!DOCTYPE html>
       </div>
     </div>
   </div>
+
+  <!-- Rejection Insights (shown only when rejectionInsights.sufficient === true) -->
+  ${rejectionInsights?.sufficient ? `
+  <div class="section">
+    <div class="section-header">
+      <h2>Rejection Insights</h2>
+      <span class="count">${rejectionInsights.rejected} rejected / ${rejectionInsights.positive} positive</span>
+    </div>
+    <div style="padding:16px 20px">
+      ${rejectionInsights.recommendations?.length ? `
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Recommendations</div>
+          ${rejectionInsights.recommendations.map((r, i) => `
+            <div style="display:flex;gap:8px;margin-bottom:6px;font-size:13px">
+              <span style="color:#a6e3a1;font-weight:700;min-width:16px">${i + 1}.</span>
+              <span>${r}</span>
+            </div>`).join('')}
+        </div>` : ''}
+      ${rejectionInsights.topRejectionGaps?.length ? `
+        <div style="margin-top:12px">
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Top Gaps in Rejections</div>
+          ${rejectionInsights.topRejectionGaps.map(g => `
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;font-size:12px">
+              <span style="min-width:20px;text-align:right;color:#f38ba8">${g.count}x</span>
+              <span style="min-width:80px;color:var(--subtext)">${g.severity}</span>
+              <span>${g.gap}</span>
+            </div>`).join('')}
+        </div>` : ''}
+    </div>
+  </div>` : ''}
 
   <!-- Applications Table -->
   <div class="section">

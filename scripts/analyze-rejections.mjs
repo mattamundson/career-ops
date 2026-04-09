@@ -31,6 +31,11 @@ const ACTIVE_STATES    = new Set(['Evaluated', 'Applied', 'Responded', 'Contact'
 
 const args = process.argv.slice(2);
 let minData = DEFAULT_MIN_DATA;
+const JSON_MODE = args.includes('--json');
+
+// Suppress all console.log immediately when in JSON_MODE so stdout stays clean
+const _origConsoleLog = console.log;
+if (JSON_MODE) console.log = () => {};
 
 for (const arg of args) {
   const m = arg.match(/^--min-data=(\d+)$/);
@@ -324,6 +329,18 @@ for (const app of apps) {
 // ---------------------------------------------------------------------------
 
 if (totalTerminal < minData) {
+  if (JSON_MODE) {
+    console.log = _origConsoleLog; // restore before writing to stdout
+    process.stdout.write(JSON.stringify({
+      sufficient: false,
+      totalApps:  totalAll,
+      rejected:   rejected.length,
+      positive:   positive.length,
+      active:     active.length,
+      minData,
+    }) + '\n');
+    process.exit(0);
+  }
   console.log('');
   console.log(hr('═'));
   console.log(`  INSUFFICIENT DATA (N=${totalTerminal}) — need ${minData} terminal entries for pattern analysis.`);
@@ -477,6 +494,24 @@ if (recommendations.length === 0) {
   for (let i = 0; i < recommendations.length; i++) {
     console.log(`  ${i + 1}. ${recommendations[i]}`);
   }
+}
+
+if (JSON_MODE) {
+  console.log = _origConsoleLog; // restore
+  process.stdout.write(JSON.stringify({
+    sufficient:          true,
+    totalApps:           totalAll,
+    rejected:            rejected.length,
+    positive:            positive.length,
+    active:              active.length,
+    scoreStats:          scoreStats || null,
+    recommendations,
+    topRejectionGaps:    gaps.topRejGaps.slice(0, 5).map(([g, d]) => ({ gap: g, count: d.count, severity: d.severity })),
+    rejectionKeywords:   kws.rejOnly.slice(0, 10),
+    successKeywords:     kws.posOnly.slice(0, 10),
+    archetypes:          Object.entries(archetypes).map(([arch, d]) => ({ arch, ...d })),
+  }) + '\n');
+  process.exit(0);
 }
 
 console.log('');
