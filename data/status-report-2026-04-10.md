@@ -46,6 +46,9 @@
 1. **5 duplicate entries in applications.md** (rows 032-036) — auto-promoted from today's scan duplicating existing rows 025, 016, 024, 029, 028. Needs triage cleanup.
 2. **Master Career-Ops Build.MD** mystery file is a stale 604KB handoff from 2026-04-07. Recommendation: leave untracked.
 3. **Matt's street address missing** from config/profile.yml — blocking accuracy on all future applications with address fields.
+4. **Prefilter pipeline does NOT auto-score** — it only creates card templates. Scoring requires Claude `/career-ops prefilter` mode invocation per card. Currently 261 unscored cards (including today's 164). This is a Claude-token-heavy task best deferred to a dedicated scoring session with budget allocation.
+5. **Top 5 new EVALUATE candidates from today's scan** (per Agent 7 research): Berkshire Hathaway HomeState (Principal Data Architect), Onehouse (Staff Solutions Architect Data Infra), Simple Machines (Senior Data Architect), UnitedHealth Group (Principal Data Engineer Remote), Resilient Co (Data Solutions Architect). Need full A-F evaluation before promoting to apply-queue.
+6. **applications.md is .gitignored** — it's a private working file, not committed. Status updates persist locally only.
 
 ---
 
