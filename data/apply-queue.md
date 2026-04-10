@@ -281,8 +281,8 @@
 
 ### 17. Callaway Golf — Principal Business Intelligence Developer [PRIORITY 17 — CONDITIONAL]
 - **Apply URL:** https://www.linkedin.com/jobs/view/4382025832
-- **PDF:** output/cv-matt-callaway-golf-2026-04-09.pdf (pending — w2-t5 skipped)
-- **Cover Letter:** output/cover-letters/callaway-golf-principal-bi-developer.txt (pending — w2-t5 skipped)
+- **PDF:** output/cv-matt-callaway-golf-2026-04-09.pdf
+- **Cover Letter:** output/cover-letters/callaway-golf-principal-bi-developer.txt
 - **Score:** 3.5/5
 - **Key angle:** A decade at the most complex layer of the BI stack — designing semantic models that make reports fast, and data architectures that make models right. Delivered Power BI reporting for a Fortune 200 utility (FirstEnergy), built analytical infrastructure for a $25B investment portfolio (Pretium), and owned the full BI platform as COO (GMS). Principal-level BI architectural authority without the Snowflake DW — honest, direct framing: Power BI layer is immediately owned; Snowflake SQL ramp is days-to-weeks given ANSI SQL foundation.
 - **Hard gates (all required before submitting):**

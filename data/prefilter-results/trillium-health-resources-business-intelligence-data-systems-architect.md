@@ -1,6 +1,6 @@
 # Prefilter: Trillium Health Resources — Business Intelligence Data Systems Architect
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=8ab6cda6d4c6daf8
 **company:** Trillium Health Resources

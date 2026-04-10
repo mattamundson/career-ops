@@ -45,3 +45,17 @@ batch/tracker-additions/merged/
 # Secrets
 .env
 .env.local
+
+# Session handoff documents (ephemeral, not source)
+*HANDOFF*.md
+*Handoff*.md
+*handoff*.md
+"1 # Career-Ops Session Handoff*"
+"Master Career-Ops Build.MD"
+career_ops_handoff_pipeline.md
+
+# Large data files (scan-history already listed above, embeddings are binary)
+data/embeddings/
+
+# Claude Code task state (local only)
+.claude/task-manifest.json

@@ -1,6 +1,6 @@
 # Prefilter: Daman — Data Architect (MDM and Data Governance)
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4395997579
 **company:** Daman

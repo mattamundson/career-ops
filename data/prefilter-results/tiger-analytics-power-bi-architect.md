@@ -1,6 +1,6 @@
 # Prefilter: Tiger Analytics — Power BI Architect
 
-**status:** maybe
+**status:** skip
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4335455918
 **company:** Tiger Analytics
