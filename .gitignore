@@ -59,3 +59,4 @@ data/embeddings/
 
 # Claude Code task state (local only)
 .claude/task-manifest.json
+data/scan-scheduler.log
