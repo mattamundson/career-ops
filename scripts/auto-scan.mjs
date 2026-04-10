@@ -768,6 +768,136 @@ async function fetchWorkday(companies) {
 }
 
 // ---------------------------------------------------------------------------
+// iCIMS ATS (Playwright) — added v14
+// iCIMS careers pages live at https://careers-{slug}.icims.com/jobs/search?...
+// They render server-side but job results load dynamically via XHR.
+// Pattern: scrape the job search results page and extract links + titles.
+// ---------------------------------------------------------------------------
+async function fetchICIMS(companies) {
+  if (!companies.length) return [];
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch({ headless: true });
+  const results = [];
+  try {
+    for (const { slug, name, searchKeyword } of companies) {
+      const page = await browser.newPage();
+      try {
+        // iCIMS public search URL — no auth required
+        // Note: iCIMS uses long-polling XHRs; use 'load' not 'networkidle' to avoid timeout
+        const kw = encodeURIComponent(searchKeyword || 'data');
+        const url = `https://careers-${slug}.icims.com/jobs/search?ss=1&searchKeyword=${kw}&hashed=-435693945`;
+        await page.goto(url, { waitUntil: 'load', timeout: 30000 });
+        await page.waitForTimeout(3000); // give iframe time to load content
+        // iCIMS loads listings into an iframe
+        const frameHandle = await page.$('iframe#icims_content_iframe').catch(() => null);
+        const frame = frameHandle ? await frameHandle.contentFrame() : page.mainFrame();
+        if (!frame) {
+          results.push({ company: { slug, name }, jobs: [] });
+          continue;
+        }
+        await frame.waitForSelector('a[href*="/jobs/"]', { timeout: 15000 }).catch(() => null);
+        const jobs = await frame.$$eval('a[href*="/jobs/"]', (els, slug) => {
+          return els.map(el => {
+            // iCIMS wraps titles with a "Job Title" header row — strip it
+            let title = el.textContent?.trim() || '';
+            title = title.replace(/^Job Title\s*/i, '').trim();
+            const href = el.getAttribute('href') || '';
+            const url = href.startsWith('http') ? href : `https://careers-${slug}.icims.com${href}`;
+            return { title, url };
+          }).filter(j => j.title && j.url && !j.url.includes('/search') && !j.url.includes('/intro') && j.title.length > 3);
+        }, slug);
+        // De-dupe by URL within the company's results
+        const seen = new Set();
+        const unique = jobs.filter(j => seen.has(j.url) ? false : seen.add(j.url));
+        results.push({ company: { slug, name }, jobs: unique.map(j => ({
+          ...j, company: name, source: 'icims-playwright', updatedAt: null,
+        })) });
+      } catch (err) {
+        console.warn(`  [WARN] ${name} (iCIMS Playwright): ${err.message.slice(0, 80)}`);
+        results.push({ company: { slug, name }, jobs: [] });
+      } finally {
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// Workable ATS (REST API) — added v14
+// Public API: GET https://apply.workable.com/api/v3/accounts/{slug}/jobs
+// Returns JSON with jobs array: each job has id, title, full_title, url
+// ---------------------------------------------------------------------------
+async function fetchWorkable(slug, companyName) {
+  const url = `https://apply.workable.com/api/v3/accounts/${slug}/jobs`;
+  try {
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) {
+      console.warn(`  [WARN] ${companyName} (Workable): HTTP ${res.status}`);
+      return [];
+    }
+    const data = await res.json();
+    const jobs = Array.isArray(data.results) ? data.results : (Array.isArray(data.jobs) ? data.jobs : []);
+    return jobs.map(j => ({
+      title:     j.title || j.full_title || '',
+      url:       j.url || `https://apply.workable.com/${slug}/j/${j.shortcode || j.id}/`,
+      company:   companyName,
+      source:    'workable-api',
+      updatedAt: j.published_on || j.updated_at || null,
+    })).filter(j => j.title && j.url);
+  } catch (err) {
+    console.warn(`  [WARN] ${companyName} (Workable): ${err.message.slice(0, 80)}`);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Built In (Playwright) — added v14
+// Built In: https://builtin.com/jobs?search={q}&city={city}
+// Aggregates tech startup jobs, good Minneapolis coverage
+// ---------------------------------------------------------------------------
+async function fetchBuiltIn(queries) {
+  if (!queries.length) return [];
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch({ headless: true });
+  const results = [];
+  try {
+    for (const { query, city, name } of queries) {
+      const page = await browser.newPage();
+      try {
+        const cityParam = city ? `&city=${encodeURIComponent(city)}` : '';
+        const url = `https://builtin.com/jobs?search=${encodeURIComponent(query)}${cityParam}`;
+        await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
+        await page.waitForSelector('a[data-id="job-card-title"], a[href*="/job/"]', { timeout: 15000 }).catch(() => null);
+        const jobs = await page.$$eval('a[href*="/job/"]', (els) => {
+          return els.map(el => {
+            const title = el.textContent?.trim() || '';
+            const href = el.getAttribute('href') || '';
+            const url = href.startsWith('http') ? href : `https://builtin.com${href}`;
+            return { title, url };
+          }).filter(j => j.title && j.url && j.title.length > 5);
+        });
+        const seen = new Set();
+        const unique = jobs.filter(j => seen.has(j.url) ? false : seen.add(j.url));
+        results.push({ query: { query, city, name }, jobs: unique.map(j => ({
+          ...j, company: 'BuiltIn', source: 'builtin-playwright', updatedAt: null,
+        })) });
+      } catch (err) {
+        console.warn(`  [WARN] BuiltIn "${query}": ${err.message.slice(0, 80)}`);
+        results.push({ query: { query, city, name }, jobs: [] });
+      } finally {
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+  return results;
+}
+
+// ---------------------------------------------------------------------------
 // Date filter — keep only jobs updated within SINCE_DAYS
 // Greenhouse updated_at format: "2026-03-15T00:00:00.000Z"
 // ---------------------------------------------------------------------------
@@ -1335,11 +1465,19 @@ async function main() {
   }
 
   // --- WorkDay ATS companies via Playwright (skipped when --greenhouse-only) ---
+  // Wrapped in try/catch — WorkDay browser crashes should not kill the whole scan (v14 safety)
   if (!GREENHOUSE_ONLY) {
     const wdCompanies = (cfg.workday_companies || []).filter(c => c.enabled !== false);
     if (wdCompanies.length > 0) {
       console.log(`Fetching WorkDay (Playwright) (${wdCompanies.length} companies)...`);
-      const wdResults = await fetchWorkday(wdCompanies);
+      let wdResults = [];
+      try {
+        wdResults = await fetchWorkday(wdCompanies);
+      } catch (err) {
+        console.warn(`  [FATAL recovered] WorkDay scan crashed: ${err.message.slice(0, 100)}`);
+        console.warn(`  Continuing with other scanners...`);
+        wdResults = [];
+      }
       for (const { company, jobs } of wdResults) {
         console.log(`  ${company.name}: ${jobs.length} jobs`);
         totalFound += jobs.length;
@@ -1366,6 +1504,122 @@ async function main() {
           seenUrls.add(job.url);
           toAdd.push(job);
           historyRows.push({ url: job.url, portal: `workday/${company.name}`, title: job.title, company: company.name, status: 'added' });
+          totalNew++;
+        }
+      }
+      console.log('');
+    }
+  }
+
+  // --- iCIMS ATS companies via Playwright (v14) ---
+  if (!GREENHOUSE_ONLY) {
+    const icimsCompanies = (cfg.icims_companies || []).filter(c => c.enabled !== false);
+    if (icimsCompanies.length > 0) {
+      console.log(`Fetching iCIMS (Playwright) (${icimsCompanies.length} companies)...`);
+      const icimsResults = await fetchICIMS(icimsCompanies);
+      for (const { company, jobs } of icimsResults) {
+        console.log(`  ${company.name}: ${jobs.length} jobs`);
+        totalFound += jobs.length;
+        for (const job of jobs) {
+          if (!job.url || !job.title) continue;
+          const filterResult = matchesFilter(job.title, titleFilter);
+          if (!filterResult.match) {
+            historyRows.push({ url: job.url, portal: `icims/${company.name}`, title: job.title, company: company.name, status: 'skipped_title' });
+            totalSkipped++;
+            continue;
+          }
+          totalFiltered++;
+          if (seenUrls.has(job.url)) {
+            historyRows.push({ url: job.url, portal: `icims/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          const appKey = normalizeKey(`${company.name}:${job.title}`);
+          if (appliedKeys.has(appKey)) {
+            historyRows.push({ url: job.url, portal: `icims/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          toAdd.push(job);
+          historyRows.push({ url: job.url, portal: `icims/${company.name}`, title: job.title, company: company.name, status: 'added' });
+          totalNew++;
+        }
+      }
+      console.log('');
+    }
+  }
+
+  // --- Workable ATS companies (v14) ---
+  if (!GREENHOUSE_ONLY) {
+    const workableCompanies = (cfg.workable_companies || []).filter(c => c.enabled !== false);
+    if (workableCompanies.length > 0) {
+      console.log(`Fetching Workable APIs (${workableCompanies.length} companies)...`);
+      const workableResults = await Promise.all(
+        workableCompanies.map(c => fetchWorkable(c.slug, c.name))
+      );
+      for (let idx = 0; idx < workableCompanies.length; idx++) {
+        const company = workableCompanies[idx];
+        const jobs = workableResults[idx];
+        console.log(`  ${company.name}: ${jobs.length} jobs returned`);
+        totalFound += jobs.length;
+        for (const job of jobs) {
+          if (!job.url || !job.title) continue;
+          if (!isWithinWindow(job, SINCE_DAYS)) continue;
+          const filterResult = matchesFilter(job.title, titleFilter);
+          if (!filterResult.match) {
+            historyRows.push({ url: job.url, portal: `workable/${company.name}`, title: job.title, company: company.name, status: 'skipped_title' });
+            totalSkipped++;
+            continue;
+          }
+          totalFiltered++;
+          if (seenUrls.has(job.url)) {
+            historyRows.push({ url: job.url, portal: `workable/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          const appKey = normalizeKey(`${company.name}:${job.title}`);
+          if (appliedKeys.has(appKey)) {
+            historyRows.push({ url: job.url, portal: `workable/${company.name}`, title: job.title, company: company.name, status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          toAdd.push(job);
+          historyRows.push({ url: job.url, portal: `workable/${company.name}`, title: job.title, company: company.name, status: 'added' });
+          totalNew++;
+        }
+      }
+      console.log('');
+    }
+  }
+
+  // --- Built In queries via Playwright (v14) ---
+  if (!GREENHOUSE_ONLY) {
+    const builtinQueries = cfg.builtin_queries || [];
+    if (builtinQueries.length > 0) {
+      console.log(`Fetching Built In (Playwright) (${builtinQueries.length} queries)...`);
+      const builtinResults = await fetchBuiltIn(builtinQueries);
+      for (const { query, jobs } of builtinResults) {
+        console.log(`  "${query.query}" (${query.city || 'any'}): ${jobs.length} jobs`);
+        totalFound += jobs.length;
+        for (const job of jobs) {
+          if (!job.url || !job.title) continue;
+          const filterResult = matchesFilter(job.title, titleFilter);
+          if (!filterResult.match) {
+            historyRows.push({ url: job.url, portal: `builtin/${query.name || query.query}`, title: job.title, company: 'BuiltIn', status: 'skipped_title' });
+            totalSkipped++;
+            continue;
+          }
+          totalFiltered++;
+          if (seenUrls.has(job.url)) {
+            historyRows.push({ url: job.url, portal: `builtin/${query.name || query.query}`, title: job.title, company: 'BuiltIn', status: 'skipped_dup' });
+            totalDup++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          toAdd.push(job);
+          historyRows.push({ url: job.url, portal: `builtin/${query.name || query.query}`, title: job.title, company: 'BuiltIn', status: 'added' });
           totalNew++;
         }
       }
