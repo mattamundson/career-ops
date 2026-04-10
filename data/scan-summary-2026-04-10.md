@@ -1,0 +1,328 @@
+# Scan Summary 2026-04-10
+
+| Metric | Value |
+|--------|-------|
+| Total found | 5441 |
+| Title-filtered (skipped) | 2220 |
+| Title-matched | 494 |
+| Duplicates | 178 |
+| **New added** | **347** |
+
+## New Matches
+
+- [Manager of Forward Deployed Engineering, Applied AI](https://job-boards.greenhouse.io/anthropic/jobs/5183983008) — Anthropic
+- [Staff Applied AI Engineer, Enterprise GenAI](https://job-boards.greenhouse.io/scaleai/jobs/4683689005) — Scale AI
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8189900002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8395601002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8298792002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8330188002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8335860002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8395599002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8024004002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer)](https://databricks.com/company/careers/open-positions/job?gh_jid=8099751002) — Databricks
+- [AI Engineer - FDE (Forward Deployed Engineer) - U.S. Federal Sector](https://databricks.com/company/careers/open-positions/job?gh_jid=8415203002) — Databricks
+- [Big Data Solutions Architect (Professional Services)](https://databricks.com/company/careers/open-positions/job?gh_jid=8482697002) — Databricks
+- [Data Platform Solutions Architect (Professional Services)](https://databricks.com/company/careers/open-positions/job?gh_jid=8486738002) — Databricks
+- [Data Platform Solutions Architect (Professional Services) ](https://databricks.com/company/careers/open-positions/job?gh_jid=8396801002) — Databricks
+- [Data Platform Solutions Architect (Professional Services) - Emerging Enterprise & DNB](https://databricks.com/company/careers/open-positions/job?gh_jid=8439047002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8285292002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8465963002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8309177002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8450551002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8476496002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8368003002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8482406002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8452394002) — Databricks
+- [Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8137000002) — Databricks
+- [Delivery Solutions Architect - Communications, Media, Entertainment and Games](https://databricks.com/company/careers/open-positions/job?gh_jid=8457249002) — Databricks
+- [Delivery Solutions Architect - Digital Native Business](https://databricks.com/company/careers/open-positions/job?gh_jid=8385234002) — Databricks
+- [Delivery Solutions Architect - Digital Native Business](https://databricks.com/company/careers/open-positions/job?gh_jid=8385230002) — Databricks
+- [Delivery Solutions Architect - Healthcare & Life Sciences](https://databricks.com/company/careers/open-positions/job?gh_jid=8233904002) — Databricks
+- [Delivery Solutions Architect - Public Sector ](https://databricks.com/company/careers/open-positions/job?gh_jid=8289850002) — Databricks
+- [Lead Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8480815002) — Databricks
+- [Lead Solutions Architect  (CTO level-CPG/Retail, DS/DE background)](https://databricks.com/company/careers/open-positions/job?gh_jid=7803166002) — Databricks
+- [Lead Solutions Architect (Digital Natives Business)](https://databricks.com/company/careers/open-positions/job?gh_jid=8403943002) — Databricks
+- [Lead Solutions Architect (Pre-sales) – Public Sector](https://databricks.com/company/careers/open-positions/job?gh_jid=8437076002) — Databricks
+- [Lead Specialist Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8476506002) — Databricks
+- [Manager, Big Data Architecture – Professional Services (DWH, Data Engineering & Migrations)](https://databricks.com/company/careers/open-positions/job?gh_jid=8439078002) — Databricks
+- [ Partner Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8347880002) — Databricks
+- [Partner Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8439178002) — Databricks
+- [Partner Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8439182002) — Databricks
+- [Partner Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8449860002) — Databricks
+- [Partner Solutions Architect, CEMEA](https://databricks.com/company/careers/open-positions/job?gh_jid=8407925002) — Databricks
+- [Partner Solutions Architect, CEMEA](https://databricks.com/company/careers/open-positions/job?gh_jid=8413308002) — Databricks
+- [Resident Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8419901002) — Databricks
+- [Resident Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8081658002) — Databricks
+- [Resident Solutions Architect (Professional Services)](https://databricks.com/company/careers/open-positions/job?gh_jid=8367942002) — Databricks
+- [Senior Applied AI Engineer](https://databricks.com/company/careers/open-positions/job?gh_jid=8091041002) — Databricks
+- [Senior Applied AI Engineer – ML for Systems & Infrastructure](https://databricks.com/company/careers/open-positions/job?gh_jid=7859597002) — Databricks
+- [Senior Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8298587002) — Databricks
+- [Senior Software Engineer - Data Platform](https://databricks.com/company/careers/open-positions/job?gh_jid=7601580002) — Databricks
+- [Senior Software Engineer (Data Platform)](https://databricks.com/company/careers/open-positions/job?gh_jid=7647369002) — Databricks
+- [Senior Solutions Architect - AI/BI](https://databricks.com/company/careers/open-positions/job?gh_jid=8437289002) — Databricks
+- [Senior Solutions Architect - AI/BI](https://databricks.com/company/careers/open-positions/job?gh_jid=8437302002) — Databricks
+- [Senior Solutions Architect - AI/BI](https://databricks.com/company/careers/open-positions/job?gh_jid=8437301002) — Databricks
+- [Senior Solutions Architect - AI/BI](https://databricks.com/company/careers/open-positions/job?gh_jid=8407183002) — Databricks
+- [ Senior Solutions Architect - Lakebase](https://databricks.com/company/careers/open-positions/job?gh_jid=8453652002) — Databricks
+- [Senior Solutions Architect - Lakebase](https://databricks.com/company/careers/open-positions/job?gh_jid=8407181002) — Databricks
+- [Senior Solutions Architect - Lakebase](https://databricks.com/company/careers/open-positions/job?gh_jid=8455054002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=5898477002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8368209002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=7896350002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8481719002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8434341002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8243219002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8437008002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8196833002) — Databricks
+- [Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8408228002) — Databricks
+- [Solutions Architect ](https://databricks.com/company/careers/open-positions/job?gh_jid=6356702002) — Databricks
+- [Solutions Architect (Adelaide)](https://databricks.com/company/careers/open-positions/job?gh_jid=8472735002) — Databricks
+- [Solutions Architect Consumer France](https://databricks.com/company/careers/open-positions/job?gh_jid=8392406002) — Databricks
+- [Solutions Architect : Data & AI](https://databricks.com/company/careers/open-positions/job?gh_jid=8346277002) — Databricks
+- [Solutions Architect: Data & AI](https://databricks.com/company/careers/open-positions/job?gh_jid=8353757002) — Databricks
+- [Solutions Architect - Digital Native Business](https://databricks.com/company/careers/open-positions/job?gh_jid=6117719002) — Databricks
+- [Solutions Architect - Digital Native Business, Strategic](https://databricks.com/company/careers/open-positions/job?gh_jid=8227356002) — Databricks
+- [Solutions Architect - Digital Native Business, Strategic](https://databricks.com/company/careers/open-positions/job?gh_jid=8434467002) — Databricks
+- [Solutions Architect - Emerging Enterprise](https://databricks.com/company/careers/open-positions/job?gh_jid=6328361002) — Databricks
+- [Solutions Architect - Emerging Enterprise (Startups) ](https://databricks.com/company/careers/open-positions/job?gh_jid=6328388002) — Databricks
+- [Solutions Architect - FSI](https://databricks.com/company/careers/open-positions/job?gh_jid=8481717002) — Databricks
+- [Solutions Architect - Healthcare/Life Sciences Team (HLS)](https://databricks.com/company/careers/open-positions/job?gh_jid=8231231002) — Databricks
+- [Solutions Architect - Healthcare/Life Sciences Team (HLS)](https://databricks.com/company/careers/open-positions/job?gh_jid=8085877002) — Databricks
+- [Solutions Architect - Manufacturing](https://databricks.com/company/careers/open-positions/job?gh_jid=6545547002) — Databricks
+- [Solutions Architect (Pre-sales) - Digital Native](https://databricks.com/company/careers/open-positions/job?gh_jid=8437026002) — Databricks
+- [Solutions Architect (Pre-sales) - Financial Services](https://databricks.com/company/careers/open-positions/job?gh_jid=8437016002) — Databricks
+- [Solutions Architect (Pre-sales) - Kansai Region](https://databricks.com/company/careers/open-positions/job?gh_jid=8437028002) — Databricks
+- [Solutions Architect (Pre-sales) - Retail/CPG](https://databricks.com/company/careers/open-positions/job?gh_jid=8437024002) — Databricks
+- [Solutions Architect - Public Sector (LEAPS) ](https://databricks.com/company/careers/open-positions/job?gh_jid=8320126002) — Databricks
+- [Solutions Architect, Retail ](https://databricks.com/company/careers/open-positions/job?gh_jid=6049142002) — Databricks
+- [Solutions Architect (Retail/CPG)](https://databricks.com/company/careers/open-positions/job?gh_jid=8452396002) — Databricks
+- [Solutions Architect, Retail - CPG](https://databricks.com/company/careers/open-positions/job?gh_jid=6649865002) — Databricks
+- [Solutions Architect (Thailand)](https://databricks.com/company/careers/open-positions/job?gh_jid=8472733002) — Databricks
+- [Solutions Architect - UAE](https://databricks.com/company/careers/open-positions/job?gh_jid=8287419002) — Databricks
+- [Solutions Architect (Vietnam)](https://databricks.com/company/careers/open-positions/job?gh_jid=8472732002) — Databricks
+- [Specialist Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8382743002) — Databricks
+- [Specialist Solutions Architect - AI Tooling & Platform Management](https://databricks.com/company/careers/open-positions/job?gh_jid=8409019002) — Databricks
+- [Specialist Solutions Architect - Cloud Infrastructure & Security](https://databricks.com/company/careers/open-positions/job?gh_jid=8409017002) — Databricks
+- [Specialist Solutions Architect - Cloud Infrastructure & Security](https://databricks.com/company/careers/open-positions/job?gh_jid=8477197002) — Databricks
+- [Specialist Solutions Architect - Data Warehousing (Healthcare & Life Sciences)](https://databricks.com/company/careers/open-positions/job?gh_jid=8337429002) — Databricks
+- [Specialist Solutions Architect - DE/DWH](https://databricks.com/company/careers/open-positions/job?gh_jid=8321575002) — Databricks
+- [Sr Analytics Engineer - GTM Strategy and Operations](https://databricks.com/company/careers/open-positions/job?gh_jid=8479036002) — Databricks
+- [Sr. Delivery Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8342273002) — Databricks
+- [Sr. IT Systems/Automation Engineer](https://databricks.com/company/careers/open-positions/job?gh_jid=8463169002) — Databricks
+- [Sr. Manager, Partner Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8073294002) — Databricks
+- [Sr. Product Manager, Data Engineering](https://databricks.com/company/careers/open-positions/job?gh_jid=6322654002) — Databricks
+- [Sr. Resident Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8373617002) — Databricks
+- [Sr. Resident Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8114836002) — Databricks
+- [Sr. Resident Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8210937002) — Databricks
+- [Sr. Software Engineer - Data Engineering ](https://databricks.com/company/careers/open-positions/job?gh_jid=8300574002) — Databricks
+- [Sr Software Engineer, Search Relevance (Applied AI)](https://databricks.com/company/careers/open-positions/job?gh_jid=7958676002) — Databricks
+- [Sr. Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8417656002) — Databricks
+- [Sr. Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8438773002) — Databricks
+- [Sr. Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8194864002) — Databricks
+- [Sr. Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8437034002) — Databricks
+- [Sr. Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8194862002) — Databricks
+- [Sr. Solutions Architect - Emerging](https://databricks.com/company/careers/open-positions/job?gh_jid=8136954002) — Databricks
+- [Sr. Solutions Architect - Financial Services (Hunter) ](https://databricks.com/company/careers/open-positions/job?gh_jid=8343916002) — Databricks
+- [Sr. Solutions Architect - Financial Services (Strategic Banking and Payments)](https://databricks.com/company/careers/open-positions/job?gh_jid=8397280002) — Databricks
+- [Sr. Solutions Architect - Financial Services (Strategic Data Providers)](https://databricks.com/company/careers/open-positions/job?gh_jid=8431937002) — Databricks
+- [Sr. Solutions Architect - Financial Services (Wealth & Asset Management)](https://databricks.com/company/careers/open-positions/job?gh_jid=8174261002) — Databricks
+- [Sr. Solutions Architect FSI France](https://databricks.com/company/careers/open-positions/job?gh_jid=8383200002) — Databricks
+- [Sr. Solutions Architect - Games](https://databricks.com/company/careers/open-positions/job?gh_jid=8353049002) — Databricks
+- [Sr. Solutions Architect - Greenfield (New Logo) France](https://databricks.com/company/careers/open-positions/job?gh_jid=8449356002) — Databricks
+- [Sr. Solutions Architect - GSI's and FinTech Data ](https://databricks.com/company/careers/open-positions/job?gh_jid=8200376002) — Databricks
+- [Sr. Solutions Architect - Lakebase](https://databricks.com/company/careers/open-positions/job?gh_jid=8407197002) — Databricks
+- [Sr. Solutions Architect - Public Sector (Federal Civilian)](https://databricks.com/company/careers/open-positions/job?gh_jid=8198484002) — Databricks
+- [Sr. Solutions Architect - Public Sector (Hunter) ](https://databricks.com/company/careers/open-positions/job?gh_jid=8417705002) — Databricks
+- [Sr. Solutions Architect - Public Sector (SLED)](https://databricks.com/company/careers/open-positions/job?gh_jid=8401173002) — Databricks
+- [Sr. Solutions Architect - Public Sector (SLED) ](https://databricks.com/company/careers/open-positions/job?gh_jid=8397493002) — Databricks
+- [Sr. Solutions Architect, Retail](https://databricks.com/company/careers/open-positions/job?gh_jid=6456675002) — Databricks
+- [Sr. Solutions Architect, Retail ](https://databricks.com/company/careers/open-positions/job?gh_jid=8221491002) — Databricks
+- [Sr. Specialist Solutions Architect](https://databricks.com/company/careers/open-positions/job?gh_jid=8407190002) — Databricks
+- [Sr. Staff Software Engineer - Data Platform](https://databricks.com/company/careers/open-positions/job?gh_jid=7823561002) — Databricks
+- [Sr. Staff Software Engineer - Unity Catalog Data Governance](https://databricks.com/company/careers/open-positions/job?gh_jid=7993609002) — Databricks
+- [Staff Software Engineer - Data Platform](https://databricks.com/company/careers/open-positions/job?gh_jid=7601572002) — Databricks
+- [Staff Software Engineer (Data Platform)](https://databricks.com/company/careers/open-positions/job?gh_jid=7652016002) — Databricks
+- [Principal AI Engineer, TechEx (US)](https://westmonroe.com/careers/job-details-experienced-professionals?gh_jid=5708980004) — West Monroe Partners
+- [Senior AI Engineer, Lamina, CR](https://westmonroe.com/careers/job-details-experienced-professionals?gh_jid=5573021004) — West Monroe Partners
+- [Senior Partner, Data and Analytics Leader](https://westmonroe.com/careers/job-details-experienced-professionals?gh_jid=5741872004) — West Monroe Partners
+- [Senior Partner, Data and Analytics Leader](https://westmonroe.com/careers/job-details-experienced-professionals?gh_jid=5417552004) — West Monroe Partners
+- [Sr. Product Manager (Data Integrations | AI Automation | Payments / Dispute Management) (6-10 years)](https://jobs.smartrecruiters.com/Visa/744000119841508) — Visa
+- [Senior Data Engineer @ EliseAI - Jobs](https://jobs.ashbyhq.com/eliseai/59d7a2a6-cb05-456f-bde7-5337f1d88589) — Unknown
+- [Senior Data Engineer @ ClickUp - Jobs](https://jobs.ashbyhq.com/clickup/bd45b9ca-3ea8-4913-ba85-4f962e7e7789) — Unknown
+- [Senior Data Engineer @ Bestow - Jobs](https://jobs.ashbyhq.com/bestow/2d2063f7-ff3d-44d9-8da8-0a3bf226b461) — Unknown
+- [Senior Data Engineer @ Retell AI - Jobs](https://jobs.ashbyhq.com/retell-ai/ce39e733-ac36-481a-bf7b-e2be511441c3) — Unknown
+- [Senior Data Engineer @ People Data Labs - Jobs](https://jobs.ashbyhq.com/people-data-labs/b6575c65-6ff8-405c-851b-0b0433fb471d) — Unknown
+- [Senior Data Engineer @ Super.com - Jobs](https://jobs.ashbyhq.com/super.com/eb397269-c3c4-4c54-8eeb-a3e64b924573) — Unknown
+- [Senior Data Engineer @ Greenboard - Jobs](https://jobs.ashbyhq.com/Greenboard/1c150dd4-11c2-4e8b-88b1-71b1055c8116) — Unknown
+- [Senior Data Engineer @ Tava Health - Jobs](https://jobs.ashbyhq.com/tavahealth/eec6766d-4f2a-44e4-89b9-91a34e075324) — Unknown
+- [Senior Data Engineer @ January - Jobs](https://jobs.ashbyhq.com/january/022f8c0b-dc82-4b27-9d15-2fc5546c0925) — Unknown
+- [Senior Data Engineer - Analytics and Visualization @ ALSO - Jobs](https://jobs.ashbyhq.com/Ridealso/9f5b2695-3799-4c80-8d28-f5769afb724a) — Unknown
+- [Senior Data Engineer @ Camber - Jobs](https://jobs.ashbyhq.com/camber/e8715e38-605d-4c7b-b539-835762fb2c41) — Unknown
+- [Senior Data Engineer @ Crusoe - Jobs](https://jobs.ashbyhq.com/Crusoe/a1adc254-151a-48a0-b609-0d37db879919) — Unknown
+- [Senior Data Engineer @ Prompt - Jobs](https://jobs.ashbyhq.com/Prompt/aec1e1c9-bb89-4019-bea6-f56e363f1d13?embed=js) — Unknown
+- [Senior Data Engineer @ Codat - Jobs](https://jobs.ashbyhq.com/codat/17a4006c-5947-4c46-ba38-a785a89eb5ed) — Unknown
+- [Senior Data Engineer @ Posh - Jobs](https://jobs.ashbyhq.com/posh/4a99e057-eeaa-4ddd-8955-70a4ae645072) — Unknown
+- [Senior Data Engineer @ Blockworks - Jobs](https://jobs.ashbyhq.com/blockworks/6b0b650d-fae6-4cf1-b70f-8225eb7f77f3) — Unknown
+- [Senior Data Engineer @ Verge Genomics - Jobs](https://jobs.ashbyhq.com/verge-genomics/922f9165-ef75-4eb1-bc08-07c836d79190?utm_source=jobs.threshold.vc) — Unknown
+- [Senior Analytics Engineer @ GameChanger - Jobs](https://jobs.ashbyhq.com/gamechanger/0cece456-ff2a-4629-b715-17de0f9fe58d) — Unknown
+- [Senior Analytics Engineer @ Speak - Jobs](https://jobs.ashbyhq.com/speak/a0d04fa7-a716-431a-8ed3-4f7546bf1278) — Unknown
+- [Senior Analytics Engineer @ Kin Insurance - Jobs](https://jobs.ashbyhq.com/kin/7ef3d697-f06c-4d0b-b8ae-99c7fa874da4) — Unknown
+- [Senior Analytics Engineer @ BetterUp - Jobs](https://jobs.ashbyhq.com/betterup/e7d96b10-fcf1-4b49-a458-60261a9c0c32) — Unknown
+- [Senior Data Analytics Engineer @ Perchwell - Jobs](https://jobs.ashbyhq.com/perchwell/bd6c5e37-6638-4837-8f66-ac23f72a39b7/application) — Unknown
+- [Data & Analytics Engineer @ Tandem - Jobs](https://jobs.ashbyhq.com/tandem/5a8640ce-8a3e-40bf-afd1-f0b63a0a2ef3) — Unknown
+- [Senior Analytics Engineer @ Goodstack - Jobs](https://jobs.ashbyhq.com/goodstack/f256934e-2d9d-41cc-b8bb-263eb0c91d58) — Unknown
+- [Senior Analytics Engineer @ TRM Labs - Jobs](https://jobs.ashbyhq.com/trm-labs/dc45343d-be85-4617-bdfe-68eb5f5e3be0?utm_source=KaWmZ89zGg) — Unknown
+- [Senior Analytics Engineer @ Jellyfish - Jobs](https://jobs.ashbyhq.com/jellyfish/bcb5a334-6299-4111-882e-5d5232b740c5/application) — Unknown
+- [Senior Analytics Engineer, VM @ Valon Mortgage - Jobs](https://jobs.ashbyhq.com/ValonVM/872244bf-6d9d-4a1e-9a5b-3a2858e3d43b) — Unknown
+- [Senior Data Analytics Engineer (Remote) @ Optro - Jobs](https://jobs.ashbyhq.com/optro/36117f50-ce81-481b-b9ce-9306c1472a7b/application) — Unknown
+- [Senior Data Analytics Engineer, Factory Software @ Form Energy, Inc](https://jobs.ashbyhq.com/formenergy/0928f724-f61d-44d0-840c-4594d16eb77e?utm_source=circa&embed=js) — Unknown
+- [Senior Analytics Engineer @ Relay Technologies - Jobs](https://jobs.ashbyhq.com/relay/041f24b5-1813-4188-8458-5cee7217f230) — Unknown
+- [Senior Analytics Engineer, GTM Analytics @ Vanta - Jobs](https://jobs.ashbyhq.com/vanta/06cfc36b-8761-4bbd-b23e-59c3129d0c63/application?weekdayJdUid=220159) — Unknown
+- [Data Architect - AI Trainer - Freelance - 8-20hrs/week - Remote - Jobs](https://jobs.ashbyhq.com/10xteam/c5c8424b-81a3-4a36-be86-5f12b0cc5ea3) — Unknown
+- [Data Architect @ Instructure, Inc. - Jobs](https://jobs.ashbyhq.com/instructure/08e0b60f-0fd2-435c-9d26-2a1c034c1c35) — Unknown
+- [Data Architect @ Techtorch - Jobs](https://jobs.ashbyhq.com/techtorch/2e82256e-133d-4ccf-9ef8-ffcb65738a16) — Unknown
+- [Data Architect - AI Trainer - Freelance - 8-20hrs/week - Remote - Jobs](https://jobs.ashbyhq.com/10xteam/c5c8424b-81a3-4a36-be86-5f12b0cc5ea3/application) — Unknown
+- [Data Architect | US @ Cuesta Partners - Jobs](https://jobs.ashbyhq.com/cuesta-partners/43bd76d3-3905-4895-9afb-2a6d049d89a5) — Unknown
+- [Data Engineering Architect @ Juniper Square - Jobs](https://jobs.ashbyhq.com/junipersquare/b68689b9-e8c8-457b-9764-1573be334ccc) — Unknown
+- [Senior Data Architect @ PeakMetrics - Jobs](https://jobs.ashbyhq.com/peakmetrics/141c873f-cbde-4750-9e8b-c9b500bc486c) — Unknown
+- [Data Architect @ IT Labs - Jobs](https://jobs.ashbyhq.com/it%20labs/0644d410-b847-412d-aae2-b26d0e39bf68) — Unknown
+- [Data Governance Architect @ SunnyData - Jobs](https://jobs.ashbyhq.com/sunnydata/97d301e3-a8aa-44ad-b64a-fd4ccbc4e6cc) — Unknown
+- [Data Architect @ Instructure, Inc. - Jobs](https://jobs.ashbyhq.com/instructure/08e0b60f-0fd2-435c-9d26-2a1c034c1c35/application) — Unknown
+- [Solutions Architect @ SunnyData - Jobs](https://jobs.ashbyhq.com/sunnydata/b2e1883c-1134-42c4-ac8f-5f8fc43683d4) — Unknown
+- [Senior Enterprise Data Architect - Biotechnology @ Truelogic - Jobs](https://jobs.ashbyhq.com/truelogic/4be2d31d-5d5f-4e8d-9a48-ee84950c295a) — Unknown
+- [Data Architect @ Techtorch - Jobs](https://jobs.ashbyhq.com/techtorch/2e82256e-133d-4ccf-9ef8-ffcb65738a16/application) — Unknown
+- [AI Automation Engineer @ BetterUp - Jobs](https://jobs.ashbyhq.com/betterup/8f6918e3-00eb-4f78-87b1-5d34f46d176c) — Unknown
+- [AI Automation Engineer @ The WFS Group - Jobs](https://jobs.ashbyhq.com/thewfsgroup/f1e25567-93b2-48ff-a507-b4c61a5e8920) — Unknown
+- [Senior AI Engineer (AI Automation) @ TRM Labs - Jobs](https://jobs.ashbyhq.com/trm-labs/24d34f07-61f9-4632-bab8-a86a0990ae3d?utm_source=carob.app&utm_medium=referral) — Unknown
+- [Staff Enterprise AI Automation Engineer @ Crusoe - Jobs](https://jobs.ashbyhq.com/crusoe/f5a5f987-43e5-42d7-b607-27dbfe07c5eb) — Unknown
+- [Automation Engineer - AI Insights (m/f/d) @ Statista - Jobs](https://jobs.ashbyhq.com/statista/0d1f81b8-8e42-45e6-9ca1-f1f2bc0e5ef6) — Unknown
+- [Senior Software Engineer, AI Automations @ Retell AI - Jobs](https://jobs.ashbyhq.com/retell-ai/9faa2a6f-ac67-4148-8d59-b692717732da) — Unknown
+- [Automation Engineer @ Exa - Jobs](https://jobs.ashbyhq.com/exa/d3d164ed-eab1-4e28-8d35-1507e08d088f) — Unknown
+- [Automation Engineer @ Parabola - Jobs](https://jobs.ashbyhq.com/parabola-io/e9a24262-275d-48a2-b8e3-83a8226e7e3e) — Unknown
+- [Senior Automation Engineer @ Harmattan AI - Jobs](https://jobs.ashbyhq.com/harmattan-ai/7f41b915-d68a-4d0f-9818-68c2c874d729) — Unknown
+- [Applied AI Engineer @ Automat, Inc. - Jobs](https://jobs.ashbyhq.com/automat/c69679cd-98e0-4513-b899-1eb00925a1a9) — Unknown
+- [Solutions Architect @ Fundamental - Jobs](https://jobs.ashbyhq.com/fundamental/e21c7ecb-7089-432f-ba81-8acd791490fd?utm_source=jobs.illuminatefinancial.com) — Unknown
+- [Solutions Architect (Dallas) @ LangChain - Jobs](https://jobs.ashbyhq.com/langchain/933a41a3-43ca-44de-a0ae-f541149151b7) — Unknown
+- [Solutions Architect @ Lovable - Jobs](https://jobs.ashbyhq.com/lovable/ac61dda2-bff0-4f22-adca-a48b0b2f560c) — Unknown
+- [Solutions Architect @ Unstructured Technologies Inc. - Jobs](https://jobs.ashbyhq.com/unstructured/28129352-74d7-45cf-8e4b-562914120ef1) — Unknown
+- [Senior Data / Solution Architect (AI + Data Architecture) @ Techtorch](https://jobs.ashbyhq.com/techtorch/0158674c-89d1-4da6-a41c-21cf8faff4b2) — Unknown
+- [Solutions Architect @ Physical Superintelligence - Jobs](https://jobs.ashbyhq.com/psi/c9c07b81-df5e-4f29-a3f2-28cb0257a522) — Unknown
+- [Solutions Architect - Salesforce @ Decagon - Jobs](https://jobs.ashbyhq.com/decagon/83267854-2ea8-4322-8ba3-88c2dcb086a5) — Unknown
+- [Solutions Architect - EMEA @ Omni - Jobs](https://jobs.ashbyhq.com/omni/a8bd2f3e-628e-494d-8014-7df1cfbe1752) — Unknown
+- [Senior Staff Solutions Architect, AI Sim @ SandboxAQ - Jobs](https://jobs.ashbyhq.com/sandboxaq/0c2c8cb2-a214-40a5-91f5-b42c40f2726c) — Unknown
+- [Solutions Architect, R&D @ Cape - Jobs](https://jobs.ashbyhq.com/Cape/d1b3bfed-f9bc-42cd-90de-90cf79adf20a) — Unknown
+- [(Data & AI/ML) Solutions Architect | Latam @ Cuesta Partners - Jobs](https://jobs.ashbyhq.com/cuesta-partners/df69d5f1-deb8-49de-aa44-71ba317c7190) — Unknown
+- [Quality Assurance Automation Engineer, Workflow Engine @ Paragon](https://jobs.ashbyhq.com/Paragon/63ca42ec-73f3-4700-a70d-7073c74fbf6d) — Unknown
+- [Senior Automation Engineer @ Kraken - Jobs](https://jobs.ashbyhq.com/kraken.com/4202ca2f-9c4f-4d4c-a2e4-dd78e2c5cef0) — Unknown
+- [Staff IT Automation Engineer @ Abridge - Jobs](https://jobs.ashbyhq.com/abridge/0f56d01f-813d-4f1f-ad98-0b1213081660) — Unknown
+- [Quality Assurance Automation Engineer, Workflow Engine - Jobs](https://jobs.ashbyhq.com/paragon/63ca42ec-73f3-4700-a70d-7073c74fbf6d/application) — Unknown
+- [Software Automation Engineer @ Happl - Jobs](https://jobs.ashbyhq.com/happl/bcbab2f4-3898-48f5-a8ab-7b34eb7bb0ac?utm_source=gy8l92E46j) — Unknown
+- [AI Process Automation Engineer @ Fuel Cycle - Jobs](https://jobs.ashbyhq.com/fuel-cycle/dd79059a-ed76-45fb-a113-b8262d82b82a) — Unknown
+- [Job Application for Senior Solutions Architect at Airtable - Greenhouse](https://boards.greenhouse.io/airtable/jobs/8487502002) — Unknown
+- [Job Application for Senior Solutions Architect at Celonis - Greenhouse](https://boards.greenhouse.io/celonis/jobs/6499514003?utm_source=Accel+job+board&utm_medium=getro.com&gh_src=Accel+job+board) — Unknown
+- [Job Application for Sr. Solutions Architect at 6sense - Greenhouse](https://boards.greenhouse.io/6sense/jobs/7763860) — Unknown
+- [Senior Applied AI Solutions Architect - Process Intelligence (Public ...](https://boards.greenhouse.io/celonis/jobs/7683570003) — Unknown
+- [Senior Software Engineer, Data Platform - Greenhouse](https://boards.greenhouse.io/chime/jobs/8457138002?gh_jid=8457138002) — Unknown
+- [Senior Analytics Engineer - Remote at Grafana Labs - Greenhouse](https://boards.greenhouse.io/grafanalabs/jobs/5850010004) — Unknown
+- [Job Application for Senior Analytics Engineer at Swap - Greenhouse](https://boards.greenhouse.io/swapecommerce/jobs/4709275101) — Unknown
+- [Job Application for Senior Analytics Engineer at Axon - Greenhouse](https://boards.greenhouse.io/axon/jobs/7634547003) — Unknown
+- [Job Application for Senior Data Engineer at Zeta Global - Greenhouse](https://boards.greenhouse.io/zetaglobal/jobs/5796287004) — Unknown
+- [Senior Staff Software Engineer, Data Platform - Greenhouse](https://boards.greenhouse.io/robinhood/jobs/7729014?gh_src=NaN&gh_jid=7729014) — Unknown
+- [Senior Staff Data Engineer - Platform Data and Analytics - Greenhouse](https://boards.greenhouse.io/faire/jobs/8440216002?gh_jid=8440216002?ref=employbl) — Unknown
+- [Senior Data Engineer— AdTech Data Platform - Greenhouse](https://boards.greenhouse.io/zetaglobal/jobs/5820593004) — Unknown
+- [Job Application for Senior Data Engineer at LeafLink - Greenhouse](https://boards.greenhouse.io/leaflink/jobs/8478974002) — Unknown
+- [Job Application for Sr. Data Engineer at Hologram - Greenhouse](https://boards.greenhouse.io/hologram/jobs/7686318003) — Unknown
+- [Data Engineer - AppsFlyer careers](https://boards.greenhouse.io/appsflyer/jobs/8454717002) — Unknown
+- [Software Engineer II, Data Platform - Greenhouse](https://boards.greenhouse.io/sonyinteractiveentertainmentglobal/jobs/5836234004) — Unknown
+- [Data Engineer, Infrastructure FinOps - Greenhouse](https://boards.greenhouse.io/andurilindustries/jobs/5090905007) — Unknown
+- [Distributed Systems Engineer - Data Platform (Delivery, Database ...](https://boards.greenhouse.io/cloudflare/jobs/7267602?gh_jid=7267602) — Unknown
+- [Job Application for Google Cloud Data Engineer at Fueled](https://boards.greenhouse.io/fueledcareers/jobs/5175846008) — Unknown
+- [Electrical Test Automation Engineer, Intelligence Systems](https://boards.greenhouse.io/andurilindustries/jobs/5103311007?gh_jid=5103311007) — Unknown
+- [Senior Test Automation Engineer - Greenhouse](https://boards.greenhouse.io/andurilindustries/jobs/5099151007) — Unknown
+- [Job Application for AI Automation Engineer at Super Technologies](https://boards.greenhouse.io/superbet/jobs/4821514101) — Unknown
+- [Job Application for Electrical Test Automation Engineer, Intelligence ...](https://boards.greenhouse.io/andurilindustries/jobs/5040180007?gh_jid=5040180007) — Unknown
+- [Job Application for Senior Automation Engineer, Altius at Anduril ...](https://boards.greenhouse.io/andurilindustries/jobs/5038110007) — Unknown
+- [Job Application for Senior AI Engineer at Roboyo - Greenhouse](https://boards.greenhouse.io/roboyo/jobs/4835886101) — Unknown
+- [Job Application for Staff AI Engineer at SecurityScorecard](https://boards.greenhouse.io/securityscorecard/jobs/7779112) — Unknown
+- [Job Application for Senior AI Engineer, AI Platform at Affinity.co](https://boards.greenhouse.io/affinity/jobs/7664600003) — Unknown
+- [Sr. Automation Engineer, Blades and Vanes Foundry - Greenhouse](https://boards.greenhouse.io/spacex/jobs/8497668002) — Unknown
+- [Job Application for Automation Engineer (Mid level SDET) at Medrio](https://boards.greenhouse.io/medrio/jobs/8468590002) — Unknown
+- [Senior Data Architect - Automation-Led Data Modernization - Lever](https://jobs.lever.co/doranjones/c46c532e-6ba0-4880-ae08-117d4c20e7db) — Unknown
+- [SteerBridge - Sr. Data Architect - Lever](https://jobs.lever.co/steerbridge/8b1a4028-7798-42c4-960e-42045d2b3d66) — Unknown
+- [SwingDev–a hippo company - Senior Data Architect - Lever](https://jobs.lever.co/swingdev/a2548593-0887-457f-864b-2d35b8748ebd/apply) — Unknown
+- [Doran Jones Inc. - Senior Data Architect - Automation-Led ... - Lever](https://jobs.lever.co/doranjones/c46c532e-6ba0-4880-ae08-117d4c20e7db/apply) — Unknown
+- [Truv - Senior Solutions Architect, Public Sector - Lever](https://jobs.lever.co/truv/9bf2373d-f5f8-47ea-80a3-b5feeffbdad1) — Unknown
+- [SFEIR - Data Architect GCP - Lever](https://jobs.lever.co/sfeir/c6420e02-e32b-44f9-b115-e97ba6a5dfda) — Unknown
+- [Avalanche Studios Group - Senior Data Engineer - Lever](https://jobs.lever.co/avalanchestudios/cfabf115-b13a-45f9-83d0-db2efc358335) — Unknown
+- [Aledade - Senior Data Platform Engineer II (Databricks) - Lever](https://jobs.lever.co/aledade/e7c0c6cc-7d22-4ca4-8484-f5f2e5c59eba) — Unknown
+- [Senior Analytics Engineer - Emburse - Lever](https://jobs.lever.co/emburse/0739bc03-1e40-4d39-8c06-9ce64e86253b) — Unknown
+- [Senior Analytics Engineer - Avalanche Studios Group - Lever](https://jobs.lever.co/avalanchestudios/557484be-0668-4a31-a06b-84a52edbdd51) — Unknown
+- [Fullscript - Senior Analytics Engineer (Operations & Distribution)](https://jobs.lever.co/fullscript/c87ab1ad-c860-418e-bce1-47ffeeb47d68) — Unknown
+- [Senior Analytics Engineer - Zopa - Lever](https://jobs.lever.co/zopa/acf89e89-e2ec-444c-816a-c1e4527deb0b) — Unknown
+- [Senior Analytics Engineer - Moneybox - Lever](https://jobs.lever.co/moneyboxapp/8fe8d10e-727a-40b8-9022-536a2109577f) — Unknown
+- [Hostinger - Senior Analytics Engineer - Lever](https://jobs.lever.co/hostinger/af006b42-646f-4db9-ba70-ee74315eace0) — Unknown
+- [Senior Data Analytics Engineer - WorkWave - Lever](https://jobs.lever.co/workwave/b70a43c2-994c-4ef4-853f-afe4e06bb279) — Unknown
+- [Aircall - Senior Data Engineer - Real time analytics - Lever](https://jobs.lever.co/aircall/d8a251f9-fcb7-4765-a38f-a9ee106e653f) — Unknown
+- [Color - Senior Analytics Engineer - Lever](https://jobs.lever.co/color/560b9183-e9bc-4ed0-91ed-99e4cca924a6/apply?lever-origin=applied&lever-source%5B%5D=BuiltInNationwide) — Unknown
+- [Senior Analytics Engineer - Emburse - Lever](https://jobs.lever.co/emburse/0739bc03-1e40-4d39-8c06-9ce64e86253b/apply) — Unknown
+- [Fullscript - Senior Analytics Engineer (Operations & Distribution)](https://jobs.lever.co/fullscript/c87ab1ad-c860-418e-bce1-47ffeeb47d68/apply?lever-origin=applied&lever-source%5B%5D=Jobgether&utm_campaign=search&utm_medium=website) — Unknown
+- [Brillio - CX Senior Analytics Engineer (CDP) - R01562184 - Lever](https://jobs.lever.co/brillio-2/9260e921-a1f6-43e7-8e43-2d692325ae94) — Unknown
+- [Sysdig - Senior Data Analytics Engineer - Lever](https://jobs.lever.co/sysdig/fb2dde23-3ea8-4408-a06d-d528cf72e7f8?lever-source%5B%5D=jobs.baincapitalventures.com) — Unknown
+- [Loadsmart - Senior Analytics Engineer (Remote - Brazil) - Lever](https://jobs.lever.co/loadsmart/fa924fde-544c-47e4-a8a6-1545526bc9a1) — Unknown
+- [BETA Technologies - Data Platform Engineer | Digital Operations](https://jobs.lever.co/beta/a5d49990-54da-4aee-bb35-aa455710ab54) — Unknown
+- [Best Egg - Data Platform Engineer II - Lever](https://jobs.lever.co/BestEgg/0569542d-826d-471a-bfb4-44261a0d53ea/apply) — Unknown
+- [Senior AI & Data Platform Engineer - Quizlet - Lever](https://jobs.lever.co/quizlet-2/6452c4ec-b267-4cc4-8217-3836878d1e9f) — Unknown
+- [MoonPay - Senior Data Platform Engineer - Lever](https://jobs.lever.co/moonpay/116b705f-a922-4209-9238-4edf93a2116c) — Unknown
+- [Principal Data Platform Engineer - Deputy - Lever](https://jobs.lever.co/deputy/809e5368-8d55-40d9-b1a7-4c75447927d8) — Unknown
+- [Cyara - Sr. Data Platform Engineer - Lever](https://jobs.lever.co/cyara/b1c37174-e808-4146-a498-bda06606088c) — Unknown
+- [Senior Software Engineer, Robot Data Platform - Zoox - Lever](https://jobs.lever.co/zoox/047e4f2e-fbb2-4f4b-84c1-b67b7e1c0a53) — Unknown
+- [Instrumentl - Sr Data Engineer - Lever](https://jobs.lever.co/Instrumentl/851dad0f-8368-483a-846c-637da58dd7e8) — Unknown
+- [Staff AI & Data Platform Engineer - Quizlet - Lever](https://jobs.lever.co/quizlet-2/6c251714-e545-4a21-88cc-06d9e2baf17b) — Unknown
+- [Spotify - Senior Data Engineer - Partner & Platform Experience - Lever](https://jobs.lever.co/spotify/4418feec-977a-4bb4-956a-09f0bfac8566) — Unknown
+- [Data Engineer - Wave HQ - Lever](https://jobs.lever.co/waveapps/8350de6d-9191-4b56-a0b3-af935d5cf4f6) — Unknown
+- [JioStar - Software Development Engineer II - Data Engineering - Lever](https://jobs.lever.co/jiostar/6d5f283b-0a15-47bf-8881-230940160a69) — Unknown
+- [Staff Software Engineer (Data Platforms) - Prosper - Lever](https://jobs.lever.co/prosper/c1e64f97-86e6-425a-8dbf-c6f662f9e9ec) — Unknown
+- [Senior Data Engineer (Big Data Platform) - Lalamove - Lever](https://jobs.lever.co/lalamove/d5883531-d7fc-493f-9abb-f4e8487c1057) — Unknown
+- [Resilient Co - Data Solutions Architect - Lever](https://jobs.lever.co/resilientco/f0773695-7cd7-4e7c-ad7f-2ff4adbbad72) — Unknown
+- [Crossvale - Solutions Architect: Data Integration & Platforms - Lever](https://jobs.lever.co/crossvale/346d4bc6-d24f-4fef-bf4a-18038d62aea0) — Unknown
+- [Optimus SBR - Data Engineering Solutions Architect - Lever](https://jobs.lever.co/optimussbr/83791cf8-e177-490f-b65f-a766e5a126c7) — Unknown
+- [Wavicle Data Solutions - Databricks Solutions Architect - Lever](https://jobs.lever.co/wavicledata/f39e107a-a9f8-4c9f-8c17-dfc60ac810ec) — Unknown
+- [Solutions Architect - Livefront - Lever](https://jobs.lever.co/livefront/e35f4276-de45-4b53-91ea-d3d749d6f66e) — Unknown
+- [Onehouse - Staff Solutions Architect - Data Infrastructure - Lever](https://jobs.lever.co/Onehouse/db43445a-2208-403b-9c95-bff6febee5e6) — Unknown
+- [Solutions Architect - Unstructured - Lever](https://jobs.lever.co/unstructuredtechnologies/6f8c8a43-eaba-454e-867f-f04c136f702d) — Unknown
+- [AHEAD - Presales Solutions Architect - Modern Data Center - Lever](https://jobs.lever.co/thinkahead/e697c00c-fb18-421b-b0c0-117a21dda5c4) — Unknown
+- [Berkshire Hathaway Homestate Companies - Principal Data Architect](https://jobs.lever.co/bhhc/8dcb74b1-8cc6-4ff1-90a4-f44d444218cc) — Unknown
+- [Welo Global - Life Sciences Technical Solutions Architect - Lever](https://jobs.lever.co/welocalize/6de38248-f11d-42d7-b7d4-40b011ef4f11) — Unknown
+- [Solutions Architect - SpryPoint - Lever](https://jobs.lever.co/sprypointservices/01dfeafe-3866-4cc5-b05d-2d8e8eebcd98) — Unknown
+- [Solutions Architect - Warner Music Inc. - Lever](https://jobs.lever.co/wmg/826cc50b-5fd3-458c-b72b-34f49dbccda8) — Unknown
+- [Senior Data Architect (USA) - Trexquant Investment](https://apply.workable.com/trexquant/j/D788522E04/) — Unknown
+- [Senior Data Architect - Zeal Group - Jobs By Workable](https://apply.workable.com/zealgroup/j/3F9F2C3588) — Unknown
+- [Senior Data Architect (F500 Client) - North, NJ/ Chicago, IL](https://apply.workable.com/two95-international-inc-3/j/058E69C2FD/apply/) — Unknown
+- [Senior Data Solutions Architect - The Very Group - Jobs By Workable](https://apply.workable.com/the-very-group/j/458452D6BC/) — Unknown
+- [Senior Data Architect - Data Platforms - Simple Machines](https://apply.workable.com/simple-machines-3/j/C6B5A1F954/) — Unknown
+- [Databricks Architect/ Senior Data Engineer - OZ Digital LLC](https://apply.workable.com/followoz/j/220AB3512C/) — Unknown
+- [Senior Data Architect (USA) - Trexquant Investment - Application](https://apply.workable.com/trexquant/j/D788522E04/apply?s=BuiltInNationwide) — Unknown
+- [Senior Data Architect - SSC HR Solutions - Jobs By Workable](https://apply.workable.com/ssc-hr/j/707E111369) — Unknown
+- [Senior Data Engineer (Contract Position) - Bandit Running](https://apply.workable.com/bandit-running/j/A245C7A529/) — Unknown
+- [Senior Data Engineer - tapouts - Jobs By Workable](https://apply.workable.com/tapouts/j/9E63AA9E4A/) — Unknown
+- [Senior Data Architect (Banking Experience) - Advansys](https://apply.workable.com/advansys-esc-1/j/763D2ECA75/) — Unknown
+- [Data Analytics Architect- Microsoft Technology - SysLogic, Inc.](https://apply.workable.com/syslogic-inc/j/B9700976B6/) — Unknown
+- [SA-26-001 Senior Solutions Architect (Data & Analytics Platforms)](https://apply.workable.com/next-phase-solutions-and-services/j/FEF70C7BA8/) — Unknown
+- [Senior Data Engineer - OnMed - Jobs By Workable](https://apply.workable.com/onmed/j/583E41BF11/) — Unknown
+- [Databricks Architect/ Senior Data Engineer - OZ Digital LLC](https://apply.workable.com/followoz/j/220AB3512C/apply/) — Unknown
+- [AI Automation & Operations Specialist (AI-Driven Business ...](https://apply.workable.com/mind-friend/j/D77808B043/) — Unknown
+- [AI Automation & Operations Specialist (AI-Driven Business ...](https://apply.workable.com/mind-friend/j/9589D0B718) — Unknown
+- [Lead Data Engineer - Sur - Jobs By Workable](https://apply.workable.com/surglobal/j/796867719A) — Unknown
+- [Data Architect - Minneapolis, MN at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/minnetonka/data-architect-minneapolis-mn/34088/92652836528) — Unknown
+- [Principal Data Engineer/Architect - Remote at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/minnetonka/principal-data-engineer-architect-remote/34088/93496622736) — Unknown
+- [Senior Data Engineer at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/eden-prairie/senior-data-engineer/34088/93543221152) — Unknown
+- [Senior Data Engineering Consultant at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/chennai/senior-data-engineering-consultant/34088/93403460656) — Unknown
+- [Senior Data Engineer at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/dublin/senior-data-engineer/34088/93717036752) — Unknown
+- [Senior Data Engineering Consultant at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/bengaluru/senior-data-engineering-consultant/34088/92942050032) — Unknown
+- [Senior Data Engineering Consultant at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/hyderabad/senior-data-engineering-consultant/34088/92872108928) — Unknown
+- [Senior Data Engineer at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/eden-prairie/senior-data-engineer/34088/93191508736) — Unknown
+- [Senior Data Engineering Analyst at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/hyderabad/senior-data-engineering-analyst/34088/93740075760) — Unknown
+- [Senior Software Engineer (data engineering) at UnitedHealth Group](https://careers.unitedhealthgroup.com/job/eden-prairie/senior-software-engineer-data-engineering/34088/92872114688) — Unknown
+- [37 results for "Data Engineering" - UnitedHealth Group](https://careers.unitedhealthgroup.com/business/custom_fields.jobfunction/data%20engineering/34088/5) — Unknown
+- [Senior Data Engineering Analyst - Python or SQL](https://careers.unitedhealthgroup.com/job/bengaluru/senior-data-engineering-analyst-python-or-sql/34088/93217952560) — Unknown
+- [Lead Cloud Data Engineer - Multi-Cloud Data Platforms in Irving, TX ...](https://careers.usbank.com/global/en/job/UBNAGLOBAL20260007494EXTERNALENGLOBAL/Lead-Cloud-Data-Engineer-Multi-Cloud-Data-Platforms) — Unknown
