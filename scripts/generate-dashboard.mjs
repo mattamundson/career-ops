@@ -102,6 +102,34 @@ function parsePrefilterCards() {
   });
 }
 
+function parseResponses() {
+  const file = join(ROOT, 'data', 'responses.md');
+  if (!existsSync(file)) return [];
+  const lines = readFileSync(file, 'utf8').split('\n');
+  const rows = [];
+  let inTable = false;
+  for (const line of lines) {
+    if (!line.trim().startsWith('|')) continue;
+    if (line.includes('---')) { inTable = true; continue; }
+    if (line.includes('app_id') && line.includes('company')) continue; // header
+    if (!inTable) continue;
+    const cells = line.split('|').slice(1, -1).map(c => c.trim());
+    if (cells.length < 8 || !cells[0] || cells[0] === 'app_id') continue;
+    rows.push({
+      app_id: cells[0],
+      company: cells[1],
+      role: cells[2],
+      submitted_at: cells[3],
+      ats: cells[4],
+      status: cells[5],
+      last_event_at: cells[6],
+      response_days: cells[7],
+      notes: cells[8] || ''
+    });
+  }
+  return rows;
+}
+
 function parseLivenessReports() {
   const dir = join(ROOT, 'data');
   if (!existsSync(dir)) return { lastRun: null, deadCount: 0, deadUrls: [] };
@@ -166,6 +194,28 @@ const prefilterMaybe   = prefilterScored.filter(c => c.score >= 2.5 && c.score <
 const prefilterSkip    = prefilterScored.filter(c => c.score < 2.5).length;
 
 const liveness = parseLivenessReports();
+
+// Response tracker (v14 — added 2026-04-10)
+const responses = parseResponses();
+const DAILY_TARGET = 50;
+const today = new Date().toISOString().slice(0, 10);
+const submittedToday = responses.filter(r => r.submitted_at === today).length;
+const TERMINAL_STATUSES = new Set(['rejected', 'offer', 'withdrew', 'ghosted']);
+const IN_FLIGHT = responses.filter(r => !TERMINAL_STATUSES.has(r.status) && r.status !== 'in_progress');
+const FUNNEL_STAGES = [
+  { key: 'submitted',        label: 'Submitted',        match: (r) => true },
+  { key: 'acknowledged',     label: 'Acknowledged',     match: (r) => ['acknowledged', 'recruiter_reply', 'phone_screen', 'interview', 'offer'].includes(r.status) },
+  { key: 'recruiter_reply',  label: 'Recruiter Reply',  match: (r) => ['recruiter_reply', 'phone_screen', 'interview', 'offer'].includes(r.status) },
+  { key: 'interview',        label: 'Interview',        match: (r) => ['phone_screen', 'interview', 'offer'].includes(r.status) },
+  { key: 'offer',            label: 'Offer',            match: (r) => r.status === 'offer' },
+];
+const funnelCounts = FUNNEL_STAGES.map(stage => ({
+  ...stage,
+  count: responses.filter(stage.match).length,
+}));
+const replyRate = responses.length > 0
+  ? ((funnelCounts[1].count / responses.length) * 100).toFixed(1)
+  : '0.0';
 
 // Rejection insights — run analyze-rejections.mjs --json (needs --min-data=3 terminal entries)
 let rejectionInsights = null;
@@ -372,6 +422,166 @@ function generateApplyQueue(appList) {
         <tbody>
           ${rows}
         </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ─── v14 Response Tracker Sections ─────────────────────────────────────────
+
+function generateDailyGoal() {
+  const pct = Math.min(100, (submittedToday / DAILY_TARGET) * 100);
+  const barColor = pct >= 100 ? '#a6e3a1' : pct >= 50 ? '#f9e2af' : '#89b4fa';
+  const remaining = Math.max(0, DAILY_TARGET - submittedToday);
+  return `
+  <!-- Daily Submission Goal -->
+  <div class="section">
+    <div class="section-header">
+      <h2>🎯 Today's Goal (${today})</h2>
+      <span class="count">${submittedToday} / ${DAILY_TARGET}</span>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="flex:1;height:24px;background:#313244;border-radius:12px;overflow:hidden;position:relative">
+          <div style="width:${pct}%;height:100%;background:${barColor};transition:width 0.3s ease"></div>
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#1e1e2e">
+            ${submittedToday} submitted
+          </div>
+        </div>
+        <span style="font-size:13px;color:#a6adc8;min-width:80px;text-align:right">${remaining} to go</span>
+      </div>
+      <div style="font-size:12px;color:#6c7086">
+        At 50 apps/day: 250/week · 1,000/month · ~2% reply = 20 replies/week · ~10% of replies → interview = 2 interviews/week
+      </div>
+    </div>
+  </div>`;
+}
+
+function generateResponseFunnel() {
+  if (responses.length === 0) {
+    return `
+  <div class="section">
+    <div class="section-header"><h2>📊 Response Funnel</h2><span class="count">0 submissions</span></div>
+    <div style="padding:20px;color:#6c7086;font-size:13px">No submissions logged yet. Use <code>node scripts/log-response.mjs --new ...</code> to record your first submission.</div>
+  </div>`;
+  }
+  const maxCount = funnelCounts[0].count || 1;
+  return `
+  <!-- Response Funnel -->
+  <div class="section">
+    <div class="section-header">
+      <h2>📊 Response Funnel</h2>
+      <span class="count">${responses.length} total</span>
+      <span class="count" style="margin-left:4px;color:#a6e3a1">${replyRate}% reply rate</span>
+    </div>
+    <div style="padding:16px 20px">
+      ${funnelCounts.map((stage, i) => {
+        const pct = (stage.count / maxCount) * 100;
+        const conv = i === 0 ? '—' : `${((stage.count / (funnelCounts[0].count || 1)) * 100).toFixed(0)}%`;
+        const width = Math.max(10, 100 - (i * 15));
+        const colors = ['#89b4fa', '#94e2d5', '#f9e2af', '#fab387', '#a6e3a1'];
+        return `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <div style="min-width:140px;font-size:12px;color:#cdd6f4;text-align:right">${stage.label}</div>
+          <div style="flex:1;height:20px;background:#313244;border-radius:4px;position:relative;max-width:${width}%">
+            <div style="width:${pct}%;height:100%;background:${colors[i]};border-radius:4px"></div>
+            <div style="position:absolute;top:0;left:8px;line-height:20px;font-size:11px;font-weight:600;color:#1e1e2e">${stage.count}</div>
+          </div>
+          <div style="min-width:48px;font-size:11px;color:#a6adc8">${conv}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function generateFollowupQueue() {
+  const stale = responses.filter(r => {
+    if (TERMINAL_STATUSES.has(r.status)) return false;
+    if (r.status !== 'submitted' && r.status !== 'acknowledged') return false;
+    const days = r.response_days === '—' ? 0 : parseInt(r.response_days, 10) || 0;
+    const daysSinceSubmit = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
+    return daysSinceSubmit >= 7;
+  }).sort((a, b) => {
+    const aDays = Math.round((new Date() - new Date(a.submitted_at)) / (1000 * 60 * 60 * 24));
+    const bDays = Math.round((new Date() - new Date(b.submitted_at)) / (1000 * 60 * 60 * 24));
+    return bDays - aDays;
+  });
+
+  if (stale.length === 0) {
+    return `
+  <div class="section">
+    <div class="section-header"><h2>⏰ Follow-up Queue</h2><span class="count">0 stale</span></div>
+    <div style="padding:20px;color:#6c7086;font-size:13px">Nothing needs follow-up. All submissions are recent or have progressed.</div>
+  </div>`;
+  }
+
+  const rows = stale.map(r => {
+    const days = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
+    const color = days >= 14 ? '#f38ba8' : '#f9e2af';
+    const urgency = days >= 14 ? 'URGENT (LinkedIn msg)' : 'Stale (>7d)';
+    return `<tr>
+      <td>#${r.app_id}</td>
+      <td><strong>${r.company}</strong></td>
+      <td>${r.role}</td>
+      <td>${r.ats}</td>
+      <td>${r.submitted_at}</td>
+      <td style="color:${color};font-weight:600">${days}d</td>
+      <td><span class="badge" style="color:${color};border-color:${color}22;background:${color}11">${urgency}</span></td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <!-- Follow-up Queue -->
+  <div class="section">
+    <div class="section-header">
+      <h2>⏰ Follow-up Queue</h2>
+      <span class="count">${stale.length} stale</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>#</th><th>Company</th><th>Role</th><th>ATS</th><th>Submitted</th><th>Days</th><th>Action</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function generateChannelPerformance() {
+  if (responses.length === 0) return '';
+  const byAts = new Map();
+  for (const r of responses) {
+    const ats = r.ats || 'Unknown';
+    if (!byAts.has(ats)) byAts.set(ats, { ats, submitted: 0, acked: 0, interview: 0, offer: 0, rejected: 0 });
+    const b = byAts.get(ats);
+    b.submitted++;
+    if (['acknowledged', 'recruiter_reply', 'phone_screen', 'interview', 'offer'].includes(r.status)) b.acked++;
+    if (['phone_screen', 'interview', 'offer'].includes(r.status)) b.interview++;
+    if (r.status === 'offer') b.offer++;
+    if (r.status === 'rejected') b.rejected++;
+  }
+  const rows = [...byAts.values()].sort((a, b) => b.submitted - a.submitted).map(b => {
+    const replyRate = b.submitted > 0 ? ((b.acked / b.submitted) * 100).toFixed(0) : 0;
+    return `<tr>
+      <td><strong>${b.ats}</strong></td>
+      <td>${b.submitted}</td>
+      <td style="color:#94e2d5">${b.acked}</td>
+      <td style="color:#f9e2af">${b.interview}</td>
+      <td style="color:#a6e3a1">${b.offer}</td>
+      <td style="color:#f38ba8">${b.rejected}</td>
+      <td style="font-weight:600">${replyRate}%</td>
+    </tr>`;
+  }).join('');
+  return `
+  <!-- Channel Performance -->
+  <div class="section">
+    <div class="section-header">
+      <h2>📈 Channel Performance</h2>
+      <span class="count">${byAts.size} channels</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>ATS</th><th>Submitted</th><th>Acked</th><th>Interview</th><th>Offer</th><th>Rejected</th><th>Reply %</th></tr></thead>
+        <tbody>${rows}</tbody>
       </table>
     </div>
   </div>`;
@@ -678,6 +888,14 @@ const html = `<!DOCTYPE html>
         </div>` : ''}
     </div>
   </div>` : ''}
+
+  ${generateDailyGoal()}
+
+  ${generateResponseFunnel()}
+
+  ${generateFollowupQueue()}
+
+  ${generateChannelPerformance()}
 
   ${generateApplyQueue(apps)}
 
