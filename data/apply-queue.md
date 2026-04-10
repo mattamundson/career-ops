@@ -279,6 +279,25 @@
 
 ---
 
+### 17. Callaway Golf — Principal Business Intelligence Developer [PRIORITY 17 — CONDITIONAL]
+- **Apply URL:** https://www.linkedin.com/jobs/view/4382025832
+- **PDF:** output/cv-matt-callaway-golf-2026-04-09.pdf (pending — w2-t5 skipped)
+- **Cover Letter:** output/cover-letters/callaway-golf-principal-bi-developer.txt (pending — w2-t5 skipped)
+- **Score:** 3.5/5
+- **Key angle:** A decade at the most complex layer of the BI stack — designing semantic models that make reports fast, and data architectures that make models right. Delivered Power BI reporting for a Fortune 200 utility (FirstEnergy), built analytical infrastructure for a $25B investment portfolio (Pretium), and owned the full BI platform as COO (GMS). Principal-level BI architectural authority without the Snowflake DW — honest, direct framing: Power BI layer is immediately owned; Snowflake SQL ramp is days-to-weeks given ANSI SQL foundation.
+- **Hard gates (all required before submitting):**
+  1. Confirm comp band reaches $130K+ in recruiter screen (ask first — Snowflake trial and demo work shouldn't precede a comp disqualifier)
+  2. Complete Snowflake free trial — build a 2-table star schema, connect Power BI via DirectQuery, write 3–5 analytic queries (FLATTEN, DATE_TRUNC). Have the live demo and honest narrative ready.
+  3. Build a Python visual in Power BI (matplotlib/seaborn chart in a .pbix) — 30 min task — converts "gap" to "demonstrated."
+  4. Confirm Snowflake is a ramp requirement, not a day-one hard gate, in recruiter screen
+- **Questions to ask recruiter:**
+  1. What is the salary band for this role? (Ask first — confirm it reaches $130K+ before advancing)
+  2. Is Snowflake proficiency a day-one hard requirement, or is ramp time expected given a strong Power BI/DAX foundation?
+  3. What does the BI team look like — solo Principal or is there a team to influence?
+- **Status:** [ ] CONDITIONAL — complete Snowflake trial + Python visual first; confirm comp in recruiter call
+
+---
+
 ## Outreach Needed
 
 ### Visa — Lead Data Architect
