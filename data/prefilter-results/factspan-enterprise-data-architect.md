@@ -1,6 +1,6 @@
 # Prefilter: Factspan — Enterprise Data Architect
 
-**status:** evaluate
+**status:** promoted
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4396303155
 **company:** Factspan
@@ -48,3 +48,5 @@ Thresholds:
 ## Notes
 
 <!-- Optional: manual notes, context, referrals, etc. -->
+
+**Outreach Template:** [View](../outreach/factspan-enterprise-data-architect.md)

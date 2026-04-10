@@ -1,6 +1,6 @@
 # Prefilter: SysLogic, Inc. — Data Analytics Architect- Microsoft Technology
 
-**status:** evaluate
+**status:** promoted
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4389714183
 **company:** SysLogic, Inc.
@@ -47,3 +47,5 @@ Thresholds:
 ## Notes
 
 <!-- Optional: manual notes, context, referrals, etc. -->
+
+**Outreach Template:** [View](../outreach/syslogic-inc-data-analytics-architect-microsoft-technology.md)

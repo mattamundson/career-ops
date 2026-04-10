@@ -1,6 +1,6 @@
 # Prefilter: TechSoup — Data Architect
 
-**status:** evaluate
+**status:** promoted
 **date:** 2026-04-09
 **url:** https://www.indeed.com/viewjob?jk=4194ffd465528107
 **company:** TechSoup
@@ -47,3 +47,5 @@ Thresholds:
 ## Notes
 
 <!-- Optional: manual notes, context, referrals, etc. -->
+
+**Outreach Template:** [View](../outreach/techsoup-data-architect.md)

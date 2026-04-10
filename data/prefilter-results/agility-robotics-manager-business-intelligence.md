@@ -1,6 +1,6 @@
 # Prefilter: Agility Robotics — Manager, Business Intelligence
 
-**status:** evaluate
+**status:** promoted
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4393992086
 **company:** Agility Robotics
@@ -47,3 +47,5 @@ Thresholds:
 ## Notes
 
 <!-- Optional: manual notes, context, referrals, etc. -->
+
+**Outreach Template:** [View](../outreach/agility-robotics-manager-business-intelligence.md)

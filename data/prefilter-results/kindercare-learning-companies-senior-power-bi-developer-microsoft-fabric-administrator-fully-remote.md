@@ -1,6 +1,6 @@
 # Prefilter: KinderCare Learning Companies — Senior Power BI Developer / Microsoft Fabric Administrator - Fully Remote!
 
-**status:** evaluate
+**status:** promoted
 **date:** 2026-04-09
 **url:** https://www.linkedin.com/jobs/view/4385530845
 **company:** KinderCare Learning Companies
@@ -47,3 +47,5 @@ Thresholds:
 ## Notes
 
 <!-- Optional: manual notes, context, referrals, etc. -->
+
+**Outreach Template:** [View](../outreach/kindercare-learning-companies-senior-power-bi-developer-microsoft-fabric-adminis.md)
