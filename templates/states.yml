@@ -2,6 +2,19 @@
 # These are the ONLY valid values for the Status column.
 
 states:
+  # Pre-submit workflow (evaluation output + human decision)
+  - name: GO
+    description: Strong fit — apply when ready (PDF/CL often prepared)
+    terminal: false
+  - name: Conditional GO
+    description: Good fit — resolve blockers in notes before applying
+    terminal: false
+  - name: Ready to Submit
+    description: Materials complete — final human review then send
+    terminal: false
+  - name: In Progress
+    description: Application started in ATS (partial submit, captcha, etc.)
+    terminal: false
   - name: Evaluated
     description: Report completed, pending application decision
     terminal: false

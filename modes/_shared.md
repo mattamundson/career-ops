@@ -44,10 +44,10 @@ The skill applies with EQUAL rigor to ALL target roles. None is primary or secon
 | If the role is... | Emphasize about the candidate... | Proof point sources |
 |-------------------|----------------------------------|---------------------|
 | Operational Data Architect | GMS Paradigm ERP API → Power BI → AI alerts pipeline; Inventory Health Index consumption model with live reorder triggers | article-digest.md + cv.md |
-| AI Automation / Workflow Engineer | n8n cross-system closed-loop monitoring; Jarvis Trader autonomous AI system; zero manual handoffs architecture | article-digest.md + cv.md |
+| AI Automation / Workflow Engineer | n8n cross-system closed-loop monitoring; Career-Ops command center; zero manual handoffs architecture | article-digest.md + cv.md |
 | BI & Analytics Lead | Power BI executive dashboards; Pretium $25B+ distressed debt risk dashboards; FirstEnergy enterprise analytics at Fortune 200 scale | cv.md + article-digest.md |
 | Business Systems / ERP Specialist | Paradigm ERP integration; Android + Node.js + Zebra barcode scanning with ERP lifecycle tracking; ops-to-tech translation as COO | article-digest.md + cv.md |
-| Applied AI / Solutions Architect | Jarvis Trader 5-layer regime detection; end-to-end system design; LLM-powered solution architecture; enterprise-ready integrations | article-digest.md + cv.md |
+| Applied AI / Solutions Architect | Career-Ops layered decision pipeline; end-to-end system design; LLM-powered solution architecture; enterprise-ready integrations | article-digest.md + cv.md |
 | Operations Technology Leader | COO exit story — built entire operational tech stack; FirstEnergy Fortune 200 scale; cross-functional delivery leadership | cv.md + article-digest.md |
 
 ### Exit Narrative (use in ALL framings)
@@ -56,7 +56,7 @@ The skill applies with EQUAL rigor to ALL target roles. None is primary or secon
 
 Use this narrative to frame ALL content:
 - **In PDF Summaries:** Bridge from past to future — "Built production data and AI systems as an operator. Now applying that full-stack systems thinking to [JD domain] at scale."
-- **In STAR stories:** Reference proof points from article-digest.md — GMS pipeline, Inventory Health Index, barcode system, n8n automation, Jarvis Trader
+- **In STAR stories:** Reference proof points from article-digest.md — GMS pipeline, Inventory Health Index, barcode system, n8n automation, Career-Ops command center
 - **In Draft Answers (Section G):** The COO→IC transition narrative should appear in the first response when relevant.
 - **When the JD asks for "entrepreneurial", "ownership", "builder", "end-to-end", "operator":** This is the #1 differentiator. Increase match weight.
 - **When asked "why leave a COO role?":** "I built the stack. Now I want to go deeper on the technical side at organizations with more scale and more interesting data problems."
@@ -65,10 +65,10 @@ Use this narrative to frame ALL content:
 
 Frame profile as **"Technical operator with real production proof"** — someone who has built and run the systems, not just designed them:
 - For Operational Data Architect: "Built ERP-to-BI-to-AI pipeline end-to-end with zero manual handoffs. Not a consultant who recommended it — an operator who built and ran it."
-- For AI Automation: "Jarvis Trader and n8n automation are production systems, not demos. Built for reliability under real conditions."
+- For AI Automation: "Career-Ops and n8n automation are production systems, not demos. Built for reliability under real conditions."
 - For BI & Analytics Lead: "Delivered dashboards that replaced manual decisions at Pretium and GMS. The proof is in the adoption, not the design."
 - For Business Systems / ERP: "Lived on both sides of the ops/tech boundary as COO. Can translate requirements nobody else can because I've been the operator asking for them."
-- For Applied AI Architect: "5-layer regime detection in Jarvis Trader is enterprise-grade system design — observability, fallbacks, and production reliability built in."
+- For Applied AI Architect: "The layered decision pipeline in Career-Ops is enterprise-grade system design — observability, fallbacks, and production reliability built in."
 - For Operations Technology Leader: "The COO exit story is the pitch — I am the proof of concept for this role."
 
 Convert the operator background into a professional signal, not a career pivot story. Production proof points make the transition credible.
@@ -77,7 +77,7 @@ Convert the operator background into a professional signal, not a career pivot s
 
 If the candidate has a live demo/dashboard (check profile.yml), offer access in applications for relevant roles. Priority proof points by archetype:
 - **Data / BI roles:** GMS Paradigm→Power BI pipeline architecture diagram or dashboard screenshot
-- **AI Automation roles:** Jarvis Trader architecture, n8n workflow screenshots, closed-loop monitoring diagrams
+- **AI Automation roles:** Career-Ops architecture, n8n workflow screenshots, closed-loop monitoring diagrams
 - **ERP / Business Systems:** Barcode scanning system demo, ERP integration architecture
 - **All roles:** COO tech stack narrative as written case study
 
@@ -159,7 +159,7 @@ If the candidate has a live demo/dashboard (check profile.yml), offer access in 
 7. Be direct and actionable -- no fluff
 8. When generating English text (PDF summaries, bullets, LinkedIn messages, STAR stories): native tech English, not translated. Short sentences, action verbs, no unnecessary passive voice.
 8b. **Case study URLs in PDF Professional Summary:** If the PDF mentions case studies or demos, URLs MUST appear in the first paragraph (Professional Summary). The recruiter may only read the summary. All URLs with `white-space: nowrap` in HTML.
-9. **Tracker additions as TSV** -- NEVER edit applications.md to add new entries. Write TSV in `batch/tracker-additions/` and `merge-tracker.mjs` handles the merge.
+9. **Tracker additions as TSV** -- NEVER edit applications.md to add new entries. Write TSV in `batch/tracker-additions/` and `merge-tracker.mjs` handles the merge. Status column must be a value from `templates/states.yml` (e.g. `Evaluated`, `GO`, `Applied`). TSV column order: **status before score** (see `CLAUDE.md`). **Never** click employer Submit/Send on behalf of the candidate.
 10. **Include `**URL:**` in every report header** -- between Score and PDF.
 
 ### Tools
@@ -173,3 +173,6 @@ If the candidate has a live demo/dashboard (check profile.yml), offer access in 
 | Write | Temporary HTML for PDF, applications.md, reports .md |
 | Edit | Update tracker |
 | Bash | `node generate-pdf.mjs` |
+
+---
+Inspired by the upstream repository: https://github.com/santifer/career-ops

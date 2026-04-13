@@ -29,7 +29,10 @@ const DRY_RUN = process.argv.includes('--dry-run');
 const VERIFY = process.argv.includes('--verify');
 
 // Canonical states and aliases
-const CANONICAL_STATES = ['Evaluated', 'Applied', 'Responded', 'Contact', 'Interview', 'Offer', 'Rejected', 'Discarded', 'SKIP'];
+const CANONICAL_STATES = [
+  'GO', 'Conditional GO', 'Ready to Submit', 'In Progress',
+  'Evaluated', 'Applied', 'Responded', 'Contact', 'Interview', 'Offer', 'Rejected', 'Discarded', 'SKIP',
+];
 
 function validateStatus(status) {
   const clean = status.replace(/\*\*/g, '').replace(/\s+\d{4}-\d{2}-\d{2}.*$/, '').trim();

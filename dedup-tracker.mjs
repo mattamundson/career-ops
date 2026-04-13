@@ -25,11 +25,15 @@ const DRY_RUN = process.argv.includes('--dry-run');
 const STATUS_RANK = {
   'skip': 0,
   'discarded': 0,
-  'rejected': 1,  // Terminal — below active states
+  'rejected': 1,
   'evaluated': 2,
-  'applied': 3,
-  'responded': 4,
-  'contact': 4,
+  'conditional go': 2.5,
+  'go': 3,
+  'contact': 3.1,
+  'ready to submit': 3.4,
+  'in progress': 3.6,
+  'applied': 4,
+  'responded': 4.5,
   'interview': 5,
   'offer': 6,
 };

@@ -75,7 +75,9 @@ Before the first evaluation of any session, run:
 node cv-sync-check.mjs
 ```
 
-This verifies `cv.md` and `config/profile.yml` are consistent. If warnings appear, resolve them before proceeding.
+Or run the full ritual: `pnpm run verify:all` (includes CV sync, tracker verify, index rebuild, and `dashboard.html`). This verifies `cv.md` and `config/profile.yml` are consistent. If warnings appear, resolve them before proceeding.
+
+After submitting to an employer, update the tracker per [`docs/APPLICATION-RUNBOOK.md`](APPLICATION-RUNBOOK.md).
 
 ---
 
@@ -532,10 +534,10 @@ A table mapping each JD requirement to exact lines from `cv.md`.
 | Archetype | Primary proof points |
 |-----------|---------------------|
 | Operational Data Architect | GMS Paradigm ERP API → Power BI → AI alerts; Inventory Health Index |
-| AI Automation / Workflow Engineer | n8n automation, Jarvis Trader, zero-handoff architecture |
+| AI Automation / Workflow Engineer | n8n automation, Career-Ops command center, zero-handoff architecture |
 | BI & Analytics Lead | Power BI dashboards, Pretium risk dashboards, FirstEnergy analytics |
 | Business Systems / ERP Specialist | ERP integrations, barcode scanning, ops-to-tech translation |
-| Applied AI / Solutions Architect | Jarvis Trader 5-layer regime detection, system design |
+| Applied AI / Solutions Architect | Career-Ops layered decision pipeline, system design |
 | Operations Technology Leader | COO tech stack build, cross-functional delivery, change management |
 
 ### Block C — Level and Strategy
@@ -804,15 +806,26 @@ If the application form has a cover letter option, one is always generated. Same
 
 ### Status Lifecycle
 
+Pre-submit (human gate — see **`docs/STATUS-MODEL.md`** for full definitions):
+
 ```
-Evaluated → Applied → Responded → Interview → Offer
-                   ↘ Contact              ↘ Rejected
-                                          ↘ Discarded
-         ↘ SKIP (doesn't fit)
+… → GO / Conditional GO → Ready to Submit → In Progress → Applied
+  ↘ SKIP                    ↘ Discarded / Rejected
+```
+
+Post-submit:
+
+```
+Applied → Responded → Interview → Offer
+       ↘ Contact              ↘ Rejected / Discarded
 ```
 
 | Status | When to use |
 |--------|-------------|
+| `GO` | Strong fit — queue for application. |
+| `Conditional GO` | Good fit — resolve blockers in **Notes** before applying. |
+| `Ready to Submit` | Materials ready — you still perform final review and employer submit. |
+| `In Progress` | ATS flow started (partial form, captcha, etc.). |
 | `Evaluated` | Report completed, pending application decision |
 | `Applied` | Application submitted |
 | `Responded` | Company reached out (inbound — recruiter screen) |
@@ -1124,7 +1137,7 @@ These appear across all archetypes. Read actual metrics from `cv.md` and `articl
 | Inventory Health Index | Domain-specific modeling, consumption patterns, live triggers |
 | Barcode Scanning System | Full-stack hardware+software integration, ERP lifecycle |
 | n8n Automation | Cross-system monitoring, closed-loop architecture |
-| Jarvis Trader | Production AI system, 5-layer regime detection, observability |
+| Career-Ops Command Center | Production automation system, layered decision pipeline, observability |
 | Pretium Analytics | Enterprise-scale BI, $25B+ distressed debt analysis |
 | FirstEnergy | Fortune 200 analytics at utility scale |
 
@@ -1139,7 +1152,7 @@ Common red flag questions and ready frameworks:
 > "I've been the buyer of these solutions. I know exactly what good looks like and what breaks in production. That perspective is rare on the IC side."
 
 **"You don't have a CS degree."**
-> Reference production systems built and deployed. Jarvis Trader's 5-layer regime detection, the GMS pipeline, the n8n automation — these are not academic projects.
+> Reference production systems built and deployed. Career-Ops, the GMS pipeline, and the n8n automation are not academic projects.
 
 **"Geographic discount" (paying Minneapolis rates for remote work):**
 > "The roles I'm competitive for are output-based, not location-based. My track record doesn't change based on postal code."
@@ -1349,3 +1362,6 @@ dashboard (career-dashboard.exe)
 6. **Never submit on behalf of the user.** Generate, draft, and prepare — then stop. The user clicks Apply.
 7. **Never invent metrics.** Read from `cv.md` and `article-digest.md` every time.
 8. **Verify offer is still active with Playwright before applying.** WebSearch results can be stale.
+
+---
+Inspired by the upstream repository: https://github.com/santifer/career-ops

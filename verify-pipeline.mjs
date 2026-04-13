@@ -11,7 +11,9 @@
  * 6. No pending TSVs in tracker-additions/ (only in merged/ or archived/)
  * 7. states.yml canonical IDs for cross-system consistency
  *
- * Run: node career-ops/verify-pipeline.mjs
+ * Run: node career-ops/verify-pipeline.mjs [--stale-check] [--skip-missing-reports]
+ *
+ * --skip-missing-reports — warn instead of error when report files are absent (CI / fresh clone).
  */
 
 import { readFileSync, readdirSync, existsSync } from 'fs';
@@ -29,7 +31,13 @@ const STATES_FILE = existsSync(join(CAREER_OPS, 'templates/states.yml'))
   ? join(CAREER_OPS, 'templates/states.yml')
   : join(CAREER_OPS, 'states.yml');
 
+const SKIP_MISSING_REPORTS = process.argv.includes('--skip-missing-reports');
+
 const CANONICAL_STATUSES = [
+  'go',
+  'conditional go',
+  'ready to submit',
+  'in progress',
   'evaluated', 'applied', 'responded', 'contact',
   'interview', 'offer', 'rejected', 'discarded', 'skip',
 ];
@@ -127,11 +135,16 @@ for (const e of entries) {
   if (!match) continue;
   const reportPath = join(CAREER_OPS, match[1]);
   if (!existsSync(reportPath)) {
-    error(`#${e.num}: Report not found: ${match[1]}`);
+    if (SKIP_MISSING_REPORTS) {
+      warn(`#${e.num}: Report not found (skipped): ${match[1]}`);
+    } else {
+      error(`#${e.num}: Report not found: ${match[1]}`);
+    }
     brokenReports++;
   }
 }
 if (brokenReports === 0) ok('All report links valid');
+else if (SKIP_MISSING_REPORTS) ok('Report links checked (missing files are warnings only)');
 
 // --- Check 4: Score format ---
 let badScores = 0;
@@ -193,6 +206,10 @@ if (errors === 0 && warnings === 0) {
 if (process.argv.includes('--stale-check')) {
   const CADENCE_DEFAULTS = {
     evaluated_days: 14,
+    go_days: 10,
+    conditional_go_days: 14,
+    ready_to_submit_days: 5,
+    in_progress_days: 4,
     applied_days:   7,
     responded_days: 5,
     contact_days:   5,
@@ -226,6 +243,10 @@ if (process.argv.includes('--stale-check')) {
   function cadenceThreshold(status, thresholds) {
     const s = (status || '').toLowerCase().trim();
     const map = {
+      go: thresholds.go_days ?? thresholds.evaluated_days,
+      'conditional go': thresholds.conditional_go_days ?? thresholds.evaluated_days,
+      'ready to submit': thresholds.ready_to_submit_days ?? 5,
+      'in progress': thresholds.in_progress_days ?? 4,
       evaluated: thresholds.evaluated_days,
       applied:   thresholds.applied_days,
       responded: thresholds.responded_days,
@@ -238,6 +259,10 @@ if (process.argv.includes('--stale-check')) {
   function cadenceAction(status) {
     const s = (status || '').toLowerCase().trim();
     const actions = {
+      go: 'Submit application or update status',
+      'conditional go': 'Resolve blockers in notes or discard',
+      'ready to submit': 'Final review and submit',
+      'in progress': 'Complete ATS flow / captcha / remaining steps',
       evaluated: 'Submit application or archive',
       applied:   'Send follow-up email',
       responded: 'Schedule next step or reply',

@@ -62,6 +62,7 @@ function normalizeStatus(raw) {
 
   // Already canonical (English) — just fix casing/bold
   const canonical = [
+    'GO', 'Conditional GO', 'Ready to Submit', 'In Progress',
     'Evaluated', 'Applied', 'Responded', 'Contact',
     'Interview', 'Offer', 'Rejected', 'Discarded', 'SKIP',
   ];

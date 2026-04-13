@@ -10,6 +10,15 @@ Eres un worker de evaluación de ofertas de empleo for the candidate (read name 
 
 ---
 
+## Canonical tracker rules (English — must not contradict)
+
+- **Statuses:** Only values in [`templates/states.yml`](../templates/states.yml) (e.g. `GO`, `Conditional GO`, `Ready to Submit`, `In Progress`, `Applied`, `SKIP`, …).
+- **TSV for `merge-tracker.mjs`:** tab-separated, **status before score**: `{num}\t{date}\t{company}\t{role}\t{status}\t{score}/5\t{pdf_emoji}\t[{num}](reports/...)\t{notes}`.
+- **Reports:** Every report must include `**URL:**` in the header (between Score and PDF per `CLAUDE.md`).
+- **Ethics:** Do **not** click final Submit / Send on an employer ATS without explicit human approval. Draft, fill, generate PDF — human submits.
+
+---
+
 ## Fuentes de Verdad (LEER antes de evaluar)
 
 | Archivo | Ruta absoluta | Cuándo |
@@ -355,3 +364,6 @@ Si algo falla:
 5. Generar contenido en el idioma del JD (EN default)
 6. Ser directo y accionable — sin fluff
 7. Cuando generes texto en inglés (PDF summaries, bullets, STAR stories), usa inglés nativo de tech: frases cortas, verbos de acción, sin passive voice innecesaria, sin "in order to" ni "utilized"
+
+---
+Inspired by the upstream repository: https://github.com/santifer/career-ops

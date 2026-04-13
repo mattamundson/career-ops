@@ -5,12 +5,25 @@
   "packageManager": "pnpm@10.12.1",
   "scripts": {
     "verify": "node verify-pipeline.mjs",
+    "verify:all": "node scripts/verify-all.mjs",
+    "dedupe:intake": "node scripts/dedupe-intake-vs-tracker.mjs",
+    "secrets:check": "node scripts/check-secrets.mjs",
     "normalize": "node normalize-statuses.mjs",
     "dedup": "node dedup-tracker.mjs",
     "merge": "node merge-tracker.mjs",
     "pdf": "node generate-pdf.mjs",
+    "test:scoring": "node --test tests/*.test.mjs",
     "sync-check": "node cv-sync-check.mjs",
-    "dashboard": "node scripts/generate-dashboard.mjs --open"
+    "dashboard": "node scripts/generate-dashboard.mjs --open",
+    "build:index": "node scripts/build-application-index.mjs",
+    "preflight:gmail-sync": "node scripts/automation-preflight-check.mjs --job=gmail-sync",
+    "preflight:cadence-alert": "node scripts/automation-preflight-check.mjs --job=cadence-alert",
+    "preflight:scanner": "node scripts/automation-preflight-check.mjs --job=scanner",
+    "gmail-oauth:url": "node scripts/gmail-oauth-url.mjs",
+    "gmail-oauth:exchange": "node scripts/gmail-oauth-exchange.mjs",
+    "gmail-sync:dry": "node scripts/gmail-recruiter-sync.mjs --dry-run",
+    "gmail-sync": "node scripts/gmail-recruiter-sync.mjs --apply",
+    "cadence-alert": "node scripts/check-cadence-alert.mjs"
   },
   "keywords": [
     "ai",

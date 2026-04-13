@@ -53,6 +53,10 @@ function parseYaml(text) {
 // ── Load config ─────────────────────────────────────────────────────────────
 const DEFAULT_THRESHOLDS = {
   evaluated_days: 14,
+  go_days: 10,
+  conditional_go_days: 14,
+  ready_to_submit_days: 5,
+  in_progress_days: 4,
   applied_days:   7,
   responded_days: 5,
   contact_days:   5,
@@ -98,7 +102,8 @@ function parseMarkdownTable(text) {
 }
 
 // ── Date helpers ─────────────────────────────────────────────────────────────
-const TODAY = new Date('2026-04-07');
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0);
 
 function daysSince(dateStr) {
   const d = new Date(dateStr);
@@ -110,6 +115,10 @@ function daysSince(dateStr) {
 function getThreshold(status, thresholds) {
   const s = status.toLowerCase().trim();
   const map = {
+    go: thresholds.go_days ?? thresholds.evaluated_days,
+    'conditional go': thresholds.conditional_go_days ?? thresholds.evaluated_days,
+    'ready to submit': thresholds.ready_to_submit_days ?? 5,
+    'in progress': thresholds.in_progress_days ?? 4,
     evaluated: thresholds.evaluated_days,
     applied:   thresholds.applied_days,
     responded: thresholds.responded_days,
@@ -122,6 +131,10 @@ function getThreshold(status, thresholds) {
 function getAction(status) {
   const s = status.toLowerCase().trim();
   const actions = {
+    go: 'Submit application or update status',
+    'conditional go': 'Resolve blockers in notes or discard',
+    'ready to submit': 'Final review and submit',
+    'in progress': 'Complete ATS flow / captcha / remaining steps',
     evaluated: 'Submit application or archive',
     applied:   'Send follow-up email',
     responded: 'Schedule next step or reply',

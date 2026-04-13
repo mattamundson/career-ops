@@ -157,7 +157,7 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 2. **YES you can edit applications.md to UPDATE status/notes of existing entries.**
 3. All reports MUST include `**URL:**` in the header (between Score and PDF).
 4. All statuses MUST be canonical (see `templates/states.yml`).
-5. Health check: `node verify-pipeline.mjs`
+5. Health check: `pnpm run verify:all` (or `node verify-pipeline.mjs`). For CI/clones without local reports: `pnpm run verify -- --skip-missing-reports`
 6. Normalize statuses: `node normalize-statuses.mjs`
 7. Dedup: `node dedup-tracker.mjs`
 
@@ -167,6 +167,10 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 
 | State | When to use |
 |-------|-------------|
+| `GO` | Strong fit — queue for application (use notes for salary/remote context) |
+| `Conditional GO` | Good fit — resolve blockers in notes before applying |
+| `Ready to Submit` | PDF/answers ready — you are doing final review before send |
+| `In Progress` | ATS flow started (partial submit, captcha, multi-step form) |
 | `Evaluated` | Report completed, pending decision |
 | `Applied` | Application sent |
 | `Responded` | Company responded (recruiter screen, initial outreach) |
@@ -181,3 +185,6 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 - No markdown bold (`**`) in status field
 - No dates in status field (use the date column)
 - No extra text (use the notes column)
+
+---
+Inspired by the upstream repository: https://github.com/santifer/career-ops

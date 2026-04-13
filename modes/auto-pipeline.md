@@ -1,5 +1,7 @@
 # Mode: auto-pipeline — Full Automatic Pipeline
 
+**Canonical rules:** Tracker statuses = [`templates/states.yml`](../templates/states.yml). New rows = TSV in `batch/tracker-additions/` then `merge-tracker.mjs` only. Reports need `**URL:**` in the header. **Never** final-submit to employer ATS without explicit human approval.
+
 When the user pastes a JD (text or URL) without an explicit sub-command, run the FULL pipeline in sequence:
 
 ## Step 0 — Extract JD
@@ -78,7 +80,7 @@ If the final score is >= 4.5, generate draft answers for the application form:
 - Inventory Health Index: domain-specific consumption model with live reorder triggers
 - Barcode scanning: Android + Node.js + Zebra + ERP lifecycle tracking
 - n8n automation: cross-system closed-loop operational monitoring
-- Jarvis Trader: autonomous AI trading system, 5-layer regime detection
+- Career-Ops: multi-source intake, profile-aware scoring, ATS CV generation, recruiter sync
 - Pretium: $25B+ distressed debt analysis, risk dashboards
 - FirstEnergy: enterprise analytics at Fortune 200 utility scale
 - COO exit story: "Built the entire operational tech stack as COO. Now targeting orgs where I can apply that systems thinking at scale."
@@ -89,3 +91,6 @@ If the final score is >= 4.5, generate draft answers for the application form:
 Register in `data/applications.md` with all columns including Report and PDF as checkmarks.
 
 **If any step fails**, continue with the remaining steps and mark the failed step as pending in the tracker.
+
+---
+Inspired by the upstream repository: https://github.com/santifer/career-ops

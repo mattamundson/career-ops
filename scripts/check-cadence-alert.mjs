@@ -23,9 +23,13 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync, spawnSync } from 'child_process';
+import { getJobReadiness, printJobReadiness } from './automation-preflight.mjs';
+import { loadProjectEnv } from './load-env.mjs';
+import { createRunSummaryContext, finalizeRunSummary } from './run-summary.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
+loadProjectEnv(ROOT);
 const DRY_RUN = process.env.CAREER_OPS_DRY_RUN === '1';
 const PHONE_TO = (process.env.OPENCLAW_WHATSAPP_TO || '').trim();
 
@@ -64,6 +68,10 @@ function parseYaml(text) {
 // ── Load thresholds ──────────────────────────────────────────────────────────
 const DEFAULT_THRESHOLDS = {
   evaluated_days: 14,
+  go_days: 10,
+  conditional_go_days: 14,
+  ready_to_submit_days: 5,
+  in_progress_days: 4,
   applied_days:   7,
   responded_days: 5,
   contact_days:   5,
@@ -117,6 +125,10 @@ function daysSince(dateStr) {
 function getThreshold(status, thresholds) {
   const s = status.toLowerCase().trim();
   const map = {
+    go: thresholds.go_days ?? thresholds.evaluated_days,
+    'conditional go': thresholds.conditional_go_days ?? thresholds.evaluated_days,
+    'ready to submit': thresholds.ready_to_submit_days ?? 5,
+    'in progress': thresholds.in_progress_days ?? 4,
     evaluated: thresholds.evaluated_days,
     applied:   thresholds.applied_days,
     responded: thresholds.responded_days,
@@ -129,6 +141,10 @@ function getThreshold(status, thresholds) {
 function getAction(status) {
   const s = status.toLowerCase().trim();
   const actions = {
+    go: 'Submit or update status',
+    'conditional go': 'Resolve blockers or discard',
+    'ready to submit': 'Final review and submit',
+    'in progress': 'Complete ATS / captcha',
     evaluated: 'Submit or archive',
     applied:   'Follow up',
     responded: 'Schedule next step',
@@ -225,12 +241,16 @@ function writeAlertFile(message, dateStr) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 function main() {
+  const readiness = getJobReadiness(ROOT, 'cadence-alert');
+  printJobReadiness(readiness);
+  const run = createRunSummaryContext(ROOT, 'cadence-alert', { warnings: readiness.warnings });
   const thresholds = loadThresholds();
 
   let mdText;
   try {
     mdText = readFileSync(resolve(ROOT, 'data/applications.md'), 'utf8');
   } catch (e) {
+    finalizeRunSummary(run, 'failure', { error: `Cannot read applications.md: ${e.message}` });
     console.error('ERROR: Cannot read data/applications.md —', e.message);
     process.exit(1);
   }
@@ -238,6 +258,10 @@ function main() {
   const rows = parseMarkdownTable(mdText);
   if (rows.length === 0) {
     console.log('[check-cadence-alert] No application rows found — nothing to check.');
+    const { mdPath } = finalizeRunSummary(run, 'success', {
+      stats: { scanned_rows: 0, stale_rows: 0, dry_run: DRY_RUN },
+    });
+    console.log(`[check-cadence-alert] Run summary: ${mdPath}`);
     process.exit(0);
   }
 
@@ -270,6 +294,10 @@ function main() {
 
   if (stale.length === 0) {
     console.log(`[check-cadence-alert] All applications within cadence as of ${dateStr}.`);
+    const { mdPath } = finalizeRunSummary(run, 'success', {
+      stats: { scanned_rows: rows.length, stale_rows: 0, dry_run: DRY_RUN },
+    });
+    console.log(`[check-cadence-alert] Run summary: ${mdPath}`);
     process.exit(0);
   }
 
@@ -288,7 +316,19 @@ function main() {
   const toastSent = sendViaToast(message);
 
   // Strategy 3: Always write alert file as a durable record
-  writeAlertFile(message, dateStr);
+  const alertFile = writeAlertFile(message, dateStr);
+  const status = toastSent ? 'success' : 'partial_success';
+  const { mdPath } = finalizeRunSummary(run, status, {
+    stats: {
+      scanned_rows: rows.length,
+      stale_rows: stale.length,
+      dry_run: DRY_RUN,
+      whatsapp_configured: Boolean(PHONE_TO),
+      toast_sent: toastSent,
+    },
+    artifacts: [alertFile],
+  });
+  console.log(`[check-cadence-alert] Run summary: ${mdPath}`);
 
   process.exit(toastSent ? 0 : 1);
 }

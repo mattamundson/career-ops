@@ -39,70 +39,7 @@ func ParseApplications(careerOpsPath string) []model.CareerApplication {
 	}
 
 	lines := strings.Split(string(content), "\n")
-	var apps []model.CareerApplication
-	num := 0
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "# ") || strings.HasPrefix(line, "|---") || strings.HasPrefix(line, "| #") {
-			continue
-		}
-		if !strings.HasPrefix(line, "|") {
-			continue
-		}
-
-		// Detect delimiter: if line contains tabs, use tab-aware splitting
-		var fields []string
-		if strings.Contains(line, "\t") {
-			// Mixed format: starts with "| " then tab-separated
-			line = strings.TrimPrefix(line, "|")
-			line = strings.TrimSpace(line)
-			parts := strings.Split(line, "\t")
-			for _, p := range parts {
-				fields = append(fields, strings.TrimSpace(strings.Trim(p, "|")))
-			}
-		} else {
-			// Pure pipe format
-			line = strings.Trim(line, "|")
-			parts := strings.Split(line, "|")
-			for _, p := range parts {
-				fields = append(fields, strings.TrimSpace(p))
-			}
-		}
-
-		if len(fields) < 8 {
-			continue
-		}
-
-		num++
-		app := model.CareerApplication{
-			Number:  num,
-			Date:    fields[1],
-			Company: fields[2],
-			Role:    fields[3],
-			Status:  fields[5],
-			HasPDF:  strings.Contains(fields[6], "\u2705"),
-		}
-
-		// Parse score (field 4 = Score column)
-		app.ScoreRaw = fields[4]
-		if sm := reScoreValue.FindStringSubmatch(fields[4]); sm != nil {
-			app.Score, _ = strconv.ParseFloat(sm[1], 64)
-		}
-
-		// Parse report link
-		if rm := reReportLink.FindStringSubmatch(fields[7]); rm != nil {
-			app.ReportNumber = rm[1]
-			app.ReportPath = rm[2]
-		}
-
-		// Notes (field 8 if exists)
-		if len(fields) > 8 {
-			app.Notes = fields[8]
-		}
-
-		apps = append(apps, app)
-	}
+	apps := parseApplicationsLines(lines)
 
 	// Enrich with job URLs using 5-tier strategy:
 	// 1. **URL:** field in report header (newest reports)
@@ -156,6 +93,80 @@ func ParseApplications(careerOpsPath string) []model.CareerApplication {
 
 	// Strategy 5: company name fallback from batch-input.tsv
 	enrichAppURLsByCompany(careerOpsPath, apps)
+
+	return apps
+}
+
+// parseApplicationsLines parses tracker table lines (used by ParseApplications and tests).
+// Expected columns: # | Date | Company | Role | Score | Status | PDF | Report | Notes
+func parseApplicationsLines(lines []string) []model.CareerApplication {
+	var apps []model.CareerApplication
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "# ") || strings.HasPrefix(line, "|---") || strings.HasPrefix(line, "| #") {
+			continue
+		}
+		if !strings.HasPrefix(line, "|") {
+			continue
+		}
+
+		// Detect delimiter: if line contains tabs, use tab-aware splitting
+		var fields []string
+		if strings.Contains(line, "\t") {
+			// Mixed format: starts with "| " then tab-separated
+			line = strings.TrimPrefix(line, "|")
+			line = strings.TrimSpace(line)
+			parts := strings.Split(line, "\t")
+			for _, p := range parts {
+				fields = append(fields, strings.TrimSpace(strings.Trim(p, "|")))
+			}
+		} else {
+			// Pure pipe format
+			line = strings.Trim(line, "|")
+			parts := strings.Split(line, "|")
+			for _, p := range parts {
+				fields = append(fields, strings.TrimSpace(p))
+			}
+		}
+
+		if len(fields) < 8 {
+			continue
+		}
+
+		idNum, err := strconv.Atoi(strings.TrimSpace(fields[0]))
+		if err != nil || idNum <= 0 {
+			continue
+		}
+
+		app := model.CareerApplication{
+			Number:  idNum,
+			Date:    fields[1],
+			Company: fields[2],
+			Role:    fields[3],
+			Status:  fields[5],
+			HasPDF:  strings.Contains(fields[6], "\u2705"),
+		}
+
+		// Parse score (field 4 = Score column)
+		app.ScoreRaw = fields[4]
+		if sm := reScoreValue.FindStringSubmatch(fields[4]); sm != nil {
+			app.Score, _ = strconv.ParseFloat(sm[1], 64)
+		}
+
+		// Parse report link
+		if rm := reReportLink.FindStringSubmatch(fields[7]); rm != nil {
+			app.ReportNumber = rm[1]
+			app.ReportPath = rm[2]
+		}
+
+		// Notes (field 8 if exists)
+		if len(fields) > 8 {
+			app.Notes = fields[8]
+		}
+
+		apps = append(apps, app)
+	}
 
 	return apps
 }
