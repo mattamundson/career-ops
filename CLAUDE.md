@@ -18,6 +18,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `data/applications.md` | Application tracker |
 | `data/pipeline.md` | Inbox of pending URLs |
 | `data/scan-history.tsv` | Scanner dedup history |
+| `data/events/*.jsonl` | Append-only automation telemetry (scanner, dashboard, index, reports; local / gitignored) |
 | `portals.yml` | Query and company config |
 | `templates/cv-template.html` | HTML template for CVs |
 | `generate-pdf.mjs` | Playwright: HTML to PDF |
@@ -157,7 +158,7 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 2. **YES you can edit applications.md to UPDATE status/notes of existing entries.**
 3. All reports MUST include `**URL:**` in the header (between Score and PDF).
 4. All statuses MUST be canonical (see `templates/states.yml`).
-5. Health check: `pnpm run verify:all` (or `node verify-pipeline.mjs`). For CI/clones without local reports: `pnpm run verify -- --skip-missing-reports`
+5. Health check: `pnpm run verify:all` (or `pnpm run verify:ci` when `reports/*.md` are absent). Rituals: [`docs/MAINTENANCE-RITUALS.md`](docs/MAINTENANCE-RITUALS.md). Optional: `pnpm run events:prune` / `events:prune:apply` trims old `data/events/*.jsonl`.
 6. Normalize statuses: `node normalize-statuses.mjs`
 7. Dedup: `node dedup-tracker.mjs`
 

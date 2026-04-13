@@ -10,8 +10,9 @@
  * Prints:
  *   - N new matches added (status=added)
  *   - Top matches by title keyword score
- *   - Companies with no new roles this run
- *   - Companies with errors (status=error or fetch failures)
+ *   - Tracked ATS companies with no new roles (portals.yml targets only — boards are not “companies”)
+ *   - Source status rollups (portal → label, policy, counts)
+ *   - Source-level vs tracked-company errors
  *
  * No external dependencies — ESM only, native Node.js.
  */
@@ -19,6 +20,13 @@
 import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { scoreTitleAgainstFilter } from './lib/scoring-core.mjs';
+import {
+  operationalStatusLabel,
+  portalDisplayLabel,
+  rollupSourcesByPortal,
+} from './lib/source-labels.mjs';
+import { appendAutomationEvent } from './lib/automation-events.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -49,66 +57,89 @@ const SINCE_DAYS = getSinceDays();
 // Keywords drawn from portals.yml title_filter + seniority_boost.
 // Score = sum of matched keyword weights.
 // ---------------------------------------------------------------------------
-const KEYWORD_WEIGHTS = {
-  // Seniority (boosts) — highest weight
-  'director':    5,
-  'head of':     5,
-  'principal':   4,
-  'staff':       4,
-  'lead':        3,
-  'senior':      3,
-  'manager':     3,
-  // Role keywords
-  'data architect':       4,
-  'solutions architect':  4,
-  'data platform':        3,
-  'analytics engineer':   3,
-  'data engineer':        3,
-  'ai engineer':          3,
-  'ml engineer':          3,
-  'applied ai':           3,
-  'analytics lead':       3,
-  'data lead':            3,
-  'analytics manager':    3,
-  'data manager':         3,
-  'bi engineer':          2,
-  'business intelligence':2,
-  'power bi':             2,
-  'ai automation':        2,
-  'automation engineer':  2,
-  'workflow automation':  2,
-  'data architect':       2,
-  'business systems':     2,
-  'operations analytics': 2,
-  'erp analyst':          2,
-};
+function loadTitleFilterConfig() {
+  if (!existsSync(PORTALS_YML)) {
+    return { positive: [], negative: [], seniority_boost: {} };
+  }
 
-function scoreTitle(title) {
-  const lower = title.toLowerCase();
-  let score = 0;
-  const matched = [];
-  for (const [kw, weight] of Object.entries(KEYWORD_WEIGHTS)) {
-    if (lower.includes(kw)) {
-      score += weight;
-      matched.push(kw);
+  const text = readFileSync(PORTALS_YML, 'utf8');
+  const positive = [];
+  const negative = [];
+  const seniority_boost = {};
+  let section = null;
+
+  for (const rawLine of text.split('\n')) {
+    const line = rawLine.replace(/\s+#.*$/, '');
+    if (!line.trim()) continue;
+    if (line.startsWith('title_filter:')) continue;
+    if (line.startsWith('tracked_companies:')) break;
+    if (line.match(/^\s{2}positive:/)) {
+      section = 'positive';
+      continue;
+    }
+    if (line.match(/^\s{2}negative:/)) {
+      section = 'negative';
+      continue;
+    }
+    if (line.match(/^\s{2}seniority_boost:/)) {
+      section = 'seniority_boost';
+      continue;
+    }
+
+    const listItem = line.match(/^\s{4}-\s+"?([^"\n]+)"?\s*$/);
+    if (listItem && (section === 'positive' || section === 'negative')) {
+      if (section === 'positive') positive.push(listItem[1].trim());
+      else negative.push(listItem[1].trim());
+      continue;
+    }
+
+    const boostItem = line.match(/^\s{4}"?([^":\n]+)"?:\s*([\d.]+)/);
+    if (boostItem && section === 'seniority_boost') {
+      seniority_boost[boostItem[1].trim()] = Number.parseFloat(boostItem[2]);
     }
   }
-  return { score, matched };
+
+  return { positive, negative, seniority_boost };
 }
 
 // ---------------------------------------------------------------------------
-// Read portals.yml — minimal line-scan for company names
-// (no full YAML parse needed; we just want the list of tracked company names)
+// Read portals.yml — minimal line-scan for actual company sections only.
+// Excludes query/source sections such as job_board_queries, builtin_queries,
+// and direct_job_board_queries so reports do not display boards as companies.
 // ---------------------------------------------------------------------------
 function loadTrackedCompanyNames() {
   if (!existsSync(PORTALS_YML)) return [];
   const text = readFileSync(PORTALS_YML, 'utf8');
-  const companies = [];
-  for (const line of text.split('\n')) {
-    const m = line.match(/^\s+-?\s*name:\s*["']?([^"'\n]+)["']?/);
-    if (m) companies.push(m[1].trim());
+  const companySections = new Set([
+    'tracked_companies',
+    'ashby_companies',
+    'lever_companies',
+    'smartrecruiters_companies',
+    'workday_companies',
+    'icims_companies',
+    'workable_companies',
+  ]);
+  const companies = new Set();
+  let section = null;
+
+  for (const rawLine of text.split('\n')) {
+    const line = rawLine.replace(/\s+#.*$/, '');
+    if (!line.trim()) continue;
+
+    const sectionMatch = line.match(/^([a-zA-Z0-9_]+):\s*$/);
+    if (sectionMatch) {
+      section = sectionMatch[1];
+      continue;
+    }
+
+    if (!companySections.has(section)) continue;
+
+    const m = line.match(/^\s*-\s*name:\s*["']?([^"'\n]+)["']?/);
+    if (m) {
+      companies.add(m[1].trim());
+    }
   }
-  return companies;
+  return [...companies];
 }
 
 // ---------------------------------------------------------------------------
@@ -203,6 +234,7 @@ function miniBar(score, maxScore, width = 12) {
 // ---------------------------------------------------------------------------
 function main() {
   const today = new Date().toISOString().slice(0, 10);
+  const titleFilter = loadTitleFilterConfig();
 
   console.log('');
   console.log(`Scan Report — ${today}`);
@@ -222,6 +254,12 @@ function main() {
   if (allRows.length === 0 && pendingItems.length === 0) {
     console.log('  No scan data found. Run auto-scan.mjs first.');
     console.log('');
+    appendAutomationEvent(ROOT, {
+      type: 'scan.report.empty',
+      status: 'skipped',
+      summary: 'No scan-history rows and no pending pipeline items.',
+      details: { since_days: SINCE_DAYS },
+    });
     return;
   }
 
@@ -244,6 +282,23 @@ function main() {
   console.log(`  Total rows in window          : ${rows.length}`);
   console.log('');
 
+  // ── Section 1b: Source status (portals — not employers) ────────────────
+  console.log('SOURCE STATUS (by portal)');
+  console.log('─'.repeat(50));
+  const roll = rollupSourcesByPortal(rows);
+  for (const s of roll.slice(0, 40)) {
+    const op = operationalStatusLabel(s.opStatus);
+    console.log(
+      `  ${s.displayLabel.padEnd(34)} | ${op.padEnd(22)} | rows ${String(s.total).padStart(5)} | added ${String(s.added).padStart(4)} | last ${s.lastSeen || '—'}`,
+    );
+  }
+  if (roll.length > 40) console.log(`  … ${roll.length - 40} more portal(s)`);
+  console.log('');
+
+  const trackedSet = new Set(
+    trackedNames.map((n) => n.toLowerCase().trim()).filter(Boolean),
+  );
+
   // ── Section 2: Top matches by keyword score ─────────────────────────────
   console.log('TOP MATCHES (by title keyword score)');
   console.log('─'.repeat(50));
@@ -264,8 +319,13 @@ function main() {
     console.log('');
   } else {
     const scored = candidates.map(c => {
-      const { score, matched } = scoreTitle(c.title);
-      return { ...c, score, matched };
+      const scoredTitle = scoreTitleAgainstFilter(c.title, titleFilter);
+      return {
+        ...c,
+        score: scoredTitle.fitTitle,
+        confidence: scoredTitle.confidence,
+        matched: scoredTitle.matchedPhrases,
+      };
     }).sort((a, b) => b.score - a.score || a.company.localeCompare(b.company));
 
     const maxScore = scored[0]?.score || 1;
@@ -273,12 +333,13 @@ function main() {
 
     for (const item of topN) {
       const bar    = miniBar(item.score, maxScore);
-      const boost  = item.matched.some(m => ['senior','lead','principal','staff','director','head of','manager'].includes(m))
+      const boost  = item.matched.some(m => ['senior','lead','principal','staff','director','head of','manager'].includes(String(m).toLowerCase()))
         ? ' [BOOST]' : '';
       console.log(`  ${bar} ${item.score.toString().padStart(2)} | ${item.company} — ${item.title}${boost}`);
       if (item.matched.length > 0) {
         console.log(`              keywords: ${item.matched.join(', ')}`);
       }
+      console.log(`              confidence: ${Math.round(item.confidence * 100)}%`);
       console.log(`              ${item.url}`);
     }
 
@@ -288,52 +349,95 @@ function main() {
     console.log('');
   }
 
-  // ── Section 3: Companies with no new roles ──────────────────────────────
-  console.log('COMPANIES — NO NEW ROLES');
+  // ── Section 3: Tracked ATS targets — no new roles ─────────────────────────
+  console.log('TRACKED COMPANIES (portals.yml) — NO NEW ROLES');
   console.log('─'.repeat(50));
+  console.log('  (Uses employer `company` only when it matches a tracked company name.)');
+  console.log('');
 
-  const companiesWithNew = new Set(addedRows.map(r => r.company.toLowerCase()));
-  const companiesScanned = new Set(rows.map(r => r.company.toLowerCase()));
+  const companiesWithNew = new Set(
+    addedRows
+      .map((r) => (r.company || '').trim().toLowerCase())
+      .filter((c) => trackedSet.has(c)),
+  );
+  const companiesScanned = new Set(
+    rows
+      .map((r) => (r.company || '').trim().toLowerCase())
+      .filter((c) => trackedSet.has(c)),
+  );
 
-  // Companies that were scanned (appear in history window) but had no "added" rows
-  const noNew = trackedNames.filter(name => {
+  const noNew = trackedNames.filter((name) => {
     const lower = name.toLowerCase();
     return companiesScanned.has(lower) && !companiesWithNew.has(lower);
   });
 
-  // Also include tracked companies that didn't appear in history at all (not yet scanned / API missing)
-  const notScanned = trackedNames.filter(name => {
+  const notScanned = trackedNames.filter((name) => {
     const lower = name.toLowerCase();
     return !companiesScanned.has(lower);
   });
 
   if (noNew.length === 0 && notScanned.length === 0) {
-    console.log('  All scanned companies had at least one new match.');
+    console.log('  All tracked companies that appeared in history had at least one new add, or none matched.');
   } else {
     if (noNew.length > 0) {
-      console.log('  Scanned — no new roles:');
+      console.log('  Scanned — no new adds this window:');
       for (const n of noNew) console.log(`    • ${n}`);
     }
     if (notScanned.length > 0) {
-      console.log('  Not yet scanned (no API / not in history):');
+      console.log('  No history rows for this company name in window (not scanned / no hits / name drift):');
       for (const n of notScanned) console.log(`    • ${n}`);
     }
   }
   console.log('');
 
-  // ── Section 4: Companies with errors ───────────────────────────────────
-  console.log('COMPANIES — ERRORS');
+  // ── Section 4: Errors — sources vs tracked companies ─────────────────────
+  console.log('SOURCES — ERRORS (rows not tied to a tracked company name)');
   console.log('─'.repeat(50));
 
-  if (errorRows.length === 0) {
-    console.log('  No errors recorded in this window.');
+  const errTracked = errorRows.filter((r) =>
+    trackedSet.has((r.company || '').trim().toLowerCase()),
+  );
+  const errSource = errorRows.filter(
+    (r) => !trackedSet.has((r.company || '').trim().toLowerCase()),
+  );
+
+  if (errSource.length === 0) {
+    console.log('  None.');
   } else {
-    const errorsByCompany = {};
-    for (const r of errorRows) {
-      if (!errorsByCompany[r.company]) errorsByCompany[r.company] = [];
-      errorsByCompany[r.company].push(r);
+    const byPortal = {};
+    for (const r of errSource) {
+      const p = r.portal || 'unknown';
+      if (!byPortal[p]) byPortal[p] = [];
+      byPortal[p].push(r);
     }
-    for (const [company, errs] of Object.entries(errorsByCompany)) {
+    for (const [portal, errs] of Object.entries(byPortal).sort((a, b) =>
+      a[0].localeCompare(b[0]),
+    )) {
+      console.log(`  ${portalDisplayLabel(portal)} — ${errs.length} error(s) [${portal}]`);
+      for (const e of errs.slice(0, 6)) {
+        const note = e.title || e.url;
+        console.log(`    ↳ ${(e.company || '—').trim()} — ${note}`);
+      }
+      if (errs.length > 6) console.log(`    … ${errs.length - 6} more`);
+    }
+  }
+  console.log('');
+
+  console.log('TRACKED COMPANIES — ERRORS');
+  console.log('─'.repeat(50));
+
+  if (errTracked.length === 0) {
+    console.log('  None.');
+  } else {
+    const byCo = {};
+    for (const r of errTracked) {
+      const c = r.company || '—';
+      if (!byCo[c]) byCo[c] = [];
+      byCo[c].push(r);
+    }
+    for (const [company, errs] of Object.entries(byCo).sort((a, b) =>
+      a[0].localeCompare(b[0]),
+    )) {
       console.log(`  ${company}: ${errs.length} error(s)`);
       for (const e of errs) {
         const note = e.title || e.url;
@@ -350,6 +454,20 @@ function main() {
     console.log('→ No new roles added. Nothing to evaluate.');
   }
   console.log('');
+
+  appendAutomationEvent(ROOT, {
+    type: 'scan.report.completed',
+    status: 'success',
+    summary: `Scan report: ${addedRows.length} added, ${errorRows.length} errors, ${dupRows.length} dupes (window rows ${rows.length}).`,
+    details: {
+      since_days: SINCE_DAYS,
+      added: addedRows.length,
+      errors: errorRows.length,
+      duplicates: dupRows.length,
+      skipped_title: skippedRows.length - dupRows.length,
+      rows_in_window: rows.length,
+    },
+  });
 }
 
 main();

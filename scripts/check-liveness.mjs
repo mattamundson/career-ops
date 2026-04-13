@@ -3,9 +3,10 @@
  * check-liveness.mjs — Validate URLs in pipeline.md are still live
  *
  * Usage:
- *   node scripts/check-liveness.mjs          → report only, writes data/liveness-YYYY-MM-DD.md
- *   node scripts/check-liveness.mjs --prune  → also removes dead entries from pipeline.md
- *   node scripts/check-liveness.mjs --json   → JSON summary to stdout (no file write)
+ *   node scripts/check-liveness.mjs              → report only, writes data/liveness-YYYY-MM-DD.md
+ *   node scripts/check-liveness.mjs --limit=25   → check first N URLs only (quick pass for top rows)
+ *   node scripts/check-liveness.mjs --prune      → also removes dead entries from pipeline.md
+ *   node scripts/check-liveness.mjs --json       → JSON summary to stdout (no file write)
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -17,6 +18,8 @@ const ROOT   = resolve(__dir, '..');
 const PIPELINE  = join(ROOT, 'data', 'pipeline.md');
 const PRUNE  = process.argv.includes('--prune');
 const JSON_MODE = process.argv.includes('--json');
+const LIMIT_ARG = process.argv.find((a) => /^--limit=\d+$/i.test(a));
+const LIMIT = LIMIT_ARG ? parseInt(LIMIT_ARG.split('=')[1], 10) : null;
 const BATCH  = 10;  // concurrent HEAD requests per batch
 
 // ---------------------------------------------------------------------------
@@ -80,12 +83,20 @@ async function main() {
     process.exit(0);
   }
 
-  if (!JSON_MODE) console.log(`Checking ${entries.length} pipeline URLs (batch=${BATCH})...`);
+  let toCheck = entries;
+  if (LIMIT != null && Number.isFinite(LIMIT) && LIMIT > 0) {
+    toCheck = entries.slice(0, LIMIT);
+    if (!JSON_MODE) {
+      console.log(`--limit=${LIMIT}: checking first ${toCheck.length} of ${entries.length} pipeline URLs`);
+    }
+  }
+
+  if (!JSON_MODE) console.log(`Checking ${toCheck.length} pipeline URLs (batch=${BATCH})...`);
 
   // Run in batches to avoid overwhelming the system
   const results = [];
-  for (let i = 0; i < entries.length; i += BATCH) {
-    const batch = entries.slice(i, i + BATCH);
+  for (let i = 0; i < toCheck.length; i += BATCH) {
+    const batch = toCheck.slice(i, i + BATCH);
     const checked = await Promise.all(
       batch.map(async e => ({ ...e, ...(await checkUrl(e.url)) }))
     );

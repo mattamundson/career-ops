@@ -7,6 +7,8 @@
     "verify": "node verify-pipeline.mjs",
     "verify:all": "node scripts/verify-all.mjs",
     "dedupe:intake": "node scripts/dedupe-intake-vs-tracker.mjs",
+    "pipeline:dedupe": "node scripts/dedupe-pipeline-md.mjs",
+    "pipeline:prune-tracked": "node scripts/prune-pipeline-tracked.mjs",
     "secrets:check": "node scripts/check-secrets.mjs",
     "normalize": "node normalize-statuses.mjs",
     "dedup": "node dedup-tracker.mjs",
@@ -23,7 +25,16 @@
     "gmail-oauth:exchange": "node scripts/gmail-oauth-exchange.mjs",
     "gmail-sync:dry": "node scripts/gmail-recruiter-sync.mjs --dry-run",
     "gmail-sync": "node scripts/gmail-recruiter-sync.mjs --apply",
-    "cadence-alert": "node scripts/check-cadence-alert.mjs"
+    "cadence-alert": "node scripts/check-cadence-alert.mjs",
+    "verify:ci": "node scripts/verify-all.mjs --skip-missing-reports",
+    "pipeline:hygiene": "node scripts/pipeline-hygiene.mjs",
+    "pipeline:hygiene:apply": "node scripts/pipeline-hygiene.mjs --apply",
+    "pipeline:liveness": "node scripts/check-liveness.mjs",
+    "apply-queue:audit": "node scripts/sync-apply-queue-audit.mjs",
+    "scan:report": "node scripts/scan-report.mjs --since=7",
+    "events:prune": "node scripts/prune-automation-events.mjs",
+    "events:prune:apply": "node scripts/prune-automation-events.mjs --apply",
+    "prepare": "husky"
   },
   "keywords": [
     "ai",
@@ -38,5 +49,8 @@
   "dependencies": {
     "@mendable/firecrawl-js": "^4.18.1",
     "playwright": "^1.58.1"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
   }
 }

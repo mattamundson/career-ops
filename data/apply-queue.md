@@ -1,6 +1,6 @@
 # Application Queue — 2026-04-10 (Rebuild v15)
 
-**Tracker sync (2026-04-12):** Canonical statuses live in [`applications.md`](./applications.md) and [`templates/states.yml`](../templates/states.yml). This queue is an action checklist — when you **actually submit** to an employer ATS, update the tracker row to **`Applied`** and log with [`scripts/log-response.mjs`](../scripts/log-response.mjs). Step-by-step: [`docs/APPLICATION-RUNBOOK.md`](../docs/APPLICATION-RUNBOOK.md). Definitions: [`docs/STATUS-MODEL.md`](../docs/STATUS-MODEL.md).
+**Tracker sync (2026-04-12):** Canonical statuses live in [`applications.md`](./applications.md) and [`templates/states.yml`](../templates/states.yml). This queue is an action checklist — when you **actually submit** to an employer ATS, update the tracker row to **`Applied`** and log with [`scripts/log-response.mjs`](../scripts/log-response.mjs). Step-by-step: [`docs/APPLICATION-RUNBOOK.md`](../docs/APPLICATION-RUNBOOK.md). Definitions: [`docs/STATUS-MODEL.md`](../docs/STATUS-MODEL.md). Drift check: `pnpm run apply-queue:audit` → `data/apply-queue-audit.md`.
 
 ---
 

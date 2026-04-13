@@ -18,6 +18,8 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
+import { portalDisplayLabel } from './lib/source-labels.mjs';
+
 const __dir   = dirname(fileURLToPath(import.meta.url));
 const ROOT    = resolve(__dir, '..');
 const HISTORY = join(ROOT, 'data', 'scan-history.tsv');
@@ -69,10 +71,12 @@ function loadTitleFilter() {
 // Parse scan-history.tsv
 // ---------------------------------------------------------------------------
 function loadHistory(days) {
-  if (!existsSync(HISTORY)) return { added: [], skipped: [] };
+  if (!existsSync(HISTORY)) {
+    return { added: [], skipped: [], rows: [] };
+  }
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const lines  = readFileSync(HISTORY, 'utf8').split('\n');
-  if (lines.length < 2) return { added: [], skipped: [] };
+  if (lines.length < 2) return { added: [], skipped: [], rows: [] };
 
   const header = lines[0].split('\t').map(h => h.trim());
   const idx = {
@@ -84,6 +88,7 @@ function loadHistory(days) {
 
   const added   = [];
   const skipped = [];
+  const rows = [];
 
   for (const line of lines.slice(1)) {
     if (!line.trim()) continue;
@@ -93,12 +98,15 @@ function loadHistory(days) {
 
     const title  = (cols[idx.title]  || '').trim().toLowerCase();
     const status = (cols[idx.status] || '').trim();
+    const portal = (cols[idx.portal] || '').trim() || 'unknown';
+
+    rows.push({ portal, status, title });
 
     if (status === 'added')         added.push(title);
     if (status === 'skipped_title') skipped.push(title);
   }
 
-  return { added, skipped };
+  return { added, skipped, rows };
 }
 
 // ---------------------------------------------------------------------------
@@ -159,7 +167,35 @@ function countPhrases(titles) {
 const filter  = loadTitleFilter();
 const history = loadHistory(DAYS);
 
-const { added, skipped } = history;
+const { added, skipped, rows } = history;
+
+/** Added vs title-skipped counts by portal (for dashboard / operator truth). */
+function buildSourceRollup(historyRows) {
+  const by = new Map();
+  for (const r of historyRows) {
+    const p = r.portal || 'unknown';
+    if (!by.has(p)) {
+      by.set(p, {
+        portal: p,
+        label: portalDisplayLabel(p),
+        added: 0,
+        skippedTitle: 0,
+        other: 0,
+      });
+    }
+    const e = by.get(p);
+    if (r.status === 'added') e.added++;
+    else if (r.status === 'skipped_title') e.skippedTitle++;
+    else e.other++;
+  }
+  return [...by.values()]
+    .map((e) => ({
+      ...e,
+      total: e.added + e.skippedTitle + e.other,
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 24);
+}
 
 // 1. Keyword effectiveness: how many added titles matched each positive keyword
 const addedMatches   = countKeywordMatches(added,   filter.positive);
@@ -194,6 +230,7 @@ if (JSON_MODE) {
     topKeywords:   topKeywords.slice(0, 10).map(([kw, c]) => ({ kw, count: c })),
     deadKeywords,
     novelPhrases:  novelPhrases.map(([phrase, count]) => ({ phrase, count })),
+    sourceRollup:  buildSourceRollup(rows || []),
   }, null, 2) + '\n');
   process.exit(0);
 }
@@ -210,6 +247,21 @@ console.log(`  Added to pipeline : ${added.length}`);
 console.log(`  Skipped by title  : ${skipped.length}`);
 console.log(`  Noise ratio       : ${added.length + skipped.length > 0 ? ((skipped.length / (added.length + skipped.length)) * 100).toFixed(1) : 'N/A'}% skipped`);
 console.log('');
+
+// Source mix (same window as keywords)
+const rollup = buildSourceRollup(rows || []);
+if (rollup.length > 0) {
+  console.log(hr('─'));
+  console.log('  SOURCE MIX (added vs skipped_title by portal)');
+  console.log(hr('─'));
+  for (const s of rollup.slice(0, 20)) {
+    console.log(
+      `  ${String(s.added).padStart(4)} add / ${String(s.skippedTitle).padStart(4)} skip  —  ${s.label}  [${s.portal}]`,
+    );
+  }
+  if (rollup.length > 20) console.log(`  … ${rollup.length - 20} more portals`);
+  console.log('');
+}
 
 // Top performing keywords
 console.log(hr('─'));

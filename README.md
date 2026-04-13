@@ -113,7 +113,7 @@ pnpm run dashboard
 # or: node scripts/generate-dashboard.mjs --open
 ```
 
-Writes `dashboard.html` at the repo root. Parses `data/applications.md` and `data/pipeline.md` the same way as automation scripts. Status vocabulary is documented in [`docs/STATUS-MODEL.md`](docs/STATUS-MODEL.md).
+Writes `dashboard.html` at the repo root. Parses `data/applications.md` and `data/pipeline.md` the same way as automation scripts. Includes **Operator health** (stale in-flight applications, recent automation events from `data/events/`, last scanner summary). Status vocabulary is documented in [`docs/STATUS-MODEL.md`](docs/STATUS-MODEL.md). Event log behavior: [`docs/MAINTENANCE-RITUALS.md`](docs/MAINTENANCE-RITUALS.md#automation-event-log-dataevents).
 
 ## Project Structure
 
@@ -132,7 +132,8 @@ career-ops/
 │   └── states.yml           ← Canonical application states
 ├── data/
 │   ├── applications.md      ← Application tracker
-│   └── pipeline.md          ← URL inbox
+│   ├── pipeline.md          ← URL inbox
+│   └── events/              ← Local JSONL automation trail (gitignored *.jsonl)
 ├── reports/                 ← Evaluation reports
 ├── output/                  ← Generated PDFs
 ├── batch/                   ← Batch processing
@@ -144,17 +145,27 @@ career-ops/
 
 ```bash
 pnpm run verify:all  # verify + CV sync + application index + dashboard.html
+pnpm run verify:ci    # same as verify:all but missing reports → warnings only (CI / hooks)
 pnpm run verify      # Tracker + report links + TSV hygiene
 pnpm run verify -- --skip-missing-reports   # CI / clone: missing reports are warnings only
 pnpm run normalize   # Fix status spelling
 pnpm run dedup       # Remove duplicate entries
 pnpm run merge       # Merge tracker additions from batch runs
-pnpm run dedupe:intake  # data/dedupe-intake-report.md (pipeline vs tracker heuristic)
+pnpm run dedupe:intake  # data/dedupe-intake-report.md (dup keys + tracker overlaps + prefilter)
+pnpm run pipeline:hygiene          # dry-run: dedupe then prune-tracked
+pnpm run pipeline:hygiene:apply    # apply both (writes .bak; see docs/MAINTENANCE-RITUALS.md)
+pnpm run pipeline:dedupe -- --apply  # collapse duplicate job keys in pipeline*.md
+pnpm run pipeline:prune-tracked -- --apply  # drop lines already in tracker reports
+pnpm run apply-queue:audit  # apply-queue.md vs applications.md → data/apply-queue-audit.md
+pnpm run pipeline:liveness -- --limit=25  # HEAD-check first N pipeline URLs
+pnpm run events:prune   # dry-run: drop old data/events/*.jsonl (see MAINTENANCE-RITUALS)
 pnpm run secrets:check  # Fail if .env is tracked by git
 pnpm run preflight:gmail-sync
 pnpm run preflight:cadence-alert
 pnpm run preflight:scanner
 ```
+
+Rituals and hooks: [docs/MAINTENANCE-RITUALS.md](docs/MAINTENANCE-RITUALS.md). **Job source truth:** [docs/SUPPORTED-JOB-SOURCES.md](docs/SUPPORTED-JOB-SOURCES.md). **One-page status:** [docs/SYSTEM-STATUS.md](docs/SYSTEM-STATUS.md).
 
 After you apply to an employer: [docs/APPLICATION-RUNBOOK.md](docs/APPLICATION-RUNBOOK.md). Copy [`.env.example`](.env.example) to `.env` for optional automation.
 

@@ -11,6 +11,7 @@ Usage:
   python scripts/scan-jobspy.py --results=N  — results per search term (default: 25)
 
 Boards available: linkedin, indeed, glassdoor, zip_recruiter, google
+(Wellfound / AngelList is intentionally not in BOARDS — not a JobSpy target in this repo.)
 """
 
 import sys

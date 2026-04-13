@@ -1,37 +1,44 @@
 #!/usr/bin/env node
 /**
- * auto-scan.mjs — Automated Greenhouse portal scanner
- * Usage: node scripts/auto-scan.mjs [--greenhouse-only] [--dry-run] [--since=Nd]
+ * auto-scan.mjs — Multi-source job scanner (ATS APIs, JobSpy, Firecrawl queries, direct boards)
+ * Usage: node scripts/auto-scan.mjs [--greenhouse-only] [--jobspy-only] [--direct-only] [--dry-run] [--since=Nd]
  *
- * Reads portals.yml, hits Greenhouse boards API for companies that have `api:` configured,
- * filters by title_filter keywords, deduplicates against scan-history.tsv + applications.md
- * + pipeline.md, and appends new matches to pipeline.md + scan-history.tsv.
+ * Reads portals.yml, runs enabled sources, filters by title_filter keywords, deduplicates against
+ * scan-history.tsv + applications.md + pipeline.md, and appends new matches to pipeline.md +
+ * scan-history.tsv.
  *
- * No external dependencies — ESM only, native fetch().
+ * Direct boards (`direct_job_board_queries`): only sources marked **active** in
+ * docs/SUPPORTED-JOB-SOURCES.md are intended for routine automation. **Blocked** portals are
+ * skipped at runtime even if mis-enabled in YAML (defense in depth).
+ *
+ * No external dependencies — ESM only, native fetch() (plus optional child-process spawns).
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-
-// Load .env for FIRECRAWL_API_KEY (simple parser, no extra dependency)
-{
-  const envCandidate = resolve(dirname(fileURLToPath(import.meta.url)), '..', '.env');
-  if (existsSync(envCandidate)) {
-    for (const line of readFileSync(envCandidate, 'utf8').split('\n')) {
-      const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
-      if (m && !process.env[m[1]]) {
-        process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
-      }
-    }
-  }
-}
+import { getJobReadiness, printJobReadiness } from './automation-preflight.mjs';
+import { loadProjectEnv } from './load-env.mjs';
+import { createRunSummaryContext, finalizeRunSummary } from './run-summary.mjs';
+import { scoreTitleAgainstFilter } from './lib/scoring-core.mjs';
+import { getSourceOperationalStatus, portalDisplayLabel } from './lib/source-labels.mjs';
+import { appendAutomationEvent } from './lib/automation-events.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
+loadProjectEnv(ROOT);
+const SCAN_PREFLIGHT = getJobReadiness(ROOT, 'scanner');
+printJobReadiness(SCAN_PREFLIGHT);
+const RUN_SUMMARY = createRunSummaryContext(ROOT, 'scanner', { warnings: SCAN_PREFLIGHT.warnings });
+let SCAN_STATUS = 'success';
+
+function markPartialSuccess(warning) {
+  SCAN_STATUS = 'partial_success';
+  if (warning) RUN_SUMMARY.warnings.push(warning);
+}
 
 const PORTALS_YML    = resolve(ROOT, 'portals.yml');
 const HISTORY_TSV    = resolve(ROOT, 'data', 'scan-history.tsv');
@@ -45,6 +52,7 @@ const argv = process.argv.slice(2);
 const DRY_RUN         = argv.includes('--dry-run');
 const GREENHOUSE_ONLY = argv.includes('--greenhouse-only');
 const JOBSPY_ONLY     = argv.includes('--jobspy-only');
+const DIRECT_ONLY     = argv.includes('--direct-only');
 
 function getSinceDays() {
   const flag = argv.find(a => a.startsWith('--since='));
@@ -560,19 +568,7 @@ function normalizeKey(s) {
 // Title filter
 // ---------------------------------------------------------------------------
 function matchesFilter(title, filter) {
-  const lower = title.toLowerCase();
-  const pos   = filter.positive  || [];
-  const neg   = filter.negative  || [];
-
-  // Must match at least 1 positive keyword
-  const hasPositive = pos.some(kw => lower.includes(kw.toLowerCase()));
-  if (!hasPositive) return { match: false, reason: 'no_positive' };
-
-  // Must not match any negative keyword
-  const hasNegative = neg.some(kw => lower.includes(kw.toLowerCase()));
-  if (hasNegative) return { match: false, reason: 'negative_match' };
-
-  return { match: true };
+  return scoreTitleAgainstFilter(title, filter);
 }
 
 // ---------------------------------------------------------------------------
@@ -1211,6 +1207,99 @@ async function runJobSpyScan() {
 }
 
 // ---------------------------------------------------------------------------
+// Direct job-board scans — spawn standalone scripts in JSON dry-run mode.
+// auto-scan owns filtering, dedupe, history writes, and pipeline writes.
+// Policy: scripts/lib/source-labels.mjs + docs/SUPPORTED-JOB-SOURCES.md
+// ---------------------------------------------------------------------------
+async function runDirectBoardScans(cfg) {
+  const scans = (cfg.direct_job_board_queries || []).filter(scan => scan.enabled !== false);
+  if (!scans.length) return [];
+
+  console.log('');
+  console.log('Running direct job-board scans...');
+  console.log('━'.repeat(40));
+
+  const { spawn } = await import('child_process');
+  const allJobs = [];
+
+  for (const scan of scans) {
+    const portalTag = scan.portal || `direct/${scan.name}`;
+    const directLabel = portalDisplayLabel(portalTag);
+    if (getSourceOperationalStatus(portalTag) === 'blocked') {
+      console.warn(
+        `[direct:${directLabel}] Skipping blocked source (see docs/SUPPORTED-JOB-SOURCES.md) — not run even when enabled in portals.yml.`,
+      );
+      continue;
+    }
+
+    const scriptPath = resolve(__dir, scan.script);
+    const args = [scriptPath, '--json'];
+    if (scan.query) args.push('--query', String(scan.query));
+    if (scan.limit) args.push('--limit', String(scan.limit));
+
+    const jobs = await new Promise(resolve_ => {
+      let proc;
+      try {
+        proc = spawn(process.execPath, args, {
+          cwd: ROOT,
+          stdio: ['ignore', 'pipe', 'pipe'],
+          env: { ...process.env },
+        });
+      } catch (err) {
+        console.warn(`[direct:${directLabel}] Failed to launch ${scan.script}: ${err.message}`);
+        return resolve_([]);
+      }
+
+      let stdout = '';
+      let stderr = '';
+      proc.stdout.on('data', chunk => { stdout += chunk; });
+      proc.stderr.on('data', chunk => { stderr += chunk; });
+
+      proc.on('error', err => {
+        console.warn(`[direct:${directLabel}] Process error: ${err.message}`);
+        resolve_([]);
+      });
+
+      proc.on('close', code => {
+        if (stderr.trim()) {
+          for (const line of stderr.split('\n')) {
+            if (line.trim()) console.warn(`  [direct:${directLabel} stderr] ${line}`);
+          }
+        }
+        if (code !== 0 && code !== null) {
+          console.warn(`[direct:${directLabel}] ${scan.script} exited with code ${code} — skipping.`);
+          return resolve_([]);
+        }
+        try {
+          const parsed = JSON.parse(stdout || '[]');
+          if (!Array.isArray(parsed)) {
+            console.warn(`[direct:${directLabel}] Expected JSON array from ${scan.script} — skipping.`);
+            return resolve_([]);
+          }
+          resolve_(parsed);
+        } catch (err) {
+          console.warn(`[direct:${directLabel}] Failed to parse JSON from ${scan.script}: ${err.message}`);
+          resolve_([]);
+        }
+      });
+    });
+
+    console.log(`  ${directLabel}: ${jobs.length} candidate job(s)`);
+
+    for (const job of jobs) {
+      allJobs.push({
+        ...job,
+        portal: portalTag,
+        company: job.company || scan.company || scan.name,
+      });
+    }
+  }
+
+  console.log('');
+  return allJobs;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
@@ -1222,6 +1311,15 @@ async function main() {
     } else {
       console.log('→ No new JobSpy offers found.');
     }
+    const { mdPath } = finalizeRunSummary(RUN_SUMMARY, SCAN_STATUS, {
+      stats: {
+        mode: 'jobspy-only',
+        dry_run: DRY_RUN,
+        since_days: SINCE_DAYS,
+        new_offers: newCount,
+      },
+    });
+    console.log(`[scan-summary] ${mdPath}`);
     return;
   }
 
@@ -1229,7 +1327,7 @@ async function main() {
   console.log(`Portal Scan — ${new Date().toISOString().slice(0, 10)}`);
   console.log('━'.repeat(40));
   console.log(`  Mode:     ${DRY_RUN ? 'DRY RUN' : 'LIVE'}`);
-  console.log(`  Filter:   greenhouse-only=${GREENHOUSE_ONLY}`);
+  console.log(`  Filter:   greenhouse-only=${GREENHOUSE_ONLY}, direct-only=${DIRECT_ONLY}`);
   console.log(`  Window:   last ${SINCE_DAYS} day(s)`);
   console.log('');
 
@@ -1239,7 +1337,7 @@ async function main() {
   const companies    = (cfg.tracked_companies || []).filter(c => c.enabled !== false);
 
   // Greenhouse companies with api: defined
-  const ghCompanies = companies.filter(c => c.api);
+  const ghCompanies = DIRECT_ONLY ? [] : companies.filter(c => c.api);
 
   console.log(`  Tracked companies (enabled): ${companies.length}`);
   console.log(`  Greenhouse API targets:      ${ghCompanies.length}`);
@@ -1253,10 +1351,15 @@ async function main() {
   const seenUrls = new Set([...historyUrls, ...pipelineUrls]);
 
   // Fetch all Greenhouse companies in parallel
-  console.log('Fetching Greenhouse APIs...');
-  const fetchResults = await Promise.all(
-    ghCompanies.map(c => fetchGreenhouse(c.api, c.name))
-  );
+  let fetchResults = [];
+  if (!DIRECT_ONLY) {
+    console.log('Fetching Greenhouse APIs...');
+    fetchResults = await Promise.all(
+      ghCompanies.map(c => fetchGreenhouse(c.api, c.name))
+    );
+  } else {
+    console.log('Skipping Greenhouse APIs (--direct-only)');
+  }
 
   let totalFound    = 0;
   let totalFiltered = 0;  // passed title filter (before dedup)
@@ -1338,7 +1441,7 @@ async function main() {
   }
 
   // --- Ashby ATS companies via Playwright (skipped when --greenhouse-only) ---
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     const ashbyCompanies = (cfg.ashby_companies || []).filter(c => c.enabled !== false);
     if (ashbyCompanies.length > 0) {
       console.log(`Fetching Ashby (Playwright) (${ashbyCompanies.length} companies)...`);
@@ -1377,7 +1480,7 @@ async function main() {
   }
 
   // --- Lever ATS companies (skipped when --greenhouse-only) ---
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     const leverCompanies = (cfg.lever_companies || []).filter(c => c.enabled !== false);
     if (leverCompanies.length > 0) {
       console.log(`Fetching Lever APIs (${leverCompanies.length} companies)...`);
@@ -1421,7 +1524,7 @@ async function main() {
   }
 
   // --- SmartRecruiters ATS companies (skipped when --greenhouse-only) ---
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     const srCompanies = (cfg.smartrecruiters_companies || []).filter(c => c.enabled !== false);
     if (srCompanies.length > 0) {
       console.log(`Fetching SmartRecruiters APIs (${srCompanies.length} companies)...`);
@@ -1466,7 +1569,7 @@ async function main() {
 
   // --- WorkDay ATS companies via Playwright (skipped when --greenhouse-only) ---
   // Wrapped in try/catch — WorkDay browser crashes should not kill the whole scan (v14 safety)
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     const wdCompanies = (cfg.workday_companies || []).filter(c => c.enabled !== false);
     if (wdCompanies.length > 0) {
       console.log(`Fetching WorkDay (Playwright) (${wdCompanies.length} companies)...`);
@@ -1474,6 +1577,7 @@ async function main() {
       try {
         wdResults = await fetchWorkday(wdCompanies);
       } catch (err) {
+        markPartialSuccess(`WorkDay scan recovered after fatal error: ${err.message.slice(0, 100)}`);
         console.warn(`  [FATAL recovered] WorkDay scan crashed: ${err.message.slice(0, 100)}`);
         console.warn(`  Continuing with other scanners...`);
         wdResults = [];
@@ -1512,7 +1616,7 @@ async function main() {
   }
 
   // --- iCIMS ATS companies via Playwright (v14) ---
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     const icimsCompanies = (cfg.icims_companies || []).filter(c => c.enabled !== false);
     if (icimsCompanies.length > 0) {
       console.log(`Fetching iCIMS (Playwright) (${icimsCompanies.length} companies)...`);
@@ -1551,7 +1655,7 @@ async function main() {
   }
 
   // --- Workable ATS companies (v14) ---
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     const workableCompanies = (cfg.workable_companies || []).filter(c => c.enabled !== false);
     if (workableCompanies.length > 0) {
       console.log(`Fetching Workable APIs (${workableCompanies.length} companies)...`);
@@ -1595,7 +1699,7 @@ async function main() {
   }
 
   // --- Built In queries via Playwright (v14) ---
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     const builtinQueries = cfg.builtin_queries || [];
     if (builtinQueries.length > 0) {
       console.log(`Fetching Built In (Playwright) (${builtinQueries.length} queries)...`);
@@ -1628,7 +1732,7 @@ async function main() {
   }
 
   // --- Job board queries via Firecrawl (skipped when --greenhouse-only) ---
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     console.log('Fetching job board queries via Firecrawl...');
     const boardJobs = await runJobBoardQueries(cfg);
 
@@ -1665,9 +1769,45 @@ async function main() {
     console.log('');
   }
 
+  // --- Direct job-board scripts (skipped when --greenhouse-only) ---
+  if (!GREENHOUSE_ONLY) {
+    const directJobs = await runDirectBoardScans(cfg);
+
+    for (const job of directJobs) {
+      if (!job.url || !job.title) continue;
+      totalFound++;
+
+      const filterResult = matchesFilter(job.title, titleFilter);
+      if (!filterResult.match) {
+        historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'skipped_title' });
+        totalSkipped++;
+        continue;
+      }
+      totalFiltered++;
+
+      if (seenUrls.has(job.url)) {
+        historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'skipped_dup' });
+        totalDup++;
+        continue;
+      }
+
+      const appKey = normalizeKey(`${job.company}:${job.title}`);
+      if (appliedKeys.has(appKey)) {
+        historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'skipped_dup' });
+        totalDup++;
+        continue;
+      }
+
+      seenUrls.add(job.url);
+      toAdd.push(job);
+      historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'added' });
+      totalNew++;
+    }
+  }
+
   // --- JobSpy Python scan (skipped when --greenhouse-only) ---
   let jobspyNewCount = 0;
-  if (!GREENHOUSE_ONLY) {
+  if (!GREENHOUSE_ONLY && !DIRECT_ONLY) {
     jobspyNewCount = await runJobSpyScan();
     totalNew += jobspyNewCount;
   }
@@ -1679,13 +1819,17 @@ async function main() {
   console.log(`Filtered by title:        ${totalSkipped} skipped`);
   console.log(`Title-matched:            ${totalFiltered}`);
   console.log(`Duplicates (deduped):     ${totalDup}`);
-  console.log(`New added to pipeline:    ${totalNew - jobspyNewCount} (ATS) + ${jobspyNewCount} (JobSpy) = ${totalNew} total`);
+  const nonJobspyNew = totalNew - jobspyNewCount;
+  const nonJobspyLabel = DIRECT_ONLY ? 'Direct' : 'ATS';
+  console.log(`New added to pipeline:    ${nonJobspyNew} (${nonJobspyLabel}) + ${jobspyNewCount} (JobSpy) = ${totalNew} total`);
   console.log('');
 
   if (toAdd.length > 0) {
     console.log('New matches:');
     for (const e of toAdd) {
-      const boost = (titleFilter.seniority_boost || []).some(kw =>
+      const boostMap = titleFilter.seniority_boost || {};
+      const boostKeys = Array.isArray(boostMap) ? boostMap : Object.keys(boostMap);
+      const boost = boostKeys.some(kw =>
         e.title.toLowerCase().includes(kw.toLowerCase())
       ) ? ' [BOOST]' : '';
       console.log(`  + ${e.company} | ${e.title}${boost}`);
@@ -1759,9 +1903,62 @@ async function main() {
     console.log('→ No new offers found. Nothing to evaluate.');
   }
   console.log('');
+
+  const { mdPath } = finalizeRunSummary(RUN_SUMMARY, SCAN_STATUS, {
+    stats: {
+      mode: GREENHOUSE_ONLY ? 'greenhouse-only' : 'full',
+      dry_run: DRY_RUN,
+      since_days: SINCE_DAYS,
+      total_found: totalFound,
+      title_filtered_skipped: totalSkipped,
+      title_matched: totalFiltered,
+      duplicates: totalDup,
+      new_added: totalNew,
+      pipeline_additions: toAdd.length,
+      jobspy_new: jobspyNewCount,
+    },
+  });
+  appendAutomationEvent(ROOT, {
+    type: 'scanner.run.completed',
+    status: SCAN_STATUS,
+    summary: `Scanner finished with ${totalNew} new roles and ${totalFiltered} title matches.`,
+    details: {
+      dry_run: DRY_RUN,
+      since_days: SINCE_DAYS,
+      total_found: totalFound,
+      title_filtered_skipped: totalSkipped,
+      title_matched: totalFiltered,
+      duplicates: totalDup,
+      new_added: totalNew,
+      pipeline_additions: toAdd.length,
+      jobspy_new: jobspyNewCount,
+      summary_report: mdPath,
+    },
+  });
+  console.log(`[scan-summary] ${mdPath}`);
 }
 
 main().catch(err => {
+  try {
+    const { mdPath } = finalizeRunSummary(RUN_SUMMARY, 'failure', {
+      error: err.message || String(err),
+      stats: {
+        dry_run: DRY_RUN,
+        since_days: SINCE_DAYS,
+      },
+    });
+    appendAutomationEvent(ROOT, {
+      type: 'scanner.run.failed',
+      status: 'failure',
+      summary: err.message || String(err),
+      details: {
+        dry_run: DRY_RUN,
+        since_days: SINCE_DAYS,
+        summary_report: mdPath,
+      },
+    });
+    console.error(`[scan-summary] ${mdPath}`);
+  } catch {}
   console.error('[FATAL]', err);
   process.exit(1);
 });

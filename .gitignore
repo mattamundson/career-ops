@@ -57,6 +57,13 @@ career_ops_handoff_pipeline.md
 # Large data files (scan-history already listed above, embeddings are binary)
 data/embeddings/
 
+# Pipeline / hygiene one-off backups (regenerate anytime)
+**/*.bak
+
 # Claude Code task state (local only)
 .claude/task-manifest.json
 data/scan-scheduler.log
+
+# Append-only automation telemetry (local machine; dashboard reads last lines)
+data/events/*.jsonl
+!data/events/.gitkeep

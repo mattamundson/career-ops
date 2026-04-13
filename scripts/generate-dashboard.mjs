@@ -9,6 +9,14 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { execSync } from 'child_process';
+import { computeApplicationPriority } from './lib/scoring-core.mjs';
+import { buildApplicationIndex, writeApplicationIndex } from './lib/career-data.mjs';
+import {
+  getSourceOperationalStatus,
+  operationalStatusLabel,
+  portalDisplayLabel,
+} from './lib/source-labels.mjs';
+import { appendAutomationEvent } from './lib/automation-events.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -16,23 +24,33 @@ const ROOT = resolve(__dir, '..');
 // ─── Parsers ────────────────────────────────────────────────────────────────
 
 function parseApplications() {
-  const file = join(ROOT, 'data', 'applications.md');
-  if (!existsSync(file)) return [];
-  const lines = readFileSync(file, 'utf8').split('\n');
+  const snapshot = buildApplicationIndex(ROOT);
   const rows = [];
-  for (const line of lines) {
-    if (!line.startsWith('|') || line.includes('---') || line.includes('# |') || line.includes('Score |')) continue;
-    const cols = line.split('|').map(c => c.trim()).filter((_, i, a) => i > 0 && i < a.length - 1);
-    if (cols.length < 8) continue;
-    const [num, date, company, role, score, status, pdf, reportRaw, ...notesParts] = cols;
-    if (!num || num === '#') continue;
-    const notes = notesParts.join('|').trim();
-    // Extract report link
-    const reportMatch = reportRaw.match(/\[.*?\]\((.*?)\)/);
-    const reportPath = reportMatch ? reportMatch[1] : null;
-    // Parse score
-    const scoreNum = parseFloat(score);
-    rows.push({ num, date, company, role, score: isNaN(scoreNum) ? null : scoreNum, status, hasPdf: pdf.includes('✅'), reportPath, notes });
+  for (const application of snapshot.records) {
+    const scoreNum = parseFloat(application.score);
+    const priority = computeApplicationPriority({
+      score: application.score,
+      status: application.status,
+      date: application.date,
+      reportPath: application.reportPath,
+    });
+    rows.push({
+      num: application.id,
+      date: application.date,
+      company: application.company,
+      role: application.role,
+      score: isNaN(scoreNum) ? null : scoreNum,
+      status: application.status,
+      hasPdf: String(application.pdf || '').includes('✅'),
+      reportPath: application.reportPath,
+      notes: application.notes,
+      applyUrl: application.applyUrl,
+      queueDecision: application.queueDecision,
+      queueStatus: application.queueStatus,
+      remote: application.remote,
+      salary: application.salary,
+      priority,
+    });
   }
   return rows;
 }
@@ -243,11 +261,112 @@ let filterHealth = null;
   } catch { /* no scan history yet — panel hidden */ }
 }
 
+function daysSinceIsoDate(iso) {
+  if (!iso || typeof iso !== 'string') return 0;
+  const d = new Date(iso.slice(0, 10));
+  if (Number.isNaN(d.getTime())) return 0;
+  return Math.max(0, Math.round((Date.now() - d.getTime()) / 86400000));
+}
+
+function loadRecentAutomationEvents(maxTotal = 150) {
+  const dir = join(ROOT, 'data', 'events');
+  if (!existsSync(dir)) return [];
+  let files;
+  try {
+    files = readdirSync(dir).filter((f) => f.endsWith('.jsonl')).sort();
+  } catch {
+    return [];
+  }
+  const out = [];
+  for (const f of files.slice(-4)) {
+    let text;
+    try {
+      text = readFileSync(join(dir, f), 'utf8');
+    } catch {
+      continue;
+    }
+    for (const line of text.split('\n')) {
+      if (!line.trim()) continue;
+      try {
+        out.push(JSON.parse(line));
+      } catch {
+        /* ignore malformed line */
+      }
+    }
+  }
+  return out.slice(-maxTotal);
+}
+
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const automationEvents = loadRecentAutomationEvents(150);
+const STALE_TOUCH_STATUSES = new Set([
+  'Evaluated', 'Evaluating', 'GO', 'Conditional GO', 'Ready to Submit',
+  'Contact', 'Responded', 'Interview', 'In Progress',
+]);
+const staleTouchApps = apps
+  .filter((a) => STALE_TOUCH_STATUSES.has(a.status) && a.date && daysSinceIsoDate(a.date) >= 14)
+  .sort((a, b) => daysSinceIsoDate(b.date) - daysSinceIsoDate(a.date))
+  .slice(0, 10);
+const automationTail = automationEvents.slice(-10).reverse();
+const lastScannerEvent = [...automationEvents].reverse().find((e) => e.type === 'scanner.run.completed');
+
+const operatorSnapshotSection = `
+  <div class="section">
+    <div class="section-header">
+      <h2>Operator health</h2>
+      <span class="count">freshness · automation · scanner</span>
+    </div>
+    <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Stale touchpoints (≥14d)</div>
+        ${staleTouchApps.length === 0
+    ? '<div class="muted" style="font-size:13px">No in-flight applications older than 14 days in the statuses we track here.</div>'
+    : `<ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.5">
+            ${staleTouchApps.map((a) => `<li><strong>${escHtml(a.company)}</strong> — ${escHtml(a.role)} <span class="muted">(${escHtml(a.status)}, ${daysSinceIsoDate(a.date)}d)</span></li>`).join('')}
+          </ul>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Recent automation events</div>
+        ${automationTail.length === 0
+    ? '<div class="muted" style="font-size:13px">No entries in <code>data/events/*.jsonl</code> yet.</div>'
+    : `<ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.5">
+            ${automationTail.map((e) => {
+    const t = escHtml(e.type || 'event');
+    const sum = escHtml(e.summary || '');
+    const at = escHtml((e.recorded_at || '').slice(0, 19));
+    return `<li><span class="muted">${at}</span> <strong>${t}</strong>${sum ? ` — ${sum}` : ''}</li>`;
+  }).join('')}
+          </ul>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Last full scan</div>
+        ${!lastScannerEvent
+    ? '<div class="muted" style="font-size:13px">No <code>scanner.run.completed</code> event found.</div>'
+    : `<div style="font-size:12px;line-height:1.6">
+            <div><strong>${escHtml(lastScannerEvent.status || 'ok')}</strong> <span class="muted">${escHtml((lastScannerEvent.recorded_at || '').slice(0, 19))}</span></div>
+            <div style="margin-top:6px">${escHtml(lastScannerEvent.summary || '')}</div>
+            ${lastScannerEvent.details
+      ? `<div class="muted" style="margin-top:6px;font-size:11px">new: ${escHtml(String(lastScannerEvent.details.new_added ?? '—'))} | jobspy: ${escHtml(String(lastScannerEvent.details.jobspy_new ?? '—'))}</div>`
+      : ''}
+          </div>`}
+      </div>
+    </div>
+  </div>`;
+
 const generatedAt = new Date().toLocaleString('en-US', {
   timeZone: 'America/Chicago',
   month: 'short', day: 'numeric', year: 'numeric',
   hour: 'numeric', minute: '2-digit', hour12: true,
 }) + ' CT';
+
+writeApplicationIndex(ROOT);
 
 // ─── HTML Generation ─────────────────────────────────────────────────────────
 
@@ -278,15 +397,38 @@ function statusBadge(status) {
   return `<span class="badge" style="color:${color};border-color:${color}22;background:${color}11">${status}</span>`;
 }
 
+function applicationProvenance(app) {
+  const priority = app.priority || {};
+  const parts = [
+    `Fit ${priority.fit ?? 'n/a'}`,
+    `Age ${priority.ageDays ?? 'n/a'}d`,
+    `Freshness ${priority.freshnessDecay ?? 'n/a'}`,
+    `Confidence ${priority.confidence ?? 'n/a'}`,
+  ];
+
+  if (app.queueDecision) parts.push(`Queue ${app.queueDecision}`);
+  if (app.remote) parts.push(`Remote ${app.remote}`);
+  if (app.salary) parts.push(`Comp ${app.salary}`);
+
+  return parts.join(' | ');
+}
+
 function computeSourceBreakdown(rows) {
-  const byType = {};
+  const byPortal = {};
   for (const r of rows) {
-    const type = r.portal.split('/')[0] || 'unknown';
-    if (!byType[type]) byType[type] = { total: 0, added: 0 };
-    byType[type].total++;
-    if (r.status === 'added') byType[type].added++;
+    const p = (r.portal || 'unknown').trim() || 'unknown';
+    if (!byPortal[p]) {
+      byPortal[p] = {
+        total: 0,
+        added: 0,
+        label: portalDisplayLabel(p),
+        opStatus: getSourceOperationalStatus(p),
+      };
+    }
+    byPortal[p].total++;
+    if (r.status === 'added') byPortal[p].added++;
   }
-  return Object.entries(byType).sort((a, b) => b[1].total - a[1].total);
+  return Object.entries(byPortal).sort((a, b) => b[1].total - a[1].total);
 }
 
 function computePipelineBreakdown(items) {
@@ -303,18 +445,49 @@ function computeBoardStatus(rows) {
     .toISOString().slice(0, 10);
   const byBoard = {};
   for (const r of rows) {
-    if (!byBoard[r.portal]) byBoard[r.portal] = { total: 0, added: 0, lastSeen: '' };
-    byBoard[r.portal].total++;
-    if (r.status === 'added') byBoard[r.portal].added++;
-    if (r.firstSeen > byBoard[r.portal].lastSeen) byBoard[r.portal].lastSeen = r.firstSeen;
+    const portal = r.portal || 'unknown';
+    if (!byBoard[portal]) {
+      byBoard[portal] = {
+        total: 0,
+        added: 0,
+        lastSeen: '',
+        displayName: portalDisplayLabel(portal),
+        opStatus: getSourceOperationalStatus(portal),
+      };
+    }
+    byBoard[portal].total++;
+    if (r.status === 'added') byBoard[portal].added++;
+    if (r.firstSeen > byBoard[portal].lastSeen) byBoard[portal].lastSeen = r.firstSeen;
   }
   return Object.entries(byBoard)
-    .map(([name, s]) => ({ name, ...s, active: s.lastSeen >= sevenDaysAgo }))
+    .map(([portal, s]) => ({
+      portal,
+      name: portal,
+      displayName: s.displayName,
+      opStatus: s.opStatus,
+      total: s.total,
+      added: s.added,
+      lastSeen: s.lastSeen,
+      active: s.lastSeen >= sevenDaysAgo,
+    }))
     .sort((a, b) => b.added - a.added || b.total - a.total);
 }
 
+function boardOperationalBadge(opStatus) {
+  const styles = {
+    active: 'color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111',
+    blocked: 'color:#f38ba8;border-color:#f38ba822;background:#f38ba811',
+    deferred: 'color:#fab387;border-color:#fab38722;background:#fab38711',
+    stub: 'color:#6c7086;border-color:#6c708622;background:#6c708611',
+    error: 'color:#f38ba8;border-color:#f38ba822;background:#f38ba811',
+  };
+  const st = styles[opStatus] || styles.stub;
+  const label = operationalStatusLabel(opStatus);
+  return `<span class="badge" style="${st}">${label}</span>`;
+}
+
 function appRows(list) {
-  if (list.length === 0) return '<tr><td colspan="7" class="empty">No applications match this filter.</td></tr>';
+  if (list.length === 0) return '<tr><td colspan="8" class="empty">No applications match this filter.</td></tr>';
   return list.map(app => {
     const urlCell = app.jobUrl
       ? `<a href="${app.jobUrl}" target="_blank" title="Open job posting">↗</a>`
@@ -327,16 +500,23 @@ function appRows(list) {
       : '—';
     const arch = app.reportMeta?.archetype ? `<div class="arch">${app.reportMeta.archetype}</div>` : '';
     const salary = app.reportMeta?.salary ? `<div class="salary">${app.reportMeta.salary}</div>` : '';
+    const priority = app.priority || {};
+    const priorityColor = priority.band === 'High'
+      ? '#a6e3a1'
+      : priority.band === 'Medium'
+        ? '#f9e2af'
+        : '#f38ba8';
     return `<tr data-status="${app.status}" data-score="${app.score ?? -1}">
       <td class="num">#${app.num}</td>
       <td class="date">${app.date}</td>
       <td class="company"><strong>${app.company}</strong>${salary}</td>
       <td class="role">${app.role}${arch}</td>
       <td class="score">${scoreBar(app.score)}</td>
+      <td class="status"><span class="badge" style="color:${priorityColor};border-color:${priorityColor}22;background:${priorityColor}11">${priority.priorityScore ?? 0} · ${priority.band || 'Low'}</span></td>
       <td class="status">${statusBadge(app.status)}</td>
       <td class="actions">${urlCell} ${reportCell} ${pdfCell}</td>
     </tr>
-    ${app.notes ? `<tr data-status="${app.status}" class="notes-row"><td colspan="7"><div class="notes">${app.notes}</div></td></tr>` : ''}`;
+    ${app.notes || applicationProvenance(app) ? `<tr data-status="${app.status}" class="notes-row"><td colspan="8"><div class="notes">${app.notes || ''}${app.notes ? '<br>' : ''}<span class="muted">${applicationProvenance(app)}</span></div></td></tr>` : ''}`;
   }).join('');
 }
 
@@ -594,6 +774,196 @@ function tabCount(status) {
   return apps.filter(a => a.status === status).length;
 }
 
+// ─── v15 Response Tracker Extensions ─────────────────────────────────────────
+
+function generateApplied30Days() {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10);
+  const applied30 = responses.filter(r => r.submitted_at >= thirtyDaysAgo)
+    .sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+
+  if (applied30.length === 0) {
+    return `
+  <div class="section">
+    <div class="section-header"><h2>Applied (Last 30 Days)</h2><span class="count">0 submissions</span></div>
+    <div style="padding:20px;color:#6c7086;font-size:13px">No applications in the last 30 days.</div>
+  </div>`;
+  }
+
+  const rows = applied30.map(r => {
+    const daysSince = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
+    return `<tr>
+      <td>#${r.app_id}</td>
+      <td><strong>${r.company}</strong></td>
+      <td>${r.role}</td>
+      <td>${r.submitted_at}</td>
+      <td>${r.ats}</td>
+      <td>${r.status}</td>
+      <td>${daysSince}d</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <!-- Applied (Last 30 Days) -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Applied (Last 30 Days)</h2>
+      <span class="count">${applied30.length} submissions</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>#</th><th>Company</th><th>Role</th><th>Submitted</th><th>ATS</th><th>Status</th><th>Days</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function generatePendingResponse() {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10);
+  const pending = responses.filter(r => {
+    if (r.status !== 'submitted') return false;
+    const daysSince = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
+    return daysSince > 7;
+  }).sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+
+  if (pending.length === 0) {
+    return `
+  <div class="section">
+    <div class="section-header"><h2>Pending Response (&gt;7 days)</h2><span class="count">0 stale</span></div>
+    <div style="padding:20px;color:#6c7086;font-size:13px">No stale applications. All recent submissions or progressed.</div>
+  </div>`;
+  }
+
+  const rows = pending.map(r => {
+    const daysSince = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
+    const cmdCopy = `node scripts/log-response.mjs --app-id ${r.app_id} --event recruiter_reply --notes ""`;
+    return `<tr>
+      <td>#${r.app_id}</td>
+      <td><strong>${r.company}</strong></td>
+      <td>${r.role}</td>
+      <td>${r.submitted_at}</td>
+      <td>${r.ats}</td>
+      <td>${daysSince}d</td>
+      <td><code style="font-size:11px;color:#a6adc8;background:#313244;padding:3px 6px;border-radius:3px;display:inline-block">${cmdCopy}</code></td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <!-- Pending Response (>7 days) -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Pending Response (&gt;7 days)</h2>
+      <span class="count">${pending.length} stale</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>#</th><th>Company</th><th>Role</th><th>Submitted</th><th>ATS</th><th>Days</th><th style="width:400px">Log Event</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function generateActiveConversations() {
+  const active = responses.filter(r =>
+    ['phone_screen', 'phone_screen_scheduled', 'phone_screen_done', 'on_site_scheduled', 'on_site_done', 'offer'].includes(r.status)
+  ).sort((a, b) => new Date(b.last_event_at) - new Date(a.last_event_at));
+
+  if (active.length === 0) {
+    return `
+  <div class="section">
+    <div class="section-header"><h2>Active Conversations</h2><span class="count">0 in flight</span></div>
+    <div style="padding:20px;color:#6c7086;font-size:13px">No active conversations. Build the funnel by logging responses.</div>
+  </div>`;
+  }
+
+  const rows = active.map(r => {
+    const daysSince = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
+    const stageColor = r.status === 'offer' ? '#a6e3a1'
+      : r.status.includes('on_site') ? '#f9e2af'
+      : r.status.includes('phone') ? '#89dceb'
+      : '#6c7086';
+    return `<tr>
+      <td>#${r.app_id}</td>
+      <td><strong>${r.company}</strong></td>
+      <td>${r.role}</td>
+      <td>${r.submitted_at}</td>
+      <td>${r.ats}</td>
+      <td><span class="badge" style="color:${stageColor};border-color:${stageColor}22;background:${stageColor}11">${r.status}</span></td>
+      <td>${daysSince}d since submit</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <!-- Active Conversations -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Active Conversations</h2>
+      <span class="count">${active.length} in flight</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>#</th><th>Company</th><th>Role</th><th>Submitted</th><th>ATS</th><th>Stage</th><th>Timeline</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function generateResponseMetrics() {
+  if (responses.length === 0) return '';
+
+  // Calculate metrics per schema requirements
+  const withReply = responses.filter(r => !['submitted', 'ghosted'].includes(r.status)).length;
+  const withPhone = responses.filter(r =>
+    ['phone_screen', 'phone_screen_scheduled', 'phone_screen_done', 'on_site_scheduled', 'on_site_done', 'offer'].includes(r.status)
+  ).length;
+  const withOnSite = responses.filter(r =>
+    ['on_site_scheduled', 'on_site_done', 'offer'].includes(r.status)
+  ).length;
+  const withOffer = responses.filter(r => r.status === 'offer').length;
+
+  const replyPct = responses.length > 0 ? ((withReply / responses.length) * 100).toFixed(1) : '0.0';
+  const phonePct = withReply > 0 ? ((withPhone / withReply) * 100).toFixed(1) : '0.0';
+  const onSitePct = withPhone > 0 ? ((withOnSite / withPhone) * 100).toFixed(1) : '0.0';
+  const offerPct = withOnSite > 0 ? ((withOffer / withOnSite) * 100).toFixed(1) : '0.0';
+
+  return `
+  <!-- Response Rate Metrics -->
+  <div class="section">
+    <div class="section-header">
+      <h2>📈 Response Rate Metrics</h2>
+      <span class="count">${responses.length} total</span>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+        <div style="background:#313244;border-radius:8px;padding:12px">
+          <div style="font-size:12px;color:#a6adc8;margin-bottom:4px">Applied → First Reply</div>
+          <div style="font-size:24px;font-weight:600;color:#89dceb">${withReply}</div>
+          <div style="font-size:11px;color:#6c7086;margin-top:2px">${replyPct}% of ${responses.length}</div>
+        </div>
+        <div style="background:#313244;border-radius:8px;padding:12px">
+          <div style="font-size:12px;color:#a6adc8;margin-bottom:4px">First Reply → Phone</div>
+          <div style="font-size:24px;font-weight:600;color:#94e2d5">${withPhone}</div>
+          <div style="font-size:11px;color:#6c7086;margin-top:2px">${phonePct}% of ${withReply}</div>
+        </div>
+        <div style="background:#313244;border-radius:8px;padding:12px">
+          <div style="font-size:12px;color:#a6adc8;margin-bottom:4px">Phone → On-Site</div>
+          <div style="font-size:24px;font-weight:600;color:#f9e2af">${withOnSite}</div>
+          <div style="font-size:11px;color:#6c7086;margin-top:2px">${onSitePct}% of ${withPhone}</div>
+        </div>
+        <div style="background:#313244;border-radius:8px;padding:12px">
+          <div style="font-size:12px;color:#a6adc8;margin-bottom:4px">On-Site → Offer</div>
+          <div style="font-size:24px;font-weight:600;color:#a6e3a1">${withOffer}</div>
+          <div style="font-size:11px;color:#6c7086;margin-top:2px">${offerPct}% of ${withOnSite}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -690,6 +1060,7 @@ const html = `<!DOCTYPE html>
   .no-score { color: var(--overlay0); }
 
   .notes { font-size: 12px; color: var(--subtext); background: var(--surface0)44; padding: 6px 10px; border-radius: 4px; border-left: 2px solid var(--surface1); }
+  .muted { color: var(--overlay1); font-size: 11px; }
 
   .empty { text-align: center; padding: 32px; color: var(--overlay0); }
 
@@ -757,6 +1128,8 @@ const html = `<!DOCTYPE html>
     </div>
   </div>
 
+  ${operatorSnapshotSection}
+
   <!-- Scan Sources -->
   <div class="section">
     <div class="section-header">
@@ -769,11 +1142,12 @@ const html = `<!DOCTYPE html>
           <tr><th>Source</th><th>Scanned</th><th>Added</th><th>Hit Rate</th></tr>
         </thead>
         <tbody>
-          ${computeSourceBreakdown(scanHistory).map(([type, s]) => {
+          ${computeSourceBreakdown(scanHistory).map(([, s]) => {
             const rate = s.total > 0 ? ((s.added / s.total) * 100).toFixed(1) : '0.0';
             const barPct = s.total > 0 ? Math.max(2, (s.added / s.total) * 100) : 0;
+            const op = boardOperationalBadge(s.opStatus);
             return `<tr>
-              <td><strong>${type}</strong></td>
+              <td><strong>${s.label}</strong> <span class="muted" style="font-size:11px">${op}</span></td>
               <td>${s.total.toLocaleString()}</td>
               <td style="color:#a6e3a1">${s.added}</td>
               <td>
@@ -886,6 +1260,26 @@ const html = `<!DOCTYPE html>
             </div>`
           ).join('')}
         </div>` : ''}
+      ${filterHealth.sourceRollup?.length ? `
+        <div style="margin-top:16px">
+          <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Title filter window — by source (portal)</div>
+          <table style="width:100%;font-size:12px;border-collapse:collapse">
+            <thead><tr style="color:var(--subtext);text-align:left">
+              <th style="padding:4px 8px">Source</th>
+              <th style="padding:4px 8px">Added</th>
+              <th style="padding:4px 8px">Skipped title</th>
+              <th style="padding:4px 8px">Other</th>
+            </tr></thead>
+            <tbody>
+              ${filterHealth.sourceRollup.map((s) => `<tr>
+                <td style="padding:4px 8px"><strong>${s.label}</strong><div class="muted" style="font-size:10px">${s.portal}</div></td>
+                <td style="padding:4px 8px;color:#a6e3a1">${s.added}</td>
+                <td style="padding:4px 8px;color:#f9e2af">${s.skippedTitle}</td>
+                <td style="padding:4px 8px;color:var(--overlay0)">${s.other}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>` : ''}
     </div>
   </div>` : ''}
 
@@ -897,6 +1291,14 @@ const html = `<!DOCTYPE html>
 
   ${generateChannelPerformance()}
 
+  ${generateResponseMetrics()}
+
+  ${generateApplied30Days()}
+
+  ${generatePendingResponse()}
+
+  ${generateActiveConversations()}
+
   ${generateApplyQueue(apps)}
 
   <!-- Applications Table -->
@@ -907,6 +1309,7 @@ const html = `<!DOCTYPE html>
     <div class="sort-bar">
       <span>Sort:</span>
       <button class="sort-btn active" data-sort="num" onclick="setSort(this)">Entry #</button>
+      <button class="sort-btn" data-sort="priority" onclick="setSort(this)">Priority</button>
       <button class="sort-btn" data-sort="score" onclick="setSort(this)">Score</button>
       <button class="sort-btn" data-sort="date" onclick="setSort(this)">Date</button>
       <button class="sort-btn" data-sort="company" onclick="setSort(this)">Company</button>
@@ -921,6 +1324,7 @@ const html = `<!DOCTYPE html>
             <th>Company</th>
             <th>Role</th>
             <th>Score</th>
+            <th>Priority</th>
             <th>Status</th>
             <th>Links</th>
           </tr>
@@ -985,19 +1389,20 @@ const html = `<!DOCTYPE html>
   <div class="section">
     <div class="section-header">
       <h2>Board Status</h2>
-      <span class="count">${computeBoardStatus(scanHistory).filter(b => b.active).length} active</span>
+      <span class="count">${computeBoardStatus(scanHistory).filter(b => b.active).length} w/ rows last 7d</span>
     </div>
     <div style="overflow-x:auto">
       <table>
         <thead>
-          <tr><th>Board / Portal</th><th>Status</th><th>Last Seen</th><th>Scanned</th><th>Added</th></tr>
+          <tr><th>Source</th><th>Policy</th><th>Data freshness</th><th>Last Seen</th><th>Scanned</th><th>Added</th></tr>
         </thead>
         <tbody>
           ${computeBoardStatus(scanHistory).map(b => `<tr>
-            <td><strong>${b.name}</strong></td>
+            <td><strong>${b.displayName}</strong><div class="muted" style="font-size:10px;margin-top:2px">${b.portal}</div></td>
+            <td>${boardOperationalBadge(b.opStatus)}</td>
             <td>${b.active
-              ? '<span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Active</span>'
-              : '<span class="badge" style="color:#f38ba8;border-color:#f38ba822;background:#f38ba811">Inactive</span>'
+              ? '<span class="badge" style="color:#a6e3a1;border-color:#a6e3a122;background:#a6e3a111">Recent data</span>'
+              : '<span class="badge" style="color:#f38ba8;border-color:#f38ba822;background:#f38ba811">Stale</span>'
             }</td>
             <td class="date">${b.lastSeen}</td>
             <td>${b.total.toLocaleString()}</td>
@@ -1041,7 +1446,8 @@ function render() {
 
   filtered.sort((a, b) => {
     let va, vb;
-    if (currentSort === 'score')   { va = a.score ?? -1; vb = b.score ?? -1; }
+    if (currentSort === 'priority')   { va = a.priority?.priorityScore ?? -1; vb = b.priority?.priorityScore ?? -1; }
+    else if (currentSort === 'score')   { va = a.score ?? -1; vb = b.score ?? -1; }
     else if (currentSort === 'num')   { va = parseInt(a.num); vb = parseInt(b.num); }
     else if (currentSort === 'date')  { va = a.date; vb = b.date; }
     else if (currentSort === 'company') { va = a.company.toLowerCase(); vb = b.company.toLowerCase(); }
@@ -1053,7 +1459,7 @@ function render() {
 
   const tbody = document.getElementById('apps-body');
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">No applications match this filter.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No applications match this filter.</td></tr>';
     return;
   }
 
@@ -1064,17 +1470,35 @@ function render() {
       : '<span class="no-score">—</span>';
     const color = statusColors[app.status] || '#cdd6f4';
     const badgeHtml = \`<span class="badge" style="color:\${color};border-color:\${color}22;background:\${color}11">\${app.status}</span>\`;
+    const priorityColor = app.priority?.band === 'High'
+      ? '#a6e3a1'
+      : app.priority?.band === 'Medium'
+        ? '#f9e2af'
+        : '#f38ba8';
+    const priorityHtml = \`<span class="badge" style="color:\${priorityColor};border-color:\${priorityColor}22;background:\${priorityColor}11">\${app.priority?.priorityScore ?? 0} · \${app.priority?.band ?? 'Low'}</span>\`;
     const urlLink = app.jobUrl ? \`<a href="\${app.jobUrl}" target="_blank" title="Job posting">↗</a>\` : '—';
     const rptLink = app.reportPath ? \`<a href="\${app.reportPath}" target="_blank" title="Report">📄</a>\` : '';
     const arch = app.reportMeta?.archetype ? \`<div class="arch">\${app.reportMeta.archetype}</div>\` : '';
     const salary = app.reportMeta?.salary ? \`<div class="salary">\${app.reportMeta.salary}</div>\` : '';
-    const notesRow = app.notes ? \`<tr data-status="\${app.status}" class="notes-row"><td colspan="7"><div class="notes">\${app.notes}</div></td></tr>\` : '';
+    const provenance = [
+      \`Fit \${app.priority?.fit ?? 'n/a'}\`,
+      \`Age \${app.priority?.ageDays ?? 'n/a'}d\`,
+      \`Freshness \${app.priority?.freshnessDecay ?? 'n/a'}\`,
+      \`Confidence \${app.priority?.confidence ?? 'n/a'}\`,
+      app.queueDecision ? \`Queue \${app.queueDecision}\` : '',
+      app.remote ? \`Remote \${app.remote}\` : '',
+      app.salary ? \`Comp \${app.salary}\` : '',
+    ].filter(Boolean).join(' | ');
+    const notesRow = app.notes || provenance
+      ? \`<tr data-status="\${app.status}" class="notes-row"><td colspan="8"><div class="notes">\${app.notes || ''}\${app.notes ? '<br>' : ''}<span class="muted">\${provenance}</span></div></td></tr>\`
+      : '';
     return \`<tr data-status="\${app.status}" data-score="\${app.score ?? -1}">
       <td class="num">#\${app.num}</td>
       <td class="date">\${app.date}</td>
       <td class="company"><strong>\${app.company}</strong>\${salary}</td>
       <td class="role">\${app.role}\${arch}</td>
       <td class="score">\${scoreHtml}</td>
+      <td class="status">\${priorityHtml}</td>
       <td class="status">\${badgeHtml}</td>
       <td class="actions">\${urlLink} \${rptLink}</td>
     </tr>\${notesRow}\`;
@@ -1086,6 +1510,17 @@ function render() {
 
 const outPath = join(ROOT, 'dashboard.html');
 writeFileSync(outPath, html, 'utf8');
+
+appendAutomationEvent(ROOT, {
+  type: 'dashboard.generated',
+  status: 'success',
+  summary: `Dashboard HTML regenerated (${apps.length} apps, ${pendingPipeline.length} pipeline items).`,
+  details: {
+    stale_touchpoints: staleTouchApps.length,
+    automation_events_loaded: automationEvents.length,
+  },
+});
+
 console.log(`✅ Dashboard written to: ${outPath}`);
 console.log(`   ${apps.length} application(s) | ${pendingPipeline.length} pipeline items`);
 
