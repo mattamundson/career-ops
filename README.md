@@ -102,9 +102,11 @@ go build -o career-dashboard .
 ./career-dashboard -path ..
 ```
 
-The `-path` argument is the **career-ops repo root** (parent of `dashboard/`). Features: 6 filter tabs, 4 sort modes, grouped/flat view, lazy-loaded previews, inline status changes.
+The `-path` argument is the **career-ops repo root** (parent of `dashboard/`). Features: 6 filter tabs, 5 sort modes (default **focus** = score with Minneapolis-area work-mode bias: hybrid / on-site / MSP-local above same-score fully remote; cycle with `s` for raw score), grouped/flat view, lazy-loaded previews, inline status changes. When `data/events/*.jsonl` exists, the header shows the latest **`scanner.run.completed`** summary line.
 
 ### Static HTML dashboard (alternative)
+
+**Which surface when:** [`docs/WHICH-DASHBOARD-WHEN.md`](docs/WHICH-DASHBOARD-WHEN.md) — HTML vs TUI, refresh commands, non-goals. Panel vs data inventory: [`docs/DASHBOARD-HTML-PANELS.md`](docs/DASHBOARD-HTML-PANELS.md).
 
 For a self-contained browser view (no TUI), generate from the repo root:
 

@@ -1,0 +1,398 @@
+const STOP_TOKENS = new Set([
+  'and', 'the', 'for', 'with', 'from', 'into', 'your', 'this', 'that', 'will',
+  'have', 'has', 'our', 'you', 'are', 'job', 'role', 'team', 'work', 'remote',
+  'full', 'time', 'part', 'day', 'days', 'week', 'weeks', 'new', 'senior',
+]);
+
+/** Minneapolis-area default: hybrid / in-office / local JD wording ranks above remote at similar fit (sync with dashboard/internal/data/work_arrangement.go). */
+export const LOCATION_PRIORITY = {
+  onsiteHybridMultiplier: 1.06,
+  remoteMultiplier: 0.92,
+  unknownMultiplier: 1.0,
+};
+
+const STATUS_PRIORITY_MULTIPLIER = {
+  Evaluating: 1.0,
+  Evaluated: 0.95,
+  'Conditional GO': 0.95,
+  GO: 0.95,
+  'Ready to Submit': 0.92,
+  Applied: 0.82,
+  Contact: 0.75,
+  Responded: 0.64,
+  'In Progress': 0.58,
+  Interview: 0.52,
+  Offer: 0.25,
+  Rejected: 0.0,
+  Discarded: 0.0,
+  SKIP: 0.0,
+};
+
+export function normalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9+/.\-\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function tokenizeText(value) {
+  return normalizeText(value)
+    .split(' ')
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2 && !STOP_TOKENS.has(token));
+}
+
+export function parseFivePointScore(value) {
+  const match = String(value || '').match(/([\d.]+)\s*\/\s*5/);
+  if (match) return Number.parseFloat(match[1]);
+  const numeric = Number.parseFloat(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+export function daysSince(dateLike, fallback = 30) {
+  if (!dateLike) return fallback;
+  const date = new Date(dateLike);
+  if (Number.isNaN(date.getTime())) return fallback;
+  const delta = Date.now() - date.getTime();
+  return Math.max(0, Math.round(delta / 86400000));
+}
+
+/**
+ * Classify work arrangement from apply-queue remote line, role title, tracker notes,
+ * and optional report snippets (TL;DR / why). Hybrid or explicit on-site / MSP-local
+ * wording wins before generic "remote" so optional-hybrid JDs are not mis-bucketed as remote-only.
+ * @param {object} fields
+ * @returns {'onsite_hybrid'|'remote'|'unknown'}
+ */
+export function classifyWorkArrangement(fields = {}) {
+  const blob = String([
+    fields.remote,
+    fields.reportRemote,
+    fields.role,
+    fields.notes,
+    fields.tldr,
+    fields.why,
+  ]
+    .filter(Boolean)
+    .join(' '))
+    .toLowerCase();
+
+  if (!blob.trim()) return 'unknown';
+
+  const hasHybrid = blob.includes('hybrid');
+  const hasOnsite = blob.includes('on-site') || blob.includes('onsite')
+    || blob.includes('in-office') || blob.includes('in office')
+    || blob.includes('office-based') || blob.includes('office based')
+    || blob.includes('in person') || blob.includes('on site');
+  const mspLocal = blob.includes('minneapolis') || blob.includes('st. paul') || blob.includes('st paul')
+    || blob.includes('twin cities') || blob.includes('eden prairie') || blob.includes('plymouth')
+    || blob.includes('golden valley') || blob.includes('bloomington');
+
+  if (hasHybrid || hasOnsite || mspLocal) return 'onsite_hybrid';
+
+  if (blob.includes('100% remote') || blob.includes('fully remote') || blob.includes('fully-remote')
+    || blob.includes('remote only') || blob.includes('work from anywhere')
+    || blob.includes('verified remote') || blob.includes('verifiable remote')) {
+    return 'remote';
+  }
+  if (blob.includes('remote') || blob.includes('wfh') || blob.includes('work from home')) {
+    return 'remote';
+  }
+  return 'unknown';
+}
+
+export function locationPriorityMultiplier(arrangement) {
+  if (arrangement === 'onsite_hybrid') return LOCATION_PRIORITY.onsiteHybridMultiplier;
+  if (arrangement === 'remote') return LOCATION_PRIORITY.remoteMultiplier;
+  return LOCATION_PRIORITY.unknownMultiplier;
+}
+
+/** Sort key: headline score × location multiplier (high remote can still beat mid hybrid). */
+export function focusSortKey(scoreNum, fields = {}) {
+  if (!Number.isFinite(scoreNum) || scoreNum <= 0) return 0;
+  const a = classifyWorkArrangement(fields);
+  return scoreNum * locationPriorityMultiplier(a);
+}
+
+function dedupe(list) {
+  return [...new Set(list)];
+}
+
+function tokenOverlapRatio(left, right) {
+  const leftTokens = new Set(tokenizeText(left));
+  const rightTokens = new Set(tokenizeText(right));
+  if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+  let shared = 0;
+  for (const token of leftTokens) {
+    if (rightTokens.has(token)) shared += 1;
+  }
+  return shared / Math.max(leftTokens.size, rightTokens.size);
+}
+
+function collapsePhraseMatches(matches) {
+  const collapsed = [];
+  for (const match of matches) {
+    const overlaps = collapsed.some((existing) =>
+      tokenOverlapRatio(existing.phrase, match.phrase) >= 0.75
+    );
+    if (!overlaps) collapsed.push(match);
+  }
+  return collapsed;
+}
+
+function scorePositivePhrase(titleLower, phrase) {
+  const phraseLower = normalizeText(phrase);
+  if (!phraseLower) return null;
+
+  if (titleLower.includes(phraseLower)) {
+    const words = phraseLower.split(' ').length;
+    return {
+      phrase,
+      kind: 'exact',
+      score: words >= 3 ? 8 : words === 2 ? 6 : 4,
+    };
+  }
+
+  const phraseTokens = tokenizeText(phraseLower);
+  if (phraseTokens.length < 2) return null;
+
+  const titleTokens = new Set(tokenizeText(titleLower));
+  const overlap = phraseTokens.filter((token) => titleTokens.has(token));
+  const ratio = overlap.length / phraseTokens.length;
+
+  if (overlap.length >= 2 && ratio >= 0.66) {
+    return {
+      phrase,
+      kind: 'partial',
+      score: overlap.length * 2,
+    };
+  }
+
+  return null;
+}
+
+export function scoreTitleAgainstFilter(title, filter = {}) {
+  const titleLower = normalizeText(title);
+  const positive = Array.isArray(filter.positive) ? filter.positive : [];
+  const negative = Array.isArray(filter.negative) ? filter.negative : [];
+  const seniorityBoost = filter.seniority_boost && typeof filter.seniority_boost === 'object'
+    ? filter.seniority_boost
+    : {};
+
+  const blockedBy = dedupe(
+    negative.filter((phrase) => titleLower.includes(normalizeText(phrase)))
+  );
+  if (blockedBy.length > 0) {
+    return {
+      match: false,
+      reason: 'negative_match',
+      fitTitle: 0,
+      confidence: 0.15,
+      matchedPhrases: [],
+      blockedBy,
+      score: 0,
+    };
+  }
+
+  const phraseMatches = collapsePhraseMatches(positive
+    .map((phrase) => scorePositivePhrase(titleLower, phrase))
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score));
+
+  const exactMatches = phraseMatches.filter((match) => match.kind === 'exact');
+  const partialMatches = phraseMatches.filter((match) => match.kind === 'partial');
+
+  let score = phraseMatches.reduce((sum, match) => sum + match.score, 0);
+
+  const titleTokens = tokenizeText(titleLower);
+  const positiveTokens = new Map();
+  for (const phrase of positive) {
+    for (const token of tokenizeText(phrase)) {
+      positiveTokens.set(token, (positiveTokens.get(token) || 0) + 1);
+    }
+  }
+
+  const matchedTokens = dedupe(titleTokens.filter((token) => positiveTokens.has(token)));
+  let tokenScore = matchedTokens.reduce(
+    (sum, token) => sum + Math.min(positiveTokens.get(token), 3),
+    0,
+  );
+  // Cap token-only inflation (many generic overlaps without a real phrase hit).
+  tokenScore = Math.min(tokenScore, 20);
+  score += tokenScore;
+
+  let seniorityScore = 0;
+  const seniorityMatches = [];
+  for (const [token, weight] of Object.entries(seniorityBoost)) {
+    if (titleLower.includes(normalizeText(token))) {
+      seniorityMatches.push(token);
+      seniorityScore += Number(weight) || 0;
+    }
+  }
+  score += seniorityScore * 2;
+
+  const phraseBacked =
+    exactMatches.length > 0 || partialMatches.length > 0;
+  // Pure token overlap can approve weak titles; keep "match" but dampen score when no phrase hit.
+  if (!phraseBacked && matchedTokens.length >= 2) {
+    score = Math.min(score, 26 + Math.min(matchedTokens.length, 6) * 1.25);
+  }
+
+  const match = phraseBacked || matchedTokens.length >= 2;
+  const fitTitle = Math.max(0, Math.min(100, Math.round(score * 4.5)));
+  const confidence = Math.max(
+    0.2,
+    Math.min(
+      0.98,
+      (exactMatches.length * 0.18) +
+      (partialMatches.length * 0.1) +
+      (matchedTokens.length * 0.04) +
+      (seniorityMatches.length * 0.03) +
+      (match ? 0.3 : 0)
+    )
+  );
+
+  return {
+    match,
+    reason: match ? 'matched' : 'no_positive',
+    fitTitle,
+    confidence: Number(confidence.toFixed(2)),
+    matchedPhrases: dedupe(phraseMatches.map((entry) => entry.phrase)).slice(0, 8),
+    matchedTokens: matchedTokens.slice(0, 10),
+    seniorityMatches,
+    blockedBy,
+    score: Number(score.toFixed(2)),
+  };
+}
+
+export function computeApplicationPriority(application = {}) {
+  const baseFivePoint = parseFivePointScore(application.score);
+  const fit = baseFivePoint !== null
+    ? Math.max(0, Math.min(100, Math.round((baseFivePoint / 5) * 100)))
+    : 45;
+  const ageDays = daysSince(application.date, 14);
+  const freshnessDecay = Math.exp(-0.08 * ageDays);
+  const statusMultiplier = STATUS_PRIORITY_MULTIPLIER[application.status] ?? 0.72;
+  const confidence = baseFivePoint !== null
+    ? (application.reportPath ? 0.88 : 0.76)
+    : 0.58;
+
+  const workArrangement = classifyWorkArrangement({
+    remote: application.remote,
+    reportRemote: application.reportRemote,
+    role: application.role,
+    notes: application.notes,
+    tldr: application.tldr,
+    why: application.why,
+  });
+  const locationMultiplier = locationPriorityMultiplier(workArrangement);
+
+  const priorityScore = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(
+        fit * freshnessDecay * statusMultiplier * (0.7 + 0.3 * confidence) * locationMultiplier,
+      ),
+    ),
+  );
+
+  const band = priorityScore >= 75
+    ? 'High'
+    : priorityScore >= 50
+      ? 'Medium'
+      : 'Low';
+
+  return {
+    fit,
+    ageDays,
+    freshnessDecay: Number(freshnessDecay.toFixed(3)),
+    statusMultiplier,
+    confidence: Number(confidence.toFixed(2)),
+    workArrangement,
+    locationMultiplier,
+    priorityScore,
+    band,
+  };
+}
+
+export function scoreMessageAgainstApplication(application, message) {
+  const haystack = normalizeText([
+    message?.subject,
+    message?.from,
+    message?.snippet,
+    message?.bodyText,
+  ].join(' '));
+
+  const company = normalizeText(application?.company);
+  const role = normalizeText(application?.role);
+  let score = 0;
+  const evidence = [];
+
+  if (company && haystack.includes(company)) {
+    score += 30;
+    evidence.push(`company:${company}`);
+  }
+
+  const companyTokens = tokenizeText(company).filter((token) => token.length >= 4);
+  for (const token of companyTokens) {
+    if (haystack.includes(token)) {
+      score += 6;
+      evidence.push(`company_token:${token}`);
+    }
+  }
+
+  const roleTokens = tokenizeText(role).filter((token) => token.length >= 4);
+  for (const token of roleTokens.slice(0, 6)) {
+    if (haystack.includes(token)) {
+      score += 4;
+      evidence.push(`role_token:${token}`);
+    }
+  }
+
+  const appDate = new Date(application?.date || '');
+  const messageDate = new Date(Number(message?.internalDate || Date.now()));
+  if (!Number.isNaN(appDate.getTime()) && messageDate >= appDate) {
+    score += 2;
+  }
+
+  return {
+    score,
+    confidence: Math.max(0, Math.min(0.99, Number((score / 60).toFixed(2)))),
+    evidence,
+  };
+}
+
+export function selectBestApplicationMatch(applications, message, options = {}) {
+  const minScore = options.minScore ?? 18;
+  const ambiguityDelta = options.ambiguityDelta ?? 6;
+
+  const ranked = applications
+    .map((application) => ({
+      application,
+      ...scoreMessageAgainstApplication(application, message),
+    }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const best = ranked[0] || null;
+  const second = ranked[1] || null;
+  if (!best) {
+    return { match: null, confidence: 0, ranked };
+  }
+  if (best.score < minScore) {
+    return { match: null, confidence: best.confidence, ranked };
+  }
+  if (second && best.score - second.score < ambiguityDelta) {
+    return { match: null, confidence: best.confidence, ranked };
+  }
+
+  return {
+    match: best.application,
+    confidence: best.confidence,
+    evidence: best.evidence,
+    ranked,
+  };
+}

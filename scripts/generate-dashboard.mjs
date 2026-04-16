@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { execSync } from 'child_process';
-import { computeApplicationPriority } from './lib/scoring-core.mjs';
+import { computeApplicationPriority, focusSortKey } from './lib/scoring-core.mjs';
 import { buildApplicationIndex, writeApplicationIndex } from './lib/career-data.mjs';
 import {
   getSourceOperationalStatus,
@@ -28,17 +28,12 @@ function parseApplications() {
   const rows = [];
   for (const application of snapshot.records) {
     const scoreNum = parseFloat(application.score);
-    const priority = computeApplicationPriority({
-      score: application.score,
-      status: application.status,
-      date: application.date,
-      reportPath: application.reportPath,
-    });
     rows.push({
       num: application.id,
       date: application.date,
       company: application.company,
       role: application.role,
+      scoreStr: application.score || '',
       score: isNaN(scoreNum) ? null : scoreNum,
       status: application.status,
       hasPdf: String(application.pdf || '').includes('✅'),
@@ -49,7 +44,7 @@ function parseApplications() {
       queueStatus: application.queueStatus,
       remote: application.remote,
       salary: application.salary,
-      priority,
+      priority: null,
     });
   }
   return rows;
@@ -179,11 +174,17 @@ function readReport(reportPath) {
     const urlMatch = text.match(/\*\*URL:\*\*\s*(https?:\/\/\S+)/);
     const salMatch = text.match(/\|\s*\*\*Salary\*\*\s*\|\s*(.+?)\s*\|/);
     const whyMatch = text.match(/\*\*Why [\d.]+\/5:\*\*\s*(.+)/);
+    const remoteRow = text.match(/\|\s*\*\*Remote\*\*\s*\|\s*(.+?)\s*\|/);
+    const tldrRow = text.match(/\|\s*\*\*TL;DR\*\*\s*\|\s*(.+?)\s*\|/);
+    const remoteAlt = text.match(/\*\*Remote:\*\*\s*(.+)/);
+    const tldrAlt = text.match(/\*\*TL;DR:\*\*\s*(.+)/);
     return {
       archetype: archMatch ? archMatch[1].trim() : null,
       url: urlMatch ? urlMatch[1].trim() : null,
       salary: salMatch ? salMatch[1].trim() : null,
       why: whyMatch ? whyMatch[1].trim() : null,
+      remote: (remoteRow?.[1] || remoteAlt?.[1] || '').trim() || null,
+      tldr: (tldrRow?.[1] || tldrAlt?.[1] || '').trim() || null,
     };
   } catch { return null; }
 }
@@ -197,6 +198,18 @@ const pipeline = parsePipeline();
 for (const app of apps) {
   app.reportMeta = readReport(app.reportPath);
   if (app.reportMeta?.url) app.jobUrl = app.reportMeta.url;
+  app.priority = computeApplicationPriority({
+    score: app.scoreStr,
+    status: app.status,
+    date: app.date,
+    reportPath: app.reportPath,
+    remote: app.remote,
+    reportRemote: app.reportMeta?.remote ?? null,
+    role: app.role,
+    notes: app.notes,
+    tldr: app.reportMeta?.tldr ?? null,
+    why: app.reportMeta?.why ?? null,
+  });
 }
 
 const pendingPipeline = pipeline.filter(p => !p.done);
@@ -405,6 +418,9 @@ function applicationProvenance(app) {
     `Freshness ${priority.freshnessDecay ?? 'n/a'}`,
     `Confidence ${priority.confidence ?? 'n/a'}`,
   ];
+  if (priority.workArrangement) {
+    parts.push(`Loc ${priority.workArrangement} ×${priority.locationMultiplier ?? 1}`);
+  }
 
   if (app.queueDecision) parts.push(`Queue ${app.queueDecision}`);
   if (app.remote) parts.push(`Remote ${app.remote}`);
@@ -529,10 +545,22 @@ function pipelineRows(list) {
   </tr>`).join('');
 }
 
+function applyQueueFocusKey(app) {
+  if (app.score == null) return -1;
+  return focusSortKey(app.score, {
+    remote: app.remote,
+    reportRemote: app.reportMeta?.remote ?? null,
+    role: app.role,
+    notes: app.notes,
+    tldr: app.reportMeta?.tldr ?? null,
+    why: app.reportMeta?.why ?? null,
+  });
+}
+
 function generateApplyQueue(appList) {
   const queue = appList
     .filter(a => a.status === 'GO' || a.status === 'Conditional GO')
-    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+    .sort((a, b) => applyQueueFocusKey(b) - applyQueueFocusKey(a));
 
   if (queue.length === 0) return '';
 
@@ -964,13 +992,124 @@ function generateResponseMetrics() {
   </div>`;
 }
 
+function generateAnalytics() {
+  if (apps.length < 3) return '';
+  const totalApps = apps.length;
+  const applied = apps.filter(a => ['Applied', 'Responded', 'Interview', 'Offer', 'Rejected'].includes(a.status)).length;
+  const responded = apps.filter(a => ['Responded', 'Interview', 'Offer'].includes(a.status)).length;
+  const interviewed = apps.filter(a => ['Interview', 'Offer'].includes(a.status)).length;
+  const rejected = apps.filter(a => a.status === 'Rejected').length;
+  const offered = apps.filter(a => a.status === 'Offer').length;
+  const convRate = applied > 0 ? ((responded / applied) * 100).toFixed(1) : '0.0';
+  const intRate = applied > 0 ? ((interviewed / applied) * 100).toFixed(1) : '0.0';
+
+  const scored = apps.filter(a => a.score !== null);
+  const avgScore = scored.length > 0 ? (scored.reduce((s, a) => s + a.score, 0) / scored.length).toFixed(2) : 'N/A';
+  const above4 = scored.filter(a => a.score >= 4.0).length;
+  const above3 = scored.filter(a => a.score >= 3.0 && a.score < 4.0).length;
+  const below3 = scored.filter(a => a.score < 3.0).length;
+
+  const sourceStats = {};
+  for (const row of scanHistory) {
+    const src = row.portal || 'unknown';
+    if (!sourceStats[src]) sourceStats[src] = { added: 0, skipped: 0 };
+    if (row.status === 'added') sourceStats[src].added++;
+    else sourceStats[src].skipped++;
+  }
+  const topSources = Object.entries(sourceStats)
+    .map(([portal, s]) => ({ portal, ...s, total: s.added + s.skipped, hitRate: s.total > 0 ? ((s.added / s.total) * 100).toFixed(1) : '0.0' }))
+    .sort((a, b) => b.added - a.added)
+    .slice(0, 8);
+
+  const datedApps = apps.filter(a => a.date);
+  const last7 = datedApps.filter(a => daysSinceIsoDate(a.date) <= 7).length;
+  const last30 = datedApps.filter(a => daysSinceIsoDate(a.date) <= 30).length;
+  const weeklyRate = last30 > 0 ? (last30 / 4.3).toFixed(1) : '0';
+
+  // Build funnel bars
+  const funnelData = [
+    { label: 'Evaluated', count: totalApps, color: '#cdd6f4' },
+    { label: 'Applied', count: applied, color: '#89b4fa' },
+    { label: 'Responded', count: responded, color: '#94e2d5' },
+    { label: 'Interview', count: interviewed, color: '#cba6f7' },
+    { label: 'Offer', count: offered, color: '#a6e3a1' },
+    { label: 'Rejected', count: rejected, color: '#f38ba8' },
+  ];
+  const funnelHtml = funnelData.map(s => {
+    const pct = totalApps > 0 ? ((s.count / totalApps) * 100).toFixed(0) : 0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px">' +
+      '<span style="min-width:70px;text-align:right;color:var(--subtext)">' + s.label + '</span>' +
+      '<div style="flex:1;height:12px;background:var(--surface0);border-radius:3px">' +
+      '<div style="width:' + pct + '%;height:100%;background:' + s.color + ';border-radius:3px;min-width:' + (s.count > 0 ? '2px' : '0') + '"></div>' +
+      '</div>' +
+      '<span style="min-width:40px;font-size:11px;color:' + s.color + '">' + s.count + ' (' + pct + '%)</span>' +
+      '</div>';
+  }).join('');
+
+  // Build source bars
+  const maxAdded = topSources.length > 0 ? topSources[0].added || 1 : 1;
+  const sourceHtml = topSources.length > 0 ? topSources.map(s => {
+    const pct = ((s.added / maxAdded) * 100).toFixed(0);
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:11px">' +
+      '<span style="min-width:120px;text-align:right;color:var(--subtext);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + s.portal + '</span>' +
+      '<div style="flex:1;height:8px;background:var(--surface0);border-radius:2px">' +
+      '<div style="width:' + pct + '%;height:100%;background:#89dceb;border-radius:2px"></div>' +
+      '</div>' +
+      '<span style="min-width:50px;font-size:10px;color:var(--overlay0)">' + s.added + ' (' + s.hitRate + '%)</span>' +
+      '</div>';
+  }).join('') : '<div class="muted" style="font-size:12px">No scan history data yet.</div>';
+
+  return `<div class="section">
+    <div class="section-header">
+      <h2>Application Analytics</h2>
+      <span class="count">${totalApps} total | ${avgScore} avg score | ${weeklyRate}/week pace</span>
+    </div>
+    <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Conversion Funnel</div>
+        ${funnelHtml}
+        <div style="margin-top:8px;font-size:11px;color:var(--overlay0)">
+          Response rate: <strong style="color:var(--teal)">${convRate}%</strong> |
+          Interview rate: <strong style="color:var(--mauve)">${intRate}%</strong>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Score Distribution</div>
+        <div style="display:flex;gap:12px;margin-bottom:12px">
+          <div style="text-align:center;flex:1;padding:8px;background:var(--surface0);border-radius:6px">
+            <div style="font-size:20px;font-weight:700;color:#a6e3a1">${above4}</div>
+            <div style="font-size:10px;color:var(--subtext)">Score 4+</div>
+          </div>
+          <div style="text-align:center;flex:1;padding:8px;background:var(--surface0);border-radius:6px">
+            <div style="font-size:20px;font-weight:700;color:#f9e2af">${above3}</div>
+            <div style="font-size:10px;color:var(--subtext)">Score 3-4</div>
+          </div>
+          <div style="text-align:center;flex:1;padding:8px;background:var(--surface0);border-radius:6px">
+            <div style="font-size:20px;font-weight:700;color:#f38ba8">${below3}</div>
+            <div style="font-size:10px;color:var(--subtext)">Score &lt;3</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--overlay0)">
+          Avg: <strong style="color:var(--text)">${avgScore}/5</strong> |
+          Last 7d: <strong>${last7}</strong> |
+          Last 30d: <strong>${last30}</strong>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Source Performance (scan history)</div>
+        ${sourceHtml}
+      </div>
+    </div>
+  </div>`;
+}
+
 const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Career-Ops Dashboard</title>
-<meta http-equiv="refresh" content="3600">
+<meta http-equiv="refresh" content="300">
 <style>
   :root {
     --base:    #1e1e2e;
@@ -1085,7 +1224,7 @@ const html = `<!DOCTYPE html>
     <h1>⚡ Career-Ops</h1>
     <div class="subtitle">Job Search Command Center</div>
   </div>
-  <div class="gen-time">Generated ${generatedAt}</div>
+  <div class="gen-time">Generated ${generatedAt} <span id="countdown" style="color:var(--mauve);margin-left:4px"></span></div>
   <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
 </div>
 
@@ -1301,6 +1440,99 @@ const html = `<!DOCTYPE html>
 
   ${generateApplyQueue(apps)}
 
+  <!-- Application Analytics -->
+  ${generateAnalytics()}
+
+  <!-- Offer Comparison (apps with score >= 4.0) -->
+  ${(() => {
+    const topApps = apps.filter(a => a.score !== null && a.score >= 4.0);
+    if (topApps.length < 2) return '';
+    topApps.sort((a, b) => (b.priority?.priorityScore ?? 0) - (a.priority?.priorityScore ?? 0));
+    return `<div class="section">
+      <div class="section-header">
+        <h2>Offer Comparison</h2>
+        <span class="count">${topApps.length} top opportunities (score &ge; 4.0)</span>
+      </div>
+      <div style="overflow-x:auto;padding:0">
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr style="color:var(--subtext);text-align:left;border-bottom:1px solid var(--surface0)">
+            <th style="padding:10px 12px">Company</th>
+            <th style="padding:10px 12px">Role</th>
+            <th style="padding:10px 12px">Score</th>
+            <th style="padding:10px 12px">Salary</th>
+            <th style="padding:10px 12px">Remote</th>
+            <th style="padding:10px 12px">Status</th>
+            <th style="padding:10px 12px">Archetype</th>
+          </tr></thead>
+          <tbody>
+            ${topApps.map((a, i) => {
+              const bg = i === 0 ? 'rgba(166,227,161,0.08)' : 'transparent';
+              const medal = i === 0 ? ' style="color:#f9e2af;font-weight:700"' : '';
+              const sal = a.reportMeta?.salary || a.salary || '—';
+              const remote = a.remote || '—';
+              const arch = a.reportMeta?.archetype || '—';
+              const sc = a.score ? a.score.toFixed(1) : '—';
+              const scColor = a.score >= 4.5 ? '#a6e3a1' : a.score >= 4 ? '#f9e2af' : '#cdd6f4';
+              return `<tr style="background:${bg};border-bottom:1px solid var(--surface0)">
+                <td style="padding:8px 12px"><strong${medal}>${i === 0 ? '★ ' : ''}${a.company}</strong></td>
+                <td style="padding:8px 12px">${a.role}</td>
+                <td style="padding:8px 12px;color:${scColor};font-weight:700">${sc}/5</td>
+                <td style="padding:8px 12px">${sal}</td>
+                <td style="padding:8px 12px">${remote}</td>
+                <td style="padding:8px 12px"><span class="badge" style="color:var(--blue);border-color:var(--blue);background:rgba(137,180,250,0.1)">${a.status}</span></td>
+                <td style="padding:8px 12px;font-size:11px;color:var(--subtext)">${arch}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  })()}
+
+  <!-- Application Timeline -->
+  ${(() => {
+    const timelineApps = apps.filter(a => a.date);
+    if (timelineApps.length < 2) return '';
+    const statusColors = {
+      'GO': '#a6e3a1', 'Conditional GO': '#f9e2af', 'Ready to Submit': '#89b4fa',
+      'Applied': '#74c7ec', 'In Progress': '#89dceb', 'Interview': '#cba6f7',
+      'Offer': '#a6e3a1', 'Rejected': '#f38ba8', 'Discarded': '#6c7086',
+      'SKIP': '#585b70', 'Contact': '#94e2d5', 'Responded': '#f5c2e7',
+      'Evaluated': '#fab387',
+    };
+    const now = new Date();
+    const dates = timelineApps.map(a => new Date(a.date));
+    const earliest = new Date(Math.min(...dates));
+    const totalDays = Math.max(1, Math.ceil((now - earliest) / 86400000));
+    return `<div class="section">
+      <div class="section-header">
+        <h2>Application Timeline</h2>
+        <span class="count">${timelineApps.length} applications over ${totalDays} days</span>
+      </div>
+      <div style="padding:16px 20px;overflow-x:auto">
+        ${timelineApps.slice(0, 20).map(a => {
+          const start = new Date(a.date);
+          const daysSinceStart = Math.ceil((start - earliest) / 86400000);
+          const leftPct = ((daysSinceStart / totalDays) * 100).toFixed(1);
+          const durationDays = Math.ceil((now - start) / 86400000);
+          const widthPct = Math.max(2, ((durationDays / totalDays) * 100)).toFixed(1);
+          const color = statusColors[a.status] || '#cdd6f4';
+          return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11px">
+            <span style="min-width:100px;text-align:right;color:var(--subtext);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.company}</span>
+            <div style="flex:1;position:relative;height:14px;background:var(--surface0);border-radius:3px">
+              <div style="position:absolute;left:${leftPct}%;width:${widthPct}%;height:100%;background:${color};border-radius:3px;opacity:0.8" title="${a.company} — ${a.role} (${a.status}, ${a.date})"></div>
+            </div>
+            <span style="min-width:60px;font-size:10px;color:${color}">${a.status}</span>
+          </div>`;
+        }).join('')}
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--overlay0);margin-top:8px">
+          <span>${earliest.toISOString().slice(0, 10)}</span>
+          <span>Today</span>
+        </div>
+      </div>
+    </div>`;
+  })()}
+
   <!-- Applications Table -->
   <div class="section">
     <div class="tabs" id="tabs">
@@ -1416,6 +1648,27 @@ const html = `<!DOCTYPE html>
 </div>
 
 <script>
+// Auto-refresh countdown timer
+(function() {
+  const genTime = new Date('${generatedAt}');
+  const refreshInterval = 300; // seconds
+  const el = document.getElementById('countdown');
+  if (!el) return;
+  function update() {
+    const elapsed = Math.floor((Date.now() - genTime.getTime()) / 1000);
+    const remaining = Math.max(0, refreshInterval - elapsed);
+    if (remaining > 0) {
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+      el.textContent = '(refresh in ' + m + ':' + String(s).padStart(2, '0') + ')';
+    } else {
+      el.textContent = '(refreshing...)';
+    }
+  }
+  update();
+  setInterval(update, 1000);
+})();
+
 const DATA = ${JSON.stringify(apps)};
 let currentFilter = 'ALL';
 let currentSort = 'num';
@@ -1485,6 +1738,7 @@ function render() {
       \`Age \${app.priority?.ageDays ?? 'n/a'}d\`,
       \`Freshness \${app.priority?.freshnessDecay ?? 'n/a'}\`,
       \`Confidence \${app.priority?.confidence ?? 'n/a'}\`,
+      app.priority?.workArrangement ? \`Loc \${app.priority.workArrangement} ×\${app.priority.locationMultiplier}\` : '',
       app.queueDecision ? \`Queue \${app.queueDecision}\` : '',
       app.remote ? \`Remote \${app.remote}\` : '',
       app.salary ? \`Comp \${app.salary}\` : '',

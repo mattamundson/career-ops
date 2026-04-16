@@ -51,6 +51,7 @@ type reportSummary struct {
 
 // Sort modes
 const (
+	sortFocus   = "focus" // score × location bias (hybrid / MSP / on-site above same-score remote)
 	sortScore   = "score"
 	sortDate    = "date"
 	sortCompany = "company"
@@ -83,7 +84,7 @@ var pipelineTabs = []pipelineTab{
 	{filterSkip, "SKIP"},
 }
 
-var sortCycle = []string{sortScore, sortDate, sortCompany, sortStatus}
+var sortCycle = []string{sortFocus, sortScore, sortDate, sortCompany, sortStatus}
 
 var statusOptions = []string{"Evaluated", "Applied", "Responded", "Contact", "Interview", "Offer", "Rejected", "Discarded", "SKIP"}
 
@@ -103,7 +104,8 @@ type PipelineModel struct {
 	width, height int
 	theme         theme.Theme
 	careerOpsPath string
-	reportCache   map[string]reportSummary
+	reportCache      map[string]reportSummary
+	automationHint   string // last scanner.run.completed from data/events (optional)
 	// Status picker sub-state
 	statusPicker bool
 	statusCursor int
@@ -112,16 +114,17 @@ type PipelineModel struct {
 // NewPipelineModel creates a new pipeline screen.
 func NewPipelineModel(t theme.Theme, apps []model.CareerApplication, metrics model.PipelineMetrics, careerOpsPath string, width, height int) PipelineModel {
 	m := PipelineModel{
-		apps:          apps,
-		metrics:       metrics,
-		sortMode:      sortScore,
-		activeTab:     0,
-		viewMode:      "grouped",
-		width:         width,
-		height:        height,
-		theme:         t,
-		careerOpsPath: careerOpsPath,
-		reportCache:   make(map[string]reportSummary),
+		apps:            apps,
+		metrics:         metrics,
+		sortMode:        sortFocus,
+		activeTab:       0,
+		viewMode:        "grouped",
+		width:           width,
+		height:          height,
+		theme:           t,
+		careerOpsPath:   careerOpsPath,
+		reportCache:     make(map[string]reportSummary),
+		automationHint:  data.LastScannerHint(careerOpsPath),
 	}
 	m.applyFilterAndSort()
 	return m
@@ -319,6 +322,23 @@ func (m PipelineModel) handleStatusPicker(msg tea.KeyMsg) (PipelineModel, tea.Cm
 	return m, nil
 }
 
+func sortModeLabel(mode string) string {
+	switch mode {
+	case sortFocus:
+		return "focus"
+	case sortScore:
+		return "score"
+	case sortDate:
+		return "date"
+	case sortCompany:
+		return "company"
+	case sortStatus:
+		return "status"
+	default:
+		return mode
+	}
+}
+
 func (m PipelineModel) loadCurrentReport() tea.Cmd {
 	app, ok := m.CurrentApp()
 	if !ok || app.ReportPath == "" {
@@ -331,6 +351,40 @@ func (m PipelineModel) loadCurrentReport() tea.Cmd {
 	report := app.ReportPath
 	return func() tea.Msg {
 		return PipelineLoadReportMsg{CareerOpsPath: path, ReportPath: report}
+	}
+}
+
+// focusSortKeyApp mirrors dashboard apply-queue ordering (hybrid / on-site / MSP above same-score remote).
+func (m *PipelineModel) focusSortKeyApp(app model.CareerApplication) float64 {
+	var remote, tldr string
+	if s, ok := m.reportCache[app.ReportPath]; ok {
+		remote = s.remote
+		tldr = s.tldr
+	}
+	return data.FocusSortKey(app.Score, remote, app.Role, app.Notes, tldr, "")
+}
+
+func (m *PipelineModel) lessBySortMode(a, b model.CareerApplication) bool {
+	switch m.sortMode {
+	case sortFocus:
+		ki, kj := m.focusSortKeyApp(a), m.focusSortKeyApp(b)
+		if ki != kj {
+			return ki > kj
+		}
+		if a.Score != b.Score {
+			return a.Score > b.Score
+		}
+		return strings.ToLower(a.Company) < strings.ToLower(b.Company)
+	case sortScore:
+		return a.Score > b.Score
+	case sortDate:
+		return a.Date > b.Date
+	case sortCompany:
+		return strings.ToLower(a.Company) < strings.ToLower(b.Company)
+	case sortStatus:
+		return data.StatusPriority(a.Status) < data.StatusPriority(b.Status)
+	default:
+		return a.Score > b.Score
 	}
 }
 
@@ -356,24 +410,9 @@ func (m *PipelineModel) applyFilterAndSort() {
 	}
 
 	// Sort
-	switch m.sortMode {
-	case sortScore:
-		sort.SliceStable(filtered, func(i, j int) bool {
-			return filtered[i].Score > filtered[j].Score
-		})
-	case sortDate:
-		sort.SliceStable(filtered, func(i, j int) bool {
-			return filtered[i].Date > filtered[j].Date
-		})
-	case sortCompany:
-		sort.SliceStable(filtered, func(i, j int) bool {
-			return strings.ToLower(filtered[i].Company) < strings.ToLower(filtered[j].Company)
-		})
-	case sortStatus:
-		sort.SliceStable(filtered, func(i, j int) bool {
-			return data.StatusPriority(filtered[i].Status) < data.StatusPriority(filtered[j].Status)
-		})
-	}
+	sort.SliceStable(filtered, func(i, j int) bool {
+		return m.lessBySortMode(filtered[i], filtered[j])
+	})
 
 	// In grouped mode, always sort by status priority first, then by selected sort within groups
 	if m.viewMode == "grouped" {
@@ -383,26 +422,23 @@ func (m *PipelineModel) applyFilterAndSort() {
 			if pi != pj {
 				return pi < pj
 			}
-			// Within same group, use selected sort
-			switch m.sortMode {
-			case sortScore:
-				return filtered[i].Score > filtered[j].Score
-			case sortDate:
-				return filtered[i].Date > filtered[j].Date
-			case sortCompany:
-				return strings.ToLower(filtered[i].Company) < strings.ToLower(filtered[j].Company)
-			default:
-				return filtered[i].Score > filtered[j].Score
-			}
+			return m.lessBySortMode(filtered[i], filtered[j])
 		})
 	}
 
 	m.filtered = filtered
 }
 
+func (m PipelineModel) headerExtraLines() int {
+	if strings.TrimSpace(m.automationHint) == "" {
+		return 0
+	}
+	return 1
+}
+
 // adjustScroll updates scrollOffset so the cursor stays visible.
 func (m *PipelineModel) adjustScroll() {
-	availHeight := m.height - 12 // header + tabs(2) + metrics + sortbar + footer + preview
+	availHeight := m.height - 12 - m.headerExtraLines() // +optional automation hint row
 	if availHeight < 5 {
 		availHeight = 5
 	}
@@ -461,7 +497,8 @@ func (m PipelineModel) View() string {
 
 	// Calculate available height for body
 	previewLines := strings.Count(preview, "\n") + 1
-	availHeight := m.height - 7 - previewLines // header + tabs(2) + metrics + sortbar + help + preview
+	headerExtra := strings.Count(header, "\n") // second row = automation hint
+	availHeight := m.height - 7 - previewLines - headerExtra // header + tabs(2) + metrics + sortbar + help + preview
 	if availHeight < 3 {
 		availHeight = 3
 	}
@@ -504,7 +541,17 @@ func (m PipelineModel) renderHeader() string {
 		gap = 1
 	}
 
-	return style.Render(title + strings.Repeat(" ", gap) + info)
+	line1 := title + strings.Repeat(" ", gap) + info
+	if strings.TrimSpace(m.automationHint) == "" {
+		return style.Render(line1)
+	}
+
+	dim := lipgloss.NewStyle().
+		Foreground(m.theme.Subtext).
+		Width(m.width - 4).
+		MaxWidth(m.width - 4)
+	hint := dim.Render(m.automationHint)
+	return style.Render(line1 + "\n" + hint)
 }
 
 func (m PipelineModel) renderTabs() string {
@@ -587,7 +634,7 @@ func (m PipelineModel) renderSortBar() string {
 		Width(m.width).
 		Padding(0, 2)
 
-	sortLabel := fmt.Sprintf("[Sort: %s]", m.sortMode)
+	sortLabel := fmt.Sprintf("[Sort: %s]", sortModeLabel(m.sortMode))
 	viewLabel := fmt.Sprintf("[View: %s]", m.viewMode)
 	count := fmt.Sprintf("%d shown", len(m.filtered))
 
