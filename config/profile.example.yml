@@ -56,7 +56,8 @@ compensation:
   target_range: "$150K-200K"     # Your target total comp
   currency: "USD"
   minimum: "$120K"               # Walk-away number
-  location_flexibility: "Remote preferred, 1 week/month on-site possible"
+  # Fork: dashboard Priority + TUI default "focus" sort use JD/report text to boost hybrid / on-site / metro-local vs same-score fully remote (see README, scripts/lib/scoring-core.mjs). Narrative here is for humans/ATS; sorting does not parse YAML.
+  location_flexibility: "Remote preferred; hybrid or local metro acceptable when the posting supports it"
 
 location:
   country: "United States"
