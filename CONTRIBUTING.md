@@ -42,8 +42,18 @@ node cv-sync-check.mjs        # Config check
 
 # Dashboard
 cd dashboard && go build -o career-dashboard .
-./career-dashboard --path .
+./career-dashboard -path ..
 ```
+
+### Windows and Go (`dashboard/`)
+
+On some Windows machines, `go test ./...` or `go vet ./...` may be blocked by enterprise Application Control while `go build` still works. The canonical gate for dashboard changes is **CI** (Linux job in `.github/workflows/verify.yml`: `go vet` then `go test`). If local tests fail for policy reasons, push a branch and rely on the workflow, or run the same commands in WSL.
+
+### Operator surfaces (this fork)
+
+HTML `dashboard.html` vs Go TUI, refresh commands, and what dashboards omit: [docs/WHICH-DASHBOARD-WHEN.md](docs/WHICH-DASHBOARD-WHEN.md).
+
+Before claiming a job posting is still live in docs or outreach, verify the JD URL in a real browser session (Playwright or manual)—not search snippets alone. See `CLAUDE.md` offer verification rules.
 
 ## Need Help?
 

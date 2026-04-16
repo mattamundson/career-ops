@@ -1,0 +1,51 @@
+name: Verify
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: CI profile (cv-sync-check requires a file)
+        run: cp config/profile.example.yml config/profile.yml
+
+      - name: Pipeline integrity + CV sync + index + dashboard
+        run: pnpm run verify:ci
+
+      - name: Unit tests
+        run: pnpm run test:scoring
+
+  dashboard-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: dashboard/go.mod
+          cache-dependency-path: dashboard/go.sum
+
+      - name: Go vet (dashboard)
+        working-directory: dashboard
+        run: go vet ./...
+
+      - name: Go test (dashboard)
+        working-directory: dashboard
+        run: go test ./...
