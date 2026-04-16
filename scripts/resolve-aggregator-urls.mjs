@@ -108,16 +108,34 @@ async function resolveUrl(page, aggregatorUrl) {
       return null;
     });
 
+    const AUTH_WALL_RE = /\/(signup|login|authwall|m\/login|uas\/login|checkpoint|cold-join)/i;
+
     if (externalUrl) {
-      // Follow the link to get the final URL (after redirects)
-      try {
-        const resp = await page.goto(externalUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
-        result.resolved = page.url();
-        result.atsType = detectAtsType(result.resolved);
-      } catch {
-        // If navigation fails, use the extracted URL directly
-        result.resolved = externalUrl;
-        result.atsType = detectAtsType(externalUrl);
+      if (AUTH_WALL_RE.test(externalUrl)) {
+        result.error = 'auth-required (try LinkedIn MCP get_job_details)';
+      } else {
+        // Follow the link to get the final URL (after redirects)
+        try {
+          await page.goto(externalUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+          const finalUrl = page.url();
+          const atsType = detectAtsType(finalUrl);
+          if (atsType === 'unknown' || AUTH_WALL_RE.test(finalUrl)) {
+            // Landed on another auth wall or non-ATS domain — reject
+            result.error = 'auth-required (try LinkedIn MCP get_job_details)';
+          } else {
+            result.resolved = finalUrl;
+            result.atsType = atsType;
+          }
+        } catch {
+          // Navigation failed — only accept the extracted URL if it's a known ATS
+          const atsType = detectAtsType(externalUrl);
+          if (atsType !== 'unknown') {
+            result.resolved = externalUrl;
+            result.atsType = atsType;
+          } else {
+            result.error = 'navigation-failed';
+          }
+        }
       }
     } else {
       result.error = 'no-external-apply-link';
