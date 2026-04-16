@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "linkedin": {
+      "command": "uvx",
+      "args": ["linkedin-scraper-mcp@latest"]
+    }
+  }
+}
