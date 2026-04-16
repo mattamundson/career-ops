@@ -2,8 +2,9 @@
 /**
  * auto-scan.mjs — Multi-source job scanner (ATS APIs, JobSpy, Firecrawl queries, direct boards)
  * Usage: node scripts/auto-scan.mjs [--greenhouse-only] [--jobspy-only] [--direct-only] [--dry-run] [--since=Nd]
+ * Date window: `--since=N` overrides; else `CAREER_OPS_SCAN_SINCE_DAYS` from .env (1–90); else 7.
  *
- * Reads portals.yml, runs enabled sources, filters by title_filter keywords, deduplicates against
+ * Reads portals.yml (`job_board_queries` = optional Firecrawl when `FIRECRAWL_API_KEY` set), runs enabled sources, filters by title_filter keywords, deduplicates against
  * scan-history.tsv + applications.md + pipeline.md, and appends new matches to pipeline.md +
  * scan-history.tsv.
  *
@@ -53,16 +54,38 @@ const DRY_RUN         = argv.includes('--dry-run');
 const GREENHOUSE_ONLY = argv.includes('--greenhouse-only');
 const JOBSPY_ONLY     = argv.includes('--jobspy-only');
 const DIRECT_ONLY     = argv.includes('--direct-only');
+const INCLUDE_INDEED  = argv.includes('--indeed');
+const INCLUDE_CB      = argv.includes('--careerbuilder') || argv.includes('--cb');
+const INCLUDE_LINKEDIN = argv.includes('--linkedin');
 
-function getSinceDays() {
-  const flag = argv.find(a => a.startsWith('--since='));
-  if (!flag) return 7;
-  const val = flag.split('=')[1];
-  const n = parseInt(val, 10);
-  if (isNaN(n)) { console.error(`Invalid --since value: ${val}`); process.exit(1); }
-  return n;
+function clampSinceDays(n) {
+  return Math.min(90, Math.max(1, n));
 }
-const SINCE_DAYS = getSinceDays();
+
+/** CLI `--since=N` wins; else `CAREER_OPS_SCAN_SINCE_DAYS` from .env; else 7. */
+function resolveSinceDays() {
+  const flag = argv.find(a => a.startsWith('--since='));
+  if (flag) {
+    const val = flag.split('=')[1];
+    const n = parseInt(val, 10);
+    if (isNaN(n)) {
+      console.error(`Invalid --since value: ${val}`);
+      process.exit(1);
+    }
+    return { days: clampSinceDays(n), source: 'cli' };
+  }
+  const raw = process.env.CAREER_OPS_SCAN_SINCE_DAYS;
+  if (raw !== undefined && String(raw).trim() !== '') {
+    const n = parseInt(String(raw).trim(), 10);
+    if (!Number.isNaN(n)) {
+      return { days: clampSinceDays(n), source: 'env' };
+    }
+  }
+  return { days: 7, source: 'default' };
+}
+
+const SCAN_SINCE = resolveSinceDays();
+const SINCE_DAYS = SCAN_SINCE.days;
 
 // ---------------------------------------------------------------------------
 // Minimal YAML parser — handles only the subset used in portals.yml
@@ -973,10 +996,15 @@ async function runJobBoardQueries(cfg) {
 
   console.log(`  Running ${queries.length} Firecrawl queries in parallel...`);
   const settled = await Promise.allSettled(
-    queries.map(q =>
-      firecrawl.search(q.query, { limit: 20, lang: 'en', country: 'us' })
-        .then(result => ({ q, result }))
-    )
+    queries.map((q) => {
+      const raw = Number(q.limit);
+      const limit = Number.isFinite(raw)
+        ? Math.min(50, Math.max(5, Math.trunc(raw)))
+        : 20;
+      return firecrawl
+        .search(q.query, { limit, lang: 'en', country: 'us' })
+        .then((result) => ({ q, result }));
+    })
   );
 
   const allResults = [];
@@ -1212,7 +1240,15 @@ async function runJobSpyScan() {
 // Policy: scripts/lib/source-labels.mjs + docs/SUPPORTED-JOB-SOURCES.md
 // ---------------------------------------------------------------------------
 async function runDirectBoardScans(cfg) {
-  const scans = (cfg.direct_job_board_queries || []).filter(scan => scan.enabled !== false);
+  let scans = (cfg.direct_job_board_queries || []).filter(scan => scan.enabled !== false);
+  const subsetFilters = [];
+  if (INCLUDE_INDEED)   subsetFilters.push('indeed');
+  if (INCLUDE_CB)       subsetFilters.push('careerbuilder');
+  if (INCLUDE_LINKEDIN) subsetFilters.push('linkedin-mcp');
+  if (subsetFilters.length) {
+    scans = scans.filter(s => subsetFilters.includes(s.name));
+    console.log(`  Direct scan subset: ${subsetFilters.join(', ')}`);
+  }
   if (!scans.length) return [];
 
   console.log('');
@@ -1328,7 +1364,7 @@ async function main() {
   console.log('━'.repeat(40));
   console.log(`  Mode:     ${DRY_RUN ? 'DRY RUN' : 'LIVE'}`);
   console.log(`  Filter:   greenhouse-only=${GREENHOUSE_ONLY}, direct-only=${DIRECT_ONLY}`);
-  console.log(`  Window:   last ${SINCE_DAYS} day(s)`);
+  console.log(`  Window:   last ${SINCE_DAYS} day(s) (${SCAN_SINCE.source})`);
   console.log('');
 
   // Load config
