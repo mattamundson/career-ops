@@ -3,6 +3,9 @@
  * scan-report.mjs — Post-scan summary report for career-ops
  * Usage: node scripts/scan-report.mjs [--since=Nd]
  *
+ * Date window: `--since=N` (1–90) if passed; else `CAREER_OPS_SCAN_REPORT_SINCE_DAYS` from `.env` when set;
+ * else **all-time** (no `first_seen` filter). Loads `.env` via `load-env.mjs` before reading env.
+ *
  * Reads:
  *   data/pipeline.md       — pending/processed job entries
  *   data/scan-history.tsv  — url, first_seen, portal, title, company, status
@@ -27,6 +30,8 @@ import {
   rollupSourcesByPortal,
 } from './lib/source-labels.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { loadProjectEnv } from './load-env.mjs';
+import { resolveScanReportSinceDays } from './lib/scan-window.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -37,20 +42,21 @@ const HISTORY_TSV  = resolve(ROOT, 'data', 'scan-history.tsv');
 const PIPELINE_MD  = resolve(ROOT, 'data', 'pipeline.md');
 const PORTALS_YML  = resolve(ROOT, 'portals.yml');
 
+loadProjectEnv(ROOT);
+
 // ---------------------------------------------------------------------------
 // CLI flags
 // ---------------------------------------------------------------------------
 const argv = process.argv.slice(2);
 
-function getSinceDays() {
-  const flag = argv.find(a => a.startsWith('--since='));
-  if (!flag) return null; // null = all-time (no filter)
-  const val = flag.split('=')[1];
-  const n = parseInt(val, 10);
-  if (isNaN(n)) { console.error(`Invalid --since value: ${val}`); process.exit(1); }
-  return n;
+let scanReportWindow;
+try {
+  scanReportWindow = resolveScanReportSinceDays({ argv });
+} catch (err) {
+  console.error(err.message);
+  process.exit(1);
 }
-const SINCE_DAYS = getSinceDays();
+const SINCE_DAYS = scanReportWindow.days;
 
 // ---------------------------------------------------------------------------
 // Title keyword scoring
@@ -194,13 +200,14 @@ function loadPipelinePending() {
     if (line.startsWith('## '))        { inPending = false; continue; }
     if (!inPending) continue;
 
-    // "- [ ] https://... | Company | Title"
-    const m = line.match(/^-\s+\[[ x]\]\s+(https?:\/\/\S+)\s*\|\s*([^|]+)\|\s*(.+)/i);
+    // "- [ ] https://... | Company | Title [| Location]"
+    const m = line.match(/^-\s+\[[ x]\]\s+(https?:\/\/\S+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*(?:\|\s*(.+?)\s*)?$/i);
     if (m) {
       entries.push({
-        url:     m[1].trim(),
-        company: m[2].trim(),
-        title:   m[3].trim(),
+        url:      m[1].trim(),
+        company:  m[2].trim(),
+        title:    m[3].trim(),
+        location: (m[4] || '').trim(),
       });
     }
   }
@@ -239,8 +246,8 @@ function main() {
   console.log('');
   console.log(`Scan Report — ${today}`);
   console.log('━'.repeat(50));
-  if (SINCE_DAYS) {
-    console.log(`  Window: last ${SINCE_DAYS} day(s)`);
+  if (SINCE_DAYS != null) {
+    console.log(`  Window: last ${SINCE_DAYS} day(s) (${scanReportWindow.source})`);
   } else {
     console.log('  Window: all-time');
   }
@@ -258,7 +265,7 @@ function main() {
       type: 'scan.report.empty',
       status: 'skipped',
       summary: 'No scan-history rows and no pending pipeline items.',
-      details: { since_days: SINCE_DAYS },
+      details: { since_days: SINCE_DAYS, since_source: scanReportWindow.source },
     });
     return;
   }
@@ -461,6 +468,7 @@ function main() {
     summary: `Scan report: ${addedRows.length} added, ${errorRows.length} errors, ${dupRows.length} dupes (window rows ${rows.length}).`,
     details: {
       since_days: SINCE_DAYS,
+      since_source: scanReportWindow.source,
       added: addedRows.length,
       errors: errorRows.length,
       duplicates: dupRows.length,

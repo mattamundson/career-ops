@@ -163,8 +163,15 @@ def load_seen_urls() -> set:
     return seen
 
 # ---------------------------------------------------------------------------
-# Append entries to pipeline.md (format: - [ ] URL | Company | Title)
+# Append entries to pipeline.md
+# Schema: `- [ ] URL | Company | Title | Location` (Location appended when present).
+# Legacy 3-column rows (no Location) remain readable by downstream parsers.
 # ---------------------------------------------------------------------------
+def _pipeline_row(e: dict) -> str:
+    row = f"- [ ] {e['url']} | {e['company']} | {e['title']}"
+    loc = str(e.get("location", "") or "").replace("|", "/").replace("\n", " ").strip()
+    return f"{row} | {loc}" if loc else row
+
 def append_to_pipeline(entries: list):
     if not PIPELINE_MD.exists():
         PIPELINE_MD.write_text(
@@ -178,7 +185,7 @@ def append_to_pipeline(entries: list):
         text += f"\n{marker}\n"
         idx = text.rfind(marker)
 
-    lines = [f"- [ ] {e['url']} | {e['company']} | {e['title']}" for e in entries]
+    lines = [_pipeline_row(e) for e in entries]
     insert_after = idx + len(marker)
     text = text[:insert_after] + "\n" + "\n".join(lines) + "\n" + text[insert_after:]
     PIPELINE_MD.write_text(text, encoding="utf-8")

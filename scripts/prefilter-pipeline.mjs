@@ -6,6 +6,7 @@
  *   node scripts/prefilter-pipeline.mjs              — generate templates for all pending pipeline entries
  *   node scripts/prefilter-pipeline.mjs --list        — list all prefilter results and their statuses
  *   node scripts/prefilter-pipeline.mjs --semantic    — include semantic score from match-jd.mjs output if present
+ *   node scripts/prefilter-pipeline.mjs --ai-score    — compute AI semantic score via OpenAI embeddings (requires OPENAI_API_KEY)
  *   node scripts/prefilter-pipeline.mjs --dry-run     — show what would be created without writing files
  *
  * No external dependencies — ESM only.
@@ -15,6 +16,8 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { resolve, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
+import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { computeSemanticScore } from './lib/semantic-match.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -33,6 +36,8 @@ const INTEL_DIR        = resolve(ROOT, 'data', 'company-intel');
 const argv = process.argv.slice(2);
 const LIST_MODE  = argv.includes('--list');
 const SEMANTIC   = argv.includes('--semantic');
+const AI_SCORE   = argv.includes('--ai-score');
+const SKIP_SEMANTIC = argv.includes('--skip-semantic');
 const DRY_RUN    = argv.includes('--dry-run');
 
 // ---------------------------------------------------------------------------
@@ -57,8 +62,9 @@ function buildFilename(company, title) {
 }
 
 // ---------------------------------------------------------------------------
-// Parse pipeline.md — extract all `- [ ] URL | Company | Title` entries
-// Returns: Array<{ url, company, title, raw }>
+// Parse pipeline.md — extract all `- [ ] URL | Company | Title [| Location]` entries.
+// Location is the optional 4th column (added 2026-04-16). Legacy 3-column rows parse fine.
+// Returns: Array<{ url, company, title, location, raw }>
 // ---------------------------------------------------------------------------
 function parsePipelineEntries() {
   if (!existsSync(PIPELINE)) {
@@ -71,19 +77,21 @@ function parsePipelineEntries() {
   const entries = [];
 
   for (const line of lines) {
-    // Match: - [ ] URL | Company | Title
-    // The checkbox can also be - [x] for already-processed items — skip those
-    const m = line.match(/^-\s+\[\s\]\s+(https?:\/\/[^\s|]+)\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*$/);
+    // Match: - [ ] URL | Company | Title [| Location]
+    // The checkbox can also be - [x] for already-processed items — skip those.
+    // Title captures non-greedy; Location is an optional 4th pipe-separated field.
+    const m = line.match(/^-\s+\[\s\]\s+(https?:\/\/[^\s|]+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*(?:\|\s*(.+?)\s*)?$/);
     if (!m) continue;
 
-    const [, url, company, title] = m;
+    const [, url, company, title, location = ''] = m;
     if (!url || !company || !title) continue;
 
     entries.push({
-      url:     url.trim(),
-      company: company.trim(),
-      title:   title.trim(),
-      raw:     line.trim(),
+      url:      url.trim(),
+      company:  company.trim(),
+      title:    title.trim(),
+      location: location.trim(),
+      raw:      line.trim(),
     });
   }
 
@@ -317,7 +325,8 @@ async function generateTemplates() {
   console.log('━'.repeat(50));
   console.log(`  Pipeline entries (pending): ${entries.length}`);
   console.log(`  Output dir: ${PREFILTER_DIR}`);
-  if (SEMANTIC)  console.log('  Semantic scores: enabled');
+  if (SEMANTIC)  console.log('  Semantic scores: enabled (match-jd)');
+  if (AI_SCORE)  console.log('  AI scoring: enabled (OpenAI embeddings)');
   if (DRY_RUN)   console.log('  Mode: DRY RUN (no files written)');
   console.log('');
 
@@ -341,8 +350,28 @@ async function generateTemplates() {
       continue;
     }
 
-    const semanticScore = SEMANTIC ? loadSemanticScore(entry.company, entry.title) : null;
+    let semanticScore = SEMANTIC ? loadSemanticScore(entry.company, entry.title) : null;
     if (semanticScore) withSem++;
+
+    // AI-powered semantic scoring via OpenAI embeddings (requires OPENAI_API_KEY in .env)
+    if (AI_SCORE && !SKIP_SEMANTIC && !semanticScore) {
+      try {
+        const cvPath = resolve(ROOT, 'cv.md');
+        if (existsSync(cvPath)) {
+          const cvText = readFileSync(cvPath, 'utf8');
+          // Use title + company as JD proxy (full JD requires fetching the URL)
+          const jdProxy = `Job Title: ${entry.title}\nCompany: ${entry.company}\nURL: ${entry.url}`;
+          const result = await computeSemanticScore(jdProxy, cvText);
+          if (result.overallScore > 0) {
+            semanticScore = result.overallScore.toFixed(3);
+            withSem++;
+            console.log(`    [AI] Semantic score: ${semanticScore} | Matches: ${result.topMatches.join(', ') || 'none'}`);
+          }
+        }
+      } catch (err) {
+        console.warn(`    [AI] Semantic scoring failed: ${err.message}`);
+      }
+    }
 
     const template = buildTemplate(entry, semanticScore);
 
@@ -362,6 +391,16 @@ async function generateTemplates() {
   console.log(`Skipped:  ${skipped} (already exist)`);
   if (SEMANTIC) console.log(`With semantic score: ${withSem}`);
   console.log('');
+
+  if (!DRY_RUN) {
+    appendAutomationEvent(ROOT, {
+      type: 'prefilter_templates_generated',
+      created,
+      skipped,
+      with_semantic_score: withSem,
+      pipeline_entries: entries.length,
+    });
+  }
 
   if (created > 0 && !DRY_RUN) {
     console.log(`→ Run /prefilter on each entry, then node scripts/prefilter-pipeline.mjs --list`);
