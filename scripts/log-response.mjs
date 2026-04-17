@@ -8,19 +8,24 @@
  *   node scripts/log-response.mjs --new --company "Agility Robotics" --role "Manager, BI" --ats Greenhouse --date 2026-04-10
  *   node scripts/log-response.mjs --app-id 017 --event deferred --reason "Priority reversal — revisit if remote priority returns"
  *   node scripts/log-response.mjs --app-id 025 --event discarded --reason "Offer closed before submission"
+ *   node scripts/log-response.mjs --bulk data/response-batch.yml
  *
  * Event types:
- *   submitted       - Initial application sent (usually via --new for new entries)
- *   acknowledged    - Auto-reply or "received" email from ATS
- *   recruiter_reply - Human recruiter responded (email/call/LinkedIn)
- *   phone_screen    - Phone screen scheduled or completed
- *   interview       - Technical/panel interview scheduled or completed
- *   offer           - Offer received
- *   rejected        - Rejection received
- *   withdrew        - Matt withdrew application
- *   ghosted         - No response after 14 days
- *   deferred        - Pre-submission: paused for priority reasons, may revive (--reason required)
- *   discarded       - Pre-submission: permanently out (offer closed, disqualifier) (--reason required)
+ *   submitted              - Initial application sent (usually via --new for new entries)
+ *   acknowledged           - Auto-reply or "received" email from ATS
+ *   recruiter_reply        - Human recruiter responded (email/call/LinkedIn)
+ *   phone_screen           - Phone screen (generic; use scheduled/done for finer grain)
+ *   phone_screen_scheduled - Phone screen confirmed on calendar
+ *   phone_screen_done      - Phone screen completed
+ *   on_site_scheduled      - On-site / panel confirmed on calendar
+ *   on_site_done           - On-site / panel completed
+ *   interview              - Technical/panel interview (generic)
+ *   offer                  - Offer received
+ *   rejected               - Rejection received
+ *   withdrew               - Matt withdrew application
+ *   ghosted                - No response after 14 days
+ *   deferred               - Pre-submission: paused for priority reasons, may revive (--reason required)
+ *   discarded              - Pre-submission: permanently out (offer closed, disqualifier) (--reason required)
  *
  * Pre-submission events (deferred, discarded) auto-create a responses.md row
  * if the app_id doesn't exist yet, with submitted_at='—'. Use these instead
@@ -33,7 +38,9 @@ import { fileURLToPath } from 'node:url';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
-const RESPONSES_FILE = resolve(ROOT, 'data', 'responses.md');
+const RESPONSES_FILE = process.env.CAREER_OPS_RESPONSES_FILE
+  ? resolve(process.env.CAREER_OPS_RESPONSES_FILE)
+  : resolve(ROOT, 'data', 'responses.md');
 
 // ---- arg parsing ----
 const args = process.argv.slice(2);
@@ -44,6 +51,8 @@ function getArg(name) {
 }
 
 const isNew = args.includes('--new');
+const isBulk = args.includes('--bulk');
+const bulkFile = isBulk ? getArg('bulk') : null;
 const appId = getArg('app-id');
 const company = getArg('company');
 const role = getArg('role');
@@ -55,7 +64,9 @@ const reason = getArg('reason') ?? '';
 
 const VALID_EVENTS = [
   'submitted', 'acknowledged', 'recruiter_reply',
-  'phone_screen', 'interview', 'offer',
+  'phone_screen', 'phone_screen_scheduled', 'phone_screen_done',
+  'on_site_scheduled', 'on_site_done',
+  'interview', 'offer',
   'rejected', 'withdrew', 'ghosted', 'in_progress',
   'deferred', 'discarded',
 ];
@@ -73,6 +84,64 @@ if (!VALID_EVENTS.includes(event)) {
 if (PRE_SUBMIT_EVENTS.has(event) && !reason && !notes) {
   console.error(`[log-response] --event ${event} requires --reason "<explanation>" (or --notes) for audit trail.`);
   process.exit(1);
+}
+
+// ---- bulk loader ----
+// Parses a YAML-ish or JSON file containing multiple events so a burst of
+// recruiter replies can be logged in one shot. YAML schema:
+//   events:
+//     - { app_id: "011", event: acknowledged, date: "2026-04-14", notes: "Auto-reply" }
+//     - { app_id: "013", event: rejected,     date: "2026-04-14" }
+// JSON schema: either `[ { ... }, { ... } ]` or `{ "events": [ ... ] }`.
+function loadBulkEvents(filePath) {
+  if (!existsSync(filePath)) {
+    console.error(`[log-response] Bulk file not found: ${filePath}`);
+    process.exit(1);
+  }
+  const raw = readFileSync(filePath, 'utf8');
+  let parsed;
+  try {
+    if (/^\s*[\[{]/.test(raw)) {
+      parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) parsed = parsed.events || [];
+    } else {
+      // Minimal YAML subset: a top-level `events:` key followed by list items
+      // whose fields are key: value pairs on the same or subsequent lines.
+      const lines = raw.split('\n');
+      const eventIdx = lines.findIndex((l) => l.trim().startsWith('events:'));
+      const events = [];
+      let current = null;
+      for (let i = eventIdx + 1; i >= 1 && i < lines.length; i += 1) {
+        const line = lines[i];
+        if (/^\s*-/.test(line)) {
+          if (current) events.push(current);
+          current = { app_id: null, event: 'submitted', date: new Date().toISOString().slice(0, 10), notes: '', reason: '' };
+        }
+        if (!current) continue;
+        const kv = (key) => new RegExp(`${key}\\s*:\\s*["']?([^"'\\n}]+?)["']?\\s*(?:,|}|$)`);
+        const idMatch = line.match(kv('app_id'));
+        const evMatch = line.match(kv('event'));
+        const dtMatch = line.match(kv('date'));
+        const noMatch = line.match(kv('notes'));
+        const rsMatch = line.match(kv('reason'));
+        if (idMatch) current.app_id = idMatch[1].trim();
+        if (evMatch) current.event = evMatch[1].trim();
+        if (dtMatch) current.date = dtMatch[1].trim();
+        if (noMatch) current.notes = noMatch[1].trim();
+        if (rsMatch) current.reason = rsMatch[1].trim();
+      }
+      if (current) events.push(current);
+      parsed = events.filter((e) => e.app_id);
+    }
+  } catch (err) {
+    console.error(`[log-response] Failed to parse bulk file: ${err.message}`);
+    process.exit(1);
+  }
+  if (!Array.isArray(parsed)) {
+    console.error('[log-response] Bulk file must be a JSON array or YAML with top-level events list');
+    process.exit(1);
+  }
+  return parsed;
 }
 
 // ---- parse responses.md ----
@@ -127,7 +196,37 @@ function computeResponseDays(submittedAt, lastEventAt) {
 const { preamble, header, separator, dataRows, trailingEmpty } = parseResponses();
 const rows = dataRows.map(parseRow);
 
-if (isNew) {
+if (isBulk) {
+  if (!bulkFile) {
+    console.error('[log-response] --bulk requires a file path: --bulk <path>');
+    process.exit(1);
+  }
+  const bulkEvents = loadBulkEvents(bulkFile);
+  let processed = 0;
+  for (const evt of bulkEvents) {
+    if (!evt.app_id) continue;
+    if (!VALID_EVENTS.includes(evt.event)) {
+      console.warn(`[log-response] [bulk] skipping invalid event "${evt.event}" for #${evt.app_id}`);
+      continue;
+    }
+    const paddedId = String(evt.app_id).padStart(3, '0');
+    const row = rows.find((r) => r.app_id === paddedId || r.app_id === evt.app_id);
+    if (!row) {
+      console.warn(`[log-response] [bulk] unknown app_id ${paddedId} — skipping (use --new or pre-submit event first)`);
+      continue;
+    }
+    row.status = evt.event;
+    row.last_event_at = evt.date;
+    row.response_days = computeResponseDays(row.submitted_at, row.last_event_at);
+    const extraNote = evt.reason || evt.notes;
+    if (extraNote) {
+      row.notes = row.notes ? `${row.notes}; ${extraNote}` : extraNote;
+    }
+    processed += 1;
+    console.log(`[log-response] [bulk] #${row.app_id} → ${evt.event} on ${evt.date}`);
+  }
+  console.log(`[log-response] [bulk] processed ${processed}/${bulkEvents.length} events`);
+} else if (isNew) {
   if (!company || !role || !ats) {
     console.error('[log-response] --new requires --company, --role, --ats, and --date');
     process.exit(1);
