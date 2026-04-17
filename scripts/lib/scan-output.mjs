@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const HISTORY_PATH = resolve(ROOT, 'data', 'scan-history.tsv');
 const PIPELINE_PATH = resolve(ROOT, 'data', 'pipeline.md');
-const HISTORY_HEADER = 'url\tfirst_seen\tportal\ttitle\tcompany\tstatus\n';
+const HISTORY_HEADER = 'url\tfirst_seen\tportal\ttitle\tcompany\tstatus\tlocation\n';
 const PIPELINE_SKELETON = '# Job Pipeline — URL Inbox\n\nAdd job URLs here.\n\n## Pending\n\n## Processed\n';
 
 function sanitizeField(value) {
@@ -57,7 +57,7 @@ function appendToHistory(entries, portal, status, historyPath) {
   const today = new Date().toISOString().slice(0, 10);
   const needsHeader = !fs.existsSync(historyPath) || !fs.readFileSync(historyPath, 'utf8').startsWith('url\t');
   const lines = entries.map(entry =>
-    `${sanitizeField(entry.url)}\t${today}\t${sanitizeField(portal)}\t${sanitizeField(entry.title || 'Untitled')}\t${sanitizeField(entry.company || 'Unknown')}\t${sanitizeField(status)}`
+    `${sanitizeField(entry.url)}\t${today}\t${sanitizeField(portal)}\t${sanitizeField(entry.title || 'Untitled')}\t${sanitizeField(entry.company || 'Unknown')}\t${sanitizeField(status)}\t${sanitizeField(entry.location)}`
   ).join('\n');
 
   if (needsHeader) {

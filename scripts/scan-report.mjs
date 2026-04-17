@@ -23,7 +23,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { scoreTitleAgainstFilter } from './lib/scoring-core.mjs';
+import { classifyWorkArrangement, scoreTitleAgainstFilter } from './lib/scoring-core.mjs';
 import {
   operationalStatusLabel,
   portalDisplayLabel,
@@ -150,7 +150,8 @@ function loadTrackedCompanyNames() {
 
 // ---------------------------------------------------------------------------
 // Parse scan-history.tsv
-// Columns: url  first_seen  portal  title  company  status
+// Columns: url  first_seen  portal  title  company  status  [location]
+// location is optional (7th col) — older rows may lack it; reader tolerates.
 // ---------------------------------------------------------------------------
 function loadHistory() {
   if (!existsSync(HISTORY_TSV)) return [];
@@ -167,6 +168,7 @@ function loadHistory() {
     title:      header.indexOf('title'),
     company:    header.indexOf('company'),
     status:     header.indexOf('status'),
+    location:   header.indexOf('location'),
   };
 
   const rows = [];
@@ -180,9 +182,27 @@ function loadHistory() {
       title:      cols[idx.title]      || '',
       company:    cols[idx.company]    || '',
       status:     (cols[idx.status]    || '').trim(),
+      location:   idx.location >= 0 ? (cols[idx.location] || '').trim() : '',
     });
   }
   return rows;
+}
+
+// ---------------------------------------------------------------------------
+// Bucket rows by work arrangement using location + title as signal.
+// Returns counts for: onsite_msp, hybrid_msp, remote, unknown.
+// ---------------------------------------------------------------------------
+function bucketByWorkArrangement(rows) {
+  const counts = { onsite_msp: 0, hybrid_msp: 0, remote: 0, unknown: 0 };
+  for (const r of rows) {
+    const arrangement = classifyWorkArrangement({
+      remote: r.location,
+      role: r.title,
+      notes: r.company,
+    });
+    counts[arrangement] = (counts[arrangement] || 0) + 1;
+  }
+  return counts;
 }
 
 // ---------------------------------------------------------------------------
@@ -288,6 +308,25 @@ function main() {
   console.log(`  Errors                        : ${errorRows.length}`);
   console.log(`  Total rows in window          : ${rows.length}`);
   console.log('');
+
+  // ── Section 1a: Location buckets for new adds ──────────────────────────
+  // Answers: "of what we actually added this window, how much is MSP vs remote?"
+  // Classifier reads location column (7th col, added 2026-04-17). Pre-SSOT
+  // rows lack location and will bucket as unknown — window-scoped reports
+  // should surface mostly-populated buckets for recent scans.
+  if (addedRows.length > 0) {
+    const buckets = bucketByWorkArrangement(addedRows);
+    console.log('LOCATION BUCKETS (new adds only)');
+    console.log('─'.repeat(50));
+    console.log(`  On-site MSP  : ${buckets.onsite_msp}`);
+    console.log(`  Hybrid MSP   : ${buckets.hybrid_msp}`);
+    console.log(`  Remote       : ${buckets.remote}`);
+    console.log(`  Unknown      : ${buckets.unknown}`);
+    const mspTotal = buckets.onsite_msp + buckets.hybrid_msp;
+    const mspPct = addedRows.length > 0 ? Math.round((mspTotal / addedRows.length) * 100) : 0;
+    console.log(`  MSP share    : ${mspTotal}/${addedRows.length} (${mspPct}%)`);
+    console.log('');
+  }
 
   // ── Section 1b: Source status (portals — not employers) ────────────────
   console.log('SOURCE STATUS (by portal)');
@@ -462,6 +501,7 @@ function main() {
   }
   console.log('');
 
+  const addedBuckets = bucketByWorkArrangement(addedRows);
   appendAutomationEvent(ROOT, {
     type: 'scan.report.completed',
     status: 'success',
@@ -474,6 +514,10 @@ function main() {
       duplicates: dupRows.length,
       skipped_title: skippedRows.length - dupRows.length,
       rows_in_window: rows.length,
+      added_onsite_msp: addedBuckets.onsite_msp,
+      added_hybrid_msp: addedBuckets.hybrid_msp,
+      added_remote:     addedBuckets.remote,
+      added_unknown:    addedBuckets.unknown,
     },
   });
 }
