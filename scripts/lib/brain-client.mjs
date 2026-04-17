@@ -30,6 +30,17 @@ function runGbrain(args, { timeoutMs = 5000 } = {}) {
   return { ok: true, stdout: res.stdout };
 }
 
+export function addTimelineEntry(slug, date, summary, detail) {
+  if (!isBrainAvailable()) return { ok: false, skipped: true };
+  // Pin bare YYYY-MM-DD to local noon so gbrain's UTC parse doesn't shift the day.
+  const normalizedDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T12:00:00` : date;
+  const args = ['timeline-add', slug, normalizedDate, summary];
+  if (detail) args.push('--detail', detail);
+  const res = runGbrain(args, { timeoutMs: 10000 });
+  if (!res.ok) return { ok: false, error: res.error };
+  return { ok: true };
+}
+
 export function getBrainStats() {
   if (!isBrainAvailable()) return { available: false };
   const res = runGbrain(['stats']);

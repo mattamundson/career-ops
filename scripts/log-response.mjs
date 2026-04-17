@@ -35,6 +35,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { addTimelineEntry, isBrainAvailable } from './lib/brain-client.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -298,3 +299,31 @@ const out = [
 
 writeFileSync(RESPONSES_FILE, out);
 console.log(`[log-response] Wrote ${rows.length} entries to ${RESPONSES_FILE}`);
+
+// ---- brain mirror (non-fatal) ----
+// For each event processed this run, append a timeline entry to the matching
+// application page in gbrain. Skipped silently if brain runtime is absent or
+// BRAIN_DISABLE=1. Failures are warnings — never break the responses.md write.
+if (isBrainAvailable() && process.env.BRAIN_LOG_RESPONSE_SKIP !== '1') {
+  const mirrored = [];
+  const targets = isBulk
+    ? (loadBulkEvents(bulkFile) || []).map((e) => ({
+        appId: String(e.app_id).padStart(3, '0'),
+        event: e.event,
+        date: e.date || new Date().toISOString().slice(0, 10),
+        summary: e.reason || e.notes || '',
+      }))
+    : isNew
+      ? [{ appId: rows[rows.length - 1].app_id, event: 'submitted', date, summary: notes || `Submitted — ${company} (${ats})` }]
+      : [{ appId: appId.padStart(3, '0'), event, date, summary: reason || notes || '' }];
+  for (const t of targets) {
+    if (!t.appId || !t.event || !t.date) continue;
+    const slug = `app-${t.appId}`;
+    const row = rows.find((r) => r.app_id === t.appId);
+    const summary = `${t.event}${row ? ` — ${row.company} / ${row.role}` : ''}${t.summary ? `: ${t.summary}` : ''}`.slice(0, 240);
+    const res = addTimelineEntry(slug, t.date, summary);
+    if (res.ok) mirrored.push(slug);
+    else if (!res.skipped) console.warn(`[log-response] brain timeline write failed for ${slug}: ${res.error || 'unknown'}`);
+  }
+  if (mirrored.length > 0) console.log(`[log-response] brain: mirrored ${mirrored.length} timeline entr${mirrored.length === 1 ? 'y' : 'ies'}`);
+}

@@ -32,7 +32,11 @@ function runScript(args, cwd, responsesPath) {
   return spawnSync(process.execPath, [SCRIPT, ...args], {
     cwd,
     encoding: 'utf8',
-    env: { ...process.env, CAREER_OPS_RESPONSES_FILE: responsesPath },
+    env: {
+      ...process.env,
+      CAREER_OPS_RESPONSES_FILE: responsesPath,
+      BRAIN_LOG_RESPONSE_SKIP: '1',
+    },
   });
 }
 
