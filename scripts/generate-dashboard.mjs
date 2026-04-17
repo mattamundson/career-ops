@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { execSync } from 'child_process';
 import { computeApplicationPriority, focusSortKey } from './lib/scoring-core.mjs';
+import { loadLocationConfig } from './lib/profile-location-config.mjs';
 import { buildApplicationIndex, writeApplicationIndex } from './lib/career-data.mjs';
 import {
   getSourceOperationalStatus,
@@ -20,6 +21,11 @@ import { appendAutomationEvent } from './lib/automation-events.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
+
+// Load priority config once from config/profile.yml.location.work_modes.
+// Flipping the array in profile.yml flips dashboard sort order on next regen
+// without any code changes. Falls back to on_site > hybrid > remote defaults.
+const LOCATION_CONFIG = loadLocationConfig();
 
 // ─── Parsers ────────────────────────────────────────────────────────────────
 
@@ -209,7 +215,7 @@ for (const app of apps) {
     notes: app.notes,
     tldr: app.reportMeta?.tldr ?? null,
     why: app.reportMeta?.why ?? null,
-  });
+  }, LOCATION_CONFIG);
 }
 
 const pendingPipeline = pipeline.filter(p => !p.done);
@@ -554,7 +560,7 @@ function applyQueueFocusKey(app) {
     notes: app.notes,
     tldr: app.reportMeta?.tldr ?? null,
     why: app.reportMeta?.why ?? null,
-  });
+  }, LOCATION_CONFIG);
 }
 
 function generateApplyQueue(appList) {

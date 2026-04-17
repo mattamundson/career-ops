@@ -301,7 +301,7 @@ export function scoreTitleAgainstFilter(title, filter = {}) {
   };
 }
 
-export function computeApplicationPriority(application = {}) {
+export function computeApplicationPriority(application = {}, config = LOCATION_PRIORITY) {
   const baseFivePoint = parseFivePointScore(application.score);
   const fit = baseFivePoint !== null
     ? Math.max(0, Math.min(100, Math.round((baseFivePoint / 5) * 100)))
@@ -321,7 +321,7 @@ export function computeApplicationPriority(application = {}) {
     tldr: application.tldr,
     why: application.why,
   });
-  const locationMultiplier = locationPriorityMultiplier(workArrangement);
+  const locationMultiplier = locationPriorityMultiplier(workArrangement, config);
 
   const priorityScore = Math.max(
     0,

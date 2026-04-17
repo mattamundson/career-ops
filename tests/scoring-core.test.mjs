@@ -152,6 +152,44 @@ test('focusSortKey honors config override — flipped work_modes reverses order'
   assert.ok(remote > onsite, `expected remote(${remote}) > onsite(${onsite}) with flipped config`);
 });
 
+test('computeApplicationPriority honors config override — flipped work_modes reverses priority', async () => {
+  const { computeApplicationPriority, deriveLocationPriority } = await import('../scripts/lib/scoring-core.mjs');
+  const flipped = deriveLocationPriority(['remote', 'hybrid', 'on_site']);
+  const base = {
+    score: '4.2/5',
+    status: 'Evaluated',
+    date: new Date().toISOString().slice(0, 10),
+    reportPath: 'reports/x.md',
+  };
+  const onsiteMspFlipped = computeApplicationPriority({
+    ...base,
+    role: 'Engineer — Minneapolis on-site',
+    reportRemote: 'Minneapolis MN — in-office',
+  }, flipped);
+  const remoteFlipped = computeApplicationPriority({
+    ...base,
+    role: 'Engineer — Remote US',
+    reportRemote: 'Fully remote',
+  }, flipped);
+  // With flipped config, remote should now beat onsite_msp.
+  assert.ok(remoteFlipped.priorityScore > onsiteMspFlipped.priorityScore,
+    `expected remote(${remoteFlipped.priorityScore}) > onsite_msp(${onsiteMspFlipped.priorityScore}) with flipped config`);
+});
+
+test('loadLocationConfig loads on_site priority from profile.yml and produces live config', async () => {
+  const { loadLocationConfig } = await import('../scripts/lib/profile-location-config.mjs');
+  const config = loadLocationConfig();
+  // profile.yml currently has work_modes: [on_site, hybrid, remote]
+  assert.ok(Array.isArray(config.workModes) && config.workModes.length === 3,
+    `expected 3-element workModes array, got ${JSON.stringify(config.workModes)}`);
+  // onsite should be top priority (1.20) unless profile.yml has been flipped
+  if (config.workModes[0] === 'on_site') {
+    assert.equal(config.onsiteMspMultiplier, 1.20);
+    assert.equal(config.remoteMultiplier, 0.85);
+  }
+  assert.equal(config.unknownMultiplier, 0.95);
+});
+
 test('selectBestApplicationMatch requires a clear winner', () => {
   const applications = [
     { id: '001', company: 'Anthropic', role: 'Applied AI Engineer', date: '2026-04-10' },
