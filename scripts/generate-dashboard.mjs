@@ -12,6 +12,7 @@ import { execSync } from 'child_process';
 import { computeApplicationPriority, focusSortKey } from './lib/scoring-core.mjs';
 import { loadLocationConfig } from './lib/profile-location-config.mjs';
 import { buildApplicationIndex, writeApplicationIndex } from './lib/career-data.mjs';
+import { createDirectoryEntryCache, runOptionalJsonCommand } from './lib/dashboard-runtime.mjs';
 import {
   getSourceOperationalStatus,
   operationalStatusLabel,
@@ -21,6 +22,11 @@ import { appendAutomationEvent } from './lib/automation-events.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
+const listDirectoryEntries = createDirectoryEntryCache({
+  existsSyncFn: existsSync,
+  readdirSyncFn: readdirSync,
+});
+const dashboardWarnings = [];
 
 // Load priority config once from config/profile.yml.location.work_modes.
 // Flipping the array in profile.yml flips dashboard sort order on next regen
@@ -29,8 +35,7 @@ const LOCATION_CONFIG = loadLocationConfig();
 
 // ─── Parsers ────────────────────────────────────────────────────────────────
 
-function parseApplications() {
-  const snapshot = buildApplicationIndex(ROOT);
+function parseApplications(snapshot) {
   const rows = [];
   for (const application of snapshot.records) {
     const scoreNum = parseFloat(application.score);
@@ -197,7 +202,8 @@ function readReport(reportPath) {
 
 // ─── Data Assembly ────────────────────────────────────────────────────────────
 
-const apps = parseApplications();
+const applicationSnapshot = buildApplicationIndex(ROOT);
+const apps = parseApplications(applicationSnapshot);
 const pipeline = parsePipeline();
 
 // Enrich apps with report metadata
@@ -254,31 +260,22 @@ const replyRate = responses.length > 0
   ? ((funnelCounts[1].count / responses.length) * 100).toFixed(1)
   : '0.0';
 
-// Rejection insights — run analyze-rejections.mjs --json (needs --min-data=3 terminal entries)
-let rejectionInsights = null;
-{
-  const { execFileSync } = await import('child_process');
-  const { resolve: res } = await import('path');
-  try {
-    const out = execFileSync(process.execPath, [
-      res(ROOT, 'scripts', 'analyze-rejections.mjs'), '--json', '--min-data=3',
-    ], { cwd: ROOT, encoding: 'utf8' });
-    rejectionInsights = JSON.parse(out.trim());
-  } catch { /* not enough data or script error — panel hidden */ }
-}
-
-// Filter Health — run tune-filters.mjs --json (30-day window)
-let filterHealth = null;
-{
-  const { execFileSync } = await import('child_process');
-  const { resolve: res } = await import('path');
-  try {
-    const out = execFileSync(process.execPath, [
-      res(ROOT, 'scripts', 'tune-filters.mjs'), '--json', '--days=30',
-    ], { cwd: ROOT, encoding: 'utf8' });
-    filterHealth = JSON.parse(out.trim());
-  } catch { /* no scan history yet — panel hidden */ }
-}
+const [rejectionResult, filterHealthResult] = await Promise.all([
+  runOptionalJsonCommand({
+    label: 'analyze-rejections',
+    args: [resolve(ROOT, 'scripts', 'analyze-rejections.mjs'), '--json', '--min-data=3'],
+    cwd: ROOT,
+  }),
+  runOptionalJsonCommand({
+    label: 'tune-filters',
+    args: [resolve(ROOT, 'scripts', 'tune-filters.mjs'), '--json', '--days=30'],
+    cwd: ROOT,
+  }),
+]);
+const rejectionInsights = rejectionResult.data;
+const filterHealth = filterHealthResult.data;
+if (rejectionResult.warning) dashboardWarnings.push(rejectionResult.warning);
+if (filterHealthResult.warning) dashboardWarnings.push(filterHealthResult.warning);
 
 function daysSinceIsoDate(iso) {
   if (!iso || typeof iso !== 'string') return 0;
@@ -379,13 +376,28 @@ const operatorSnapshotSection = `
     </div>
   </div>`;
 
+const dashboardWarningsSection = dashboardWarnings.length === 0
+  ? ''
+  : `
+  <div class="section">
+    <div class="section-header">
+      <h2>Dashboard Warnings</h2>
+      <span class="count">${dashboardWarnings.length}</span>
+    </div>
+    <div style="padding:16px 20px">
+      <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.6">
+        ${dashboardWarnings.map((warning) => `<li>${escHtml(warning)}</li>`).join('')}
+      </ul>
+    </div>
+  </div>`;
+
 const generatedAt = new Date().toLocaleString('en-US', {
   timeZone: 'America/Chicago',
   month: 'short', day: 'numeric', year: 'numeric',
   hour: 'numeric', minute: '2-digit', hour12: true,
 }) + ' CT';
 
-writeApplicationIndex(ROOT);
+writeApplicationIndex(ROOT, applicationSnapshot);
 
 // ─── HTML Generation ─────────────────────────────────────────────────────────
 
@@ -567,27 +579,15 @@ function generateApplyQueue(appList) {
   const queue = appList
     .filter(a => a.status === 'GO' || a.status === 'Conditional GO')
     .sort((a, b) => applyQueueFocusKey(b) - applyQueueFocusKey(a));
+  const coverLetterEntries = listDirectoryEntries(join(ROOT, 'output', 'cover-letters'));
+  const outputEntries = listDirectoryEntries(join(ROOT, 'output'));
 
   if (queue.length === 0) return '';
 
   const rows = queue.map(app => {
     const slug = app.company.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    const clDir = join(ROOT, 'output', 'cover-letters');
-    const outDir = join(ROOT, 'output');
-
-    let hasCL = false;
-    if (existsSync(clDir)) {
-      try {
-        hasCL = readdirSync(clDir).some(f => f.startsWith(slug) && f.endsWith('.txt'));
-      } catch { /* ignore */ }
-    }
-
-    let hasPDF = false;
-    if (existsSync(outDir)) {
-      try {
-        hasPDF = readdirSync(outDir).some(f => f.startsWith(`cv-matt-${slug}`) && f.endsWith('.pdf'));
-      } catch { /* ignore */ }
-    }
+    const hasCL = coverLetterEntries.some(f => f.startsWith(slug) && f.endsWith('.txt'));
+    const hasPDF = outputEntries.some(f => f.startsWith(`cv-matt-${slug}`) && f.endsWith('.pdf'));
 
     const isGO = app.status === 'GO';
     const badgeColor = isGO ? '#a6e3a1' : '#f9e2af';
@@ -1273,6 +1273,8 @@ const html = `<!DOCTYPE html>
     </div>
   </div>
 
+  ${dashboardWarningsSection}
+
   ${operatorSnapshotSection}
 
   <!-- Scan Sources -->
@@ -1773,16 +1775,20 @@ writeFileSync(outPath, html, 'utf8');
 
 appendAutomationEvent(ROOT, {
   type: 'dashboard.generated',
-  status: 'success',
+  status: dashboardWarnings.length > 0 ? 'warning' : 'success',
   summary: `Dashboard HTML regenerated (${apps.length} apps, ${pendingPipeline.length} pipeline items).`,
   details: {
     stale_touchpoints: staleTouchApps.length,
     automation_events_loaded: automationEvents.length,
+    warnings: dashboardWarnings,
   },
 });
 
 console.log(`✅ Dashboard written to: ${outPath}`);
 console.log(`   ${apps.length} application(s) | ${pendingPipeline.length} pipeline items`);
+for (const warning of dashboardWarnings) {
+  console.warn(`   WARN ${warning}`);
+}
 
 const shouldOpen = process.argv.includes('--open');
 if (shouldOpen) {

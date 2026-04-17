@@ -7,7 +7,7 @@ Scans configured job portals, filters by title relevance, and adds new offers to
 - **JobSpy** (`scripts/scan-jobspy.py`) runs two passes by default: MSP-anchored first (`location="Minneapolis, MN"`, `is_remote=False`), then Remote-US. Override with `--skip-remote`, `--skip-msp`, or `--location=X`.
 - **Indeed** (`scripts/scan-indeed.mjs`) defaults to `--location "Minneapolis, MN"`. Pass `--location Remote` to scan the remote bucket.
 - **LinkedIn MCP** (`scripts/scan-linkedin-mcp.mjs`) defaults to `--location "Minneapolis, Minnesota, United States"`. Pass `--location Remote` to scan the remote bucket.
-- **auto-scan orchestrator** (`scripts/auto-scan.mjs`) forwards the `location:` field from each `direct_job_board_queries` entry to the scanner, so portals.yml can encode MSP and Remote variants as separate entries.
+- **auto-scan orchestrator** (`scripts/auto-scan.mjs`) expands each `direct_job_board_queries` entry's `locations: []` array into runtime variants and forwards the resolved `location` value to the scanner, so portals.yml can keep MSP and Remote variants under one logical entry.
 
 ## Recommended execution
 

@@ -24,18 +24,26 @@ var (
 	reBatchID        = regexp.MustCompile(`(?m)^\*\*Batch ID:\*\*\s*(\d+)`)
 )
 
+func resolveDataFilePath(careerOpsPath, canonicalName string) string {
+	preferred := filepath.Join(careerOpsPath, "data", canonicalName)
+	if _, err := os.Stat(preferred); err == nil {
+		return preferred
+	}
+	legacy := filepath.Join(careerOpsPath, canonicalName)
+	if _, err := os.Stat(legacy); err == nil {
+		return legacy
+	}
+	return preferred
+}
+
 // ParseApplications reads applications.md and returns parsed applications.
-// It tries both {path}/applications.md and {path}/data/applications.md for compatibility.
+// Canonical location is data/applications.md. Root-level applications.md remains
+// a legacy fallback so older snapshots still render in the dashboard.
 func ParseApplications(careerOpsPath string) []model.CareerApplication {
-	filePath := filepath.Join(careerOpsPath, "applications.md")
+	filePath := resolveDataFilePath(careerOpsPath, "applications.md")
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		// Fallback: try data/ subdirectory
-		filePath = filepath.Join(careerOpsPath, "data", "applications.md")
-		content, err = os.ReadFile(filePath)
-		if err != nil {
-			return nil
-		}
+		return nil
 	}
 
 	lines := strings.Split(string(content), "\n")
@@ -293,7 +301,7 @@ func loadJobURLs(careerOpsPath string) map[string]string {
 
 // enrichFromScanHistory fills JobURL from scan-history.tsv by matching company name.
 func enrichFromScanHistory(careerOpsPath string, apps []model.CareerApplication) {
-	scanPath := filepath.Join(careerOpsPath, "scan-history.tsv")
+	scanPath := resolveDataFilePath(careerOpsPath, "scan-history.tsv")
 	scanData, err := os.ReadFile(scanPath)
 	if err != nil {
 		return
@@ -552,7 +560,7 @@ func LoadReportSummary(careerOpsPath, reportPath string) (archetype, tldr, remot
 
 // UpdateApplicationStatus updates the status of an application in applications.md.
 func UpdateApplicationStatus(careerOpsPath string, app model.CareerApplication, newStatus string) error {
-	filePath := filepath.Join(careerOpsPath, "applications.md")
+	filePath := resolveDataFilePath(careerOpsPath, "applications.md")
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
