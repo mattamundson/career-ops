@@ -1,6 +1,12 @@
-# AI Session Continuity — 2026-04-17 Early Morning (00:41 CDT)
+# AI Session Continuity — 2026-04-17 Early Morning (00:47 CDT)
 
-Handoff for the next AI session. Written at session close after executing the entire Start-Here §0 block from the prior handoff — SSOT wiring + all three Tier 2 items shipped in four commits on top of `e72b2be`. This doc supersedes all prior handoffs.
+Handoff for the next AI session. Originally written at 00:41 after the §0 Start-Here block from the prior handoff landed (four commits). Updated at 00:47 after two additional Tier 3 commits landed. This doc supersedes all prior handoffs.
+
+**Post-handoff addendum (2026-04-17 00:47)**:
+- `fe28b2c` — this very doc, original version (committed after the §0 four)
+- `b51eef1` — `scripts/lib/chrome-preflight.mjs` + Playwright gitignore. Addresses Blocker #4 (stale MCP Chrome lockfile). Library callable via `clearStaleLockfiles()` import; CLI via `node scripts/lib/chrome-preflight.mjs [--dry-run] [--max-age-minutes=N]`. Not yet wired into apply-mode entry points — that's follow-up. Verified on the real 2026-04-15 stale lockfile: detects correctly; real delete hit EBUSY (Windows holds the file handle from a prior browser process), library catches, logs, exits 1 — honest failure signal instead of silent hang.
+
+**Total this session**: 6 commits on top of `e72b2be` → `b51eef1`. All pushed, all verified (42/42 JS, 14/14 Go, verify:ci clean at each step). 8 of 10 retrospective blockers now resolved (was 7; +Blocker #4 via `b51eef1`).
 
 **Prior handoffs** (archaeology only):
 - `docs/AI-SESSION-CONTINUITY-2026-04-16-late-night.md` (23:18 — planned §0 Start Here, now fully executed; commit `e72b2be`)
@@ -146,7 +152,7 @@ Carried from prior handoff. Big reduction this session — 4 of 10 remaining blo
 | 1 | ~~Priority rules duplicated across 5 files~~ | **RESOLVED** in `87497a4` via SSOT refactor |
 | 2 | Pipeline schema had no location (legacy 1906 rows) | MEDIUM | Leave as `unknown`, age out |
 | 3 | Scanner portal entries doubled for MSP/remote variants | MEDIUM | `locations: []` array schema (Tier 3) |
-| 4 | Playwright browser profile lockfile stale | LOW | `scripts/lib/chrome-preflight.mjs` (Tier 3) |
+| 4 | ~~Playwright browser profile lockfile stale~~ | **RESOLVED** in `b51eef1` (lib written; wire into entry points is follow-up) |
 | 5 | ~~`Deferred` vs `Discarded` semantics unclear~~ | **RESOLVED** in `87497a4` |
 | 6 | ~~`scan-history.tsv` has no location column~~ | **RESOLVED** in `fe6dd7c` |
 | 7 | ~~`log-response.mjs` lacks pre-submission events~~ | **RESOLVED** in `22333d9` |
@@ -192,12 +198,12 @@ Carried from prior handoff. Big reduction this session — 4 of 10 remaining blo
 
 ### Tier 3 (quality of life — all LOW-to-MEDIUM severity)
 
-- [ ] **Chrome preflight script**: `scripts/lib/chrome-preflight.mjs` — delete `.playwright-mcp/mcp-chrome-*/lockfile` older than 1hr. Call from apply-mode entry points. Fixes Blocker #4. ~30 LOC.
+- [x] ~~**Chrome preflight script**~~ — DONE in `b51eef1`. Follow-up: wire `clearStaleLockfiles()` into apply-mode entry points (scripts/submit-*.mjs, any browser-using scan scripts) so preflight runs automatically.
 - [ ] **Dashboard regen pre-commit hook**: regenerate `dashboard.html` when `data/applications.md`, `data/pipeline.md`, or `data/responses.md` are staged. Fixes Blocker #10. One-time git-hooks setup.
 - [ ] **Scanner variant generalization**: change `portals.yml` `direct_job_board_queries` to `locations: []` array per entry; orchestrator iterates. Collapses 4 MSP/remote variants to 2 entries. Fixes Blocker #3.
 - [ ] **Pop stash@{0}** if Matt wants the bulk-response-logging feature to land — resolve conflict with this session's `deferred`/`discarded` additions.
 - [ ] **Pop stash@{1}** if Matt wants the dashboard Focus-button + sort-stabilization UX — resolve conflict with LOCATION_CONFIG additions.
-- [ ] **Update `.gitignore` to include `.playwright-mcp/`/`.playwright-session/`**: small prior-session WIP on `.gitignore` was reverted and not included in `281e7ec` (to keep the commit focused on scanner dirs). Three lines; trivially pickable.
+- [x] ~~**Update `.gitignore` to include `.playwright-mcp/`/`.playwright-session/`**~~ — DONE in `b51eef1`.
 
 ### Scan-derived follow-ups (workflow, not code)
 
