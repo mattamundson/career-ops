@@ -19,11 +19,11 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `data/pipeline.md` | Inbox of pending URLs |
 | `data/scan-history.tsv` | Scanner dedup history |
 | `data/events/*.jsonl` | Append-only automation telemetry (scanner, dashboard, index, reports; local / gitignored) |
-| `portals.yml` | Query and company config |
+| `portals.yml` | Query and company config (`job_board_queries` = optional Firecrawl board search when `FIRECRAWL_API_KEY` is set; see `modes/scan.md`) |
 | `templates/cv-template.html` | HTML template for CVs |
 | `generate-pdf.mjs` | Playwright: HTML to PDF |
 | `cv-sync-check.mjs` | CV/profile synchronization check — run to verify consistency |
-| `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`) |
+| `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/WHICH-DASHBOARD-WHEN.md` | HTML `dashboard.html` vs Go TUI: when to use each, refresh cadence, explicit non-goals |
 | `interview-prep/story-bank.md` | Accumulated STAR+R stories across evaluations |
 | `reports/` | Evaluation reports (format: `{###}-{company-slug}-{YYYY-MM-DD}.md`) |
@@ -159,7 +159,7 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 2. **YES you can edit applications.md to UPDATE status/notes of existing entries.**
 3. All reports MUST include `**URL:**` in the header (between Score and PDF).
 4. All statuses MUST be canonical (see `templates/states.yml`).
-5. Health check: `pnpm run verify:all` (or `pnpm run verify:ci` when `reports/*.md` are absent) — includes automation-events JSONL validation. Rituals: [`docs/MAINTENANCE-RITUALS.md`](docs/MAINTENANCE-RITUALS.md). Optional: `pnpm run events:prune` / `events:prune:apply` trims old `data/events/*.jsonl`.
+5. Health check: `pnpm run verify:all` (alias: `pnpm run check`) or `pnpm run verify:ci` when `reports/*.md` are absent — `verify:all` includes **unit tests**; `verify:ci` skips them (CI runs `pnpm test` separately). Includes automation-events JSONL validation. Rituals: [`docs/MAINTENANCE-RITUALS.md`](docs/MAINTENANCE-RITUALS.md). Optional: `pnpm run events:prune` / `events:prune:apply` trims old `data/events/*.jsonl`.
 6. Normalize statuses: `node normalize-statuses.mjs`
 7. Dedup: `node dedup-tracker.mjs`
 
@@ -180,7 +180,8 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 | `Interview` | In interview process |
 | `Offer` | Offer received |
 | `Rejected` | Rejected by company |
-| `Discarded` | Discarded by candidate or offer closed |
+| `Discarded` | Discarded permanently — not coming back (offer closed, hard disqualifier) |
+| `Deferred` | Paused for priority/strategy reasons — revive if priority reverses |
 | `SKIP` | Doesn't fit, don't apply |
 
 **RULES:**

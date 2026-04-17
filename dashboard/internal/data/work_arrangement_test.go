@@ -57,3 +57,32 @@ func TestFocusSortKey_SameScorePrefersOnsiteOverHybridOverRemote(t *testing.T) {
 			onsiteKey, hybridKey, remoteKey)
 	}
 }
+
+func TestDeriveLocationPriority_DefaultOrder(t *testing.T) {
+	p := DeriveLocationPriority([]string{"on_site", "hybrid", "remote"})
+	if p.OnsiteMsp != 1.20 || p.HybridMsp != 1.10 || p.Remote != 0.85 || p.Unknown != 0.95 {
+		t.Fatalf("unexpected default multipliers: %+v", p)
+	}
+}
+
+func TestDeriveLocationPriority_FlippingReversesPriority(t *testing.T) {
+	flipped := DeriveLocationPriority([]string{"remote", "hybrid", "on_site"})
+	if flipped.Remote != 1.20 {
+		t.Fatalf("expected remote=1.20 after flip, got %.3f", flipped.Remote)
+	}
+	if flipped.OnsiteMsp != 0.85 {
+		t.Fatalf("expected on_site=0.85 after flip, got %.3f", flipped.OnsiteMsp)
+	}
+	if flipped.HybridMsp != 1.10 {
+		t.Fatalf("expected hybrid=1.10 (middle, unchanged), got %.3f", flipped.HybridMsp)
+	}
+}
+
+func TestLocationPriorityMultiplierWithConfig_HonorsOverride(t *testing.T) {
+	cfg := DeriveLocationPriority([]string{"remote", "hybrid", "on_site"})
+	onsite := LocationPriorityMultiplierWithConfig(ArrangementOnsiteMsp, cfg)
+	remote := LocationPriorityMultiplierWithConfig(ArrangementRemote, cfg)
+	if !(remote > onsite) {
+		t.Fatalf("flipped config should make remote (%.3f) outrank on_site (%.3f)", remote, onsite)
+	}
+}

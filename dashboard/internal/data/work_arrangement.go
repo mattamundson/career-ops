@@ -64,18 +64,74 @@ func ClassifyWorkArrangement(remote, role, notes, tldr, why string) WorkArrangem
 	return ArrangementUnknown
 }
 
-// LocationPriorityMultiplier: on-site MSP gets the biggest boost, hybrid MSP middle,
-// unknown slight penalty, remote strongest penalty (still searchable for high-fit jobs).
+// PriorityRankMultipliers map the ordered work_modes array (index 0 = top priority)
+// to scoring multipliers. Keep in sync with scripts/lib/scoring-core.mjs.
+var PriorityRankMultipliers = [3]float64{1.20, 1.10, 0.85}
+
+// UnknownMultiplier applies to non-MSP on-site/hybrid postings (unreachable).
+const UnknownMultiplier = 0.95
+
+// DefaultWorkModes reflects the default priority: on-site MSP > hybrid MSP > remote.
+var DefaultWorkModes = [3]string{"on_site", "hybrid", "remote"}
+
+// LocationPriorityConfig holds the derived multipliers for each bucket.
+type LocationPriorityConfig struct {
+	OnsiteMsp float64
+	HybridMsp float64
+	Remote    float64
+	Unknown   float64
+}
+
+// DeriveLocationPriority computes multipliers from an ordered work_modes slice.
+// Accepts the 3 canonical modes: on_site, hybrid, remote.
+func DeriveLocationPriority(workModes []string) LocationPriorityConfig {
+	order := DefaultWorkModes[:]
+	if len(workModes) == 3 {
+		order = workModes
+	}
+	indexOf := func(mode string) int {
+		for i, v := range order {
+			if v == mode {
+				return i
+			}
+		}
+		return -1
+	}
+	multFor := func(mode string) float64 {
+		i := indexOf(mode)
+		if i < 0 || i >= len(PriorityRankMultipliers) {
+			return UnknownMultiplier
+		}
+		return PriorityRankMultipliers[i]
+	}
+	return LocationPriorityConfig{
+		OnsiteMsp: multFor("on_site"),
+		HybridMsp: multFor("hybrid"),
+		Remote:    multFor("remote"),
+		Unknown:   UnknownMultiplier,
+	}
+}
+
+// DefaultLocationPriority is the config used when no profile override is passed.
+var DefaultLocationPriority = DeriveLocationPriority(DefaultWorkModes[:])
+
+// LocationPriorityMultiplier returns the multiplier for a given arrangement under the default config.
+// Callers with profile data should use LocationPriorityMultiplierWithConfig.
 func LocationPriorityMultiplier(a WorkArrangement) float64 {
+	return LocationPriorityMultiplierWithConfig(a, DefaultLocationPriority)
+}
+
+// LocationPriorityMultiplierWithConfig applies a custom config (e.g. from profile.yml).
+func LocationPriorityMultiplierWithConfig(a WorkArrangement, cfg LocationPriorityConfig) float64 {
 	switch a {
 	case ArrangementOnsiteMsp:
-		return 1.20
+		return cfg.OnsiteMsp
 	case ArrangementHybridMsp:
-		return 1.10
+		return cfg.HybridMsp
 	case ArrangementRemote:
-		return 0.85
+		return cfg.Remote
 	default:
-		return 0.95
+		return cfg.Unknown
 	}
 }
 

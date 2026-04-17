@@ -5,16 +5,39 @@ const STOP_TOKENS = new Set([
 ]);
 
 /**
- * Minneapolis-anchored priority: on-site MSP > hybrid MSP > unknown > remote.
- * Non-MSP on-site/hybrid classifies as `unknown` (unreachable for MN-based candidate).
+ * Priority multipliers derived from an ordered `work_modes` array. Index 0 is
+ * the highest-priority bucket; the last entry is the lowest. Callers that load
+ * `config/profile.yml.location.work_modes` at runtime can override the defaults
+ * by calling `deriveLocationPriority(workModes)`.
+ *
+ * The 3 ordered buckets are: on_site, hybrid, remote. The `unknown` bucket
+ * (non-MSP physical postings, unreachable for a MN-based candidate) always
+ * sits just above `remote` to keep the existing behavior.
+ *
  * Keep in sync with dashboard/internal/data/work_arrangement.go.
  */
-export const LOCATION_PRIORITY = {
-  onsiteMspMultiplier: 1.20,
-  hybridMspMultiplier: 1.10,
-  unknownMultiplier: 0.95,
-  remoteMultiplier: 0.85,
-};
+export const PRIORITY_RANK_MULTIPLIERS = [1.20, 1.10, 0.85];
+export const UNKNOWN_MULTIPLIER = 0.95;
+export const DEFAULT_WORK_MODES = ['on_site', 'hybrid', 'remote'];
+
+export function deriveLocationPriority(workModes = DEFAULT_WORK_MODES) {
+  const order = Array.isArray(workModes) && workModes.length === 3
+    ? workModes
+    : DEFAULT_WORK_MODES;
+  const multiplierFor = (mode) => {
+    const idx = order.indexOf(mode);
+    return idx >= 0 ? PRIORITY_RANK_MULTIPLIERS[idx] : UNKNOWN_MULTIPLIER;
+  };
+  return {
+    onsiteMspMultiplier: multiplierFor('on_site'),
+    hybridMspMultiplier: multiplierFor('hybrid'),
+    remoteMultiplier:    multiplierFor('remote'),
+    unknownMultiplier:   UNKNOWN_MULTIPLIER,
+  };
+}
+
+// Default config — preserved as the prior frozen export so existing imports keep working.
+export const LOCATION_PRIORITY = deriveLocationPriority(DEFAULT_WORK_MODES);
 
 const STATUS_PRIORITY_MULTIPLIER = {
   Evaluating: 1.0,
@@ -113,18 +136,18 @@ export function classifyWorkArrangement(fields = {}) {
   return 'unknown';
 }
 
-export function locationPriorityMultiplier(arrangement) {
-  if (arrangement === 'onsite_msp') return LOCATION_PRIORITY.onsiteMspMultiplier;
-  if (arrangement === 'hybrid_msp') return LOCATION_PRIORITY.hybridMspMultiplier;
-  if (arrangement === 'remote') return LOCATION_PRIORITY.remoteMultiplier;
-  return LOCATION_PRIORITY.unknownMultiplier;
+export function locationPriorityMultiplier(arrangement, config = LOCATION_PRIORITY) {
+  if (arrangement === 'onsite_msp') return config.onsiteMspMultiplier;
+  if (arrangement === 'hybrid_msp') return config.hybridMspMultiplier;
+  if (arrangement === 'remote') return config.remoteMultiplier;
+  return config.unknownMultiplier;
 }
 
 /** Sort key: headline score × location multiplier (high remote can still beat mid hybrid). */
-export function focusSortKey(scoreNum, fields = {}) {
+export function focusSortKey(scoreNum, fields = {}, config = LOCATION_PRIORITY) {
   if (!Number.isFinite(scoreNum) || scoreNum <= 0) return 0;
   const a = classifyWorkArrangement(fields);
-  return scoreNum * locationPriorityMultiplier(a);
+  return scoreNum * locationPriorityMultiplier(a, config);
 }
 
 function dedupe(list) {

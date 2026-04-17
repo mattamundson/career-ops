@@ -4,19 +4,19 @@ scan-jobspy.py — Multi-board job scraper using python-jobspy
 Scrapes LinkedIn, Indeed, Glassdoor, ZipRecruiter, Google Jobs for data/AI roles.
 
 Priority (config/profile.yml work_modes): on-site MSP > hybrid MSP > remote.
-Two-pass scan: pass 1 anchors on Minneapolis (surfaces MSP physical + hybrid roles);
-pass 2 scans remote-US (surfaces remote). Pass 1 runs first so MSP roles are seen
-earliest in the pipeline. Pass 2 can be skipped with --skip-remote.
+Default: MSP pass only (location=Minneapolis, MN). The remote pass is off by
+default to save LinkedIn/Indeed scan quota; pass --include-remote to add it.
 
 Usage:
-  python scripts/scan-jobspy.py              — MSP pass + remote pass, write to pipeline.md
+  python scripts/scan-jobspy.py              — MSP pass only (default), write to pipeline.md
+  python scripts/scan-jobspy.py --include-remote — MSP pass + remote-US pass
   python scripts/scan-jobspy.py --dry-run    — print results without writing files
   python scripts/scan-jobspy.py --boards=X,Y — comma-separated board list override
   python scripts/scan-jobspy.py --term="X"   — single search term override
   python scripts/scan-jobspy.py --results=N  — results per search term (default: 30)
-  python scripts/scan-jobspy.py --skip-remote — MSP pass only
-  python scripts/scan-jobspy.py --skip-msp    — remote pass only (legacy mode)
-  python scripts/scan-jobspy.py --location="X" — override both passes with one location
+  python scripts/scan-jobspy.py --skip-remote — DEPRECATED (MSP-only is default now)
+  python scripts/scan-jobspy.py --skip-msp    — remote pass only (legacy mode, implies --include-remote)
+  python scripts/scan-jobspy.py --location="X" — override location for whichever passes run
 
 Boards available: linkedin, indeed, glassdoor, zip_recruiter, google
 (Wellfound / AngelList is intentionally not in BOARDS — not a JobSpy target in this repo.)
@@ -42,13 +42,18 @@ SCRIPTS_DIR = ROOT / "scripts"
 # CLI flags
 # ---------------------------------------------------------------------------
 args = sys.argv[1:]
-DRY_RUN       = "--dry-run" in args
-SKIP_REMOTE   = "--skip-remote" in args
-SKIP_MSP      = "--skip-msp" in args
-BOARDS_FLAG   = next((a.split("=", 1)[1] for a in args if a.startswith("--boards=")),   None)
-TERM_FLAG     = next((a.split("=", 1)[1] for a in args if a.startswith("--term=")),     None)
-RESULTS_FLAG  = next((a.split("=", 1)[1] for a in args if a.startswith("--results=")),  None)
-LOCATION_FLAG = next((a.split("=", 1)[1] for a in args if a.startswith("--location=")), None)
+DRY_RUN        = "--dry-run" in args
+INCLUDE_REMOTE = "--include-remote" in args
+# --skip-remote retained for back-compat but is now a no-op (MSP-only is default).
+SKIP_MSP       = "--skip-msp" in args
+BOARDS_FLAG    = next((a.split("=", 1)[1] for a in args if a.startswith("--boards=")),   None)
+TERM_FLAG      = next((a.split("=", 1)[1] for a in args if a.startswith("--term=")),     None)
+RESULTS_FLAG   = next((a.split("=", 1)[1] for a in args if a.startswith("--results=")),  None)
+LOCATION_FLAG  = next((a.split("=", 1)[1] for a in args if a.startswith("--location=")), None)
+
+# Remote pass runs when explicitly requested OR when caller wants remote-only.
+# Default: MSP-only (saves board quota, matches on-site-first priority).
+SKIP_REMOTE    = not (INCLUDE_REMOTE or SKIP_MSP)
 
 # ---------------------------------------------------------------------------
 # Config: search terms, boards, title filters

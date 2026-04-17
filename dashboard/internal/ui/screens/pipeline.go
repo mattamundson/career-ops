@@ -84,12 +84,13 @@ var pipelineTabs = []pipelineTab{
 	{filterSkip, "SKIP"},
 }
 
-var sortCycle = []string{sortFocus, sortScore, sortDate, sortCompany, sortStatus}
+// Score first matches HTML dashboard default; press `s` to cycle through Focus (apply-queue style), Date, Company, Status.
+var sortCycle = []string{sortScore, sortFocus, sortDate, sortCompany, sortStatus}
 
-var statusOptions = []string{"Evaluated", "Applied", "Responded", "Contact", "Interview", "Offer", "Rejected", "Discarded", "SKIP"}
+var statusOptions = []string{"Evaluated", "Applied", "Responded", "Contact", "Interview", "Offer", "Rejected", "Discarded", "Deferred", "SKIP"}
 
 // statusGroupOrder defines display order for grouped view.
-var statusGroupOrder = []string{"interview", "offer", "responded", "contact", "applied", "evaluated", "skip", "rejected", "discarded"}
+var statusGroupOrder = []string{"interview", "offer", "responded", "contact", "applied", "evaluated", "skip", "rejected", "deferred", "discarded"}
 
 // PipelineModel implements the career pipeline dashboard screen.
 type PipelineModel struct {
@@ -116,7 +117,7 @@ func NewPipelineModel(t theme.Theme, apps []model.CareerApplication, metrics mod
 	m := PipelineModel{
 		apps:            apps,
 		metrics:         metrics,
-		sortMode:        sortFocus,
+		sortMode:        sortScore,
 		activeTab:       0,
 		viewMode:        "grouped",
 		width:           width,

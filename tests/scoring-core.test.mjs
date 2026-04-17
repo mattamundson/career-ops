@@ -126,6 +126,32 @@ test('focusSortKey keeps very high remote above mid hybrid_msp', () => {
   assert.ok(r > h);
 });
 
+test('deriveLocationPriority: default order maps on_site→1.20, hybrid→1.10, remote→0.85', async () => {
+  const { deriveLocationPriority } = await import('../scripts/lib/scoring-core.mjs');
+  const p = deriveLocationPriority(['on_site', 'hybrid', 'remote']);
+  assert.equal(p.onsiteMspMultiplier, 1.20);
+  assert.equal(p.hybridMspMultiplier, 1.10);
+  assert.equal(p.remoteMultiplier, 0.85);
+  assert.equal(p.unknownMultiplier, 0.95);
+});
+
+test('deriveLocationPriority: flipping work_modes flips priority', async () => {
+  const { deriveLocationPriority } = await import('../scripts/lib/scoring-core.mjs');
+  const flipped = deriveLocationPriority(['remote', 'hybrid', 'on_site']);
+  assert.equal(flipped.remoteMultiplier, 1.20);   // was 0.85
+  assert.equal(flipped.onsiteMspMultiplier, 0.85); // was 1.20
+  assert.equal(flipped.hybridMspMultiplier, 1.10); // unchanged in middle
+});
+
+test('focusSortKey honors config override — flipped work_modes reverses order', async () => {
+  const { focusSortKey, deriveLocationPriority } = await import('../scripts/lib/scoring-core.mjs');
+  const config = deriveLocationPriority(['remote', 'hybrid', 'on_site']);
+  // Same score, different arrangements. Default → onsite wins; flipped → remote wins.
+  const onsite = focusSortKey(4.0, { role: 'On-site', reportRemote: 'on-site minneapolis' }, config);
+  const remote = focusSortKey(4.0, { role: 'Remote', reportRemote: 'fully remote' }, config);
+  assert.ok(remote > onsite, `expected remote(${remote}) > onsite(${onsite}) with flipped config`);
+});
+
 test('selectBestApplicationMatch requires a clear winner', () => {
   const applications = [
     { id: '001', company: 'Anthropic', role: 'Applied AI Engineer', date: '2026-04-10' },

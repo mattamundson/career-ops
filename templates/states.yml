@@ -37,8 +37,11 @@ states:
     description: Rejected by company
     terminal: true
   - name: Discarded
-    description: Discarded by candidate or offer closed
+    description: Discarded by candidate or offer closed — not coming back
     terminal: true
+  - name: Deferred
+    description: Paused for priority/strategy reasons — revive if priority reverses
+    terminal: false
   - name: SKIP
     description: Doesn't fit criteria — do not apply
     terminal: true
