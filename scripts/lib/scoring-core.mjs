@@ -301,6 +301,28 @@ export function scoreTitleAgainstFilter(title, filter = {}) {
   };
 }
 
+/**
+ * Urgency multiplier based on a JD close date.
+ * Returns 1.0 when no close date is present, so the formula is unaffected
+ * for the 1900+ legacy rows that predate close-date capture.
+ * Bands:
+ *   past close   → 0.50  (listing closed — heavy deprioritize)
+ *   0–2 days     → 1.25  (closing soon — high urgency)
+ *   3–7 days     → 1.10  (closing this week — moderate urgency)
+ *   > 7 days     → 1.00  (plenty of runway — neutral)
+ */
+export function urgencyMultiplier(closeDate, now = new Date()) {
+  if (!closeDate) return 1.0;
+  const target = closeDate instanceof Date ? closeDate : new Date(closeDate);
+  if (!Number.isFinite(target.getTime())) return 1.0;
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const daysUntilClose = Math.ceil((target.getTime() - now.getTime()) / msPerDay);
+  if (daysUntilClose <= 0) return 0.5;
+  if (daysUntilClose <= 2) return 1.25;
+  if (daysUntilClose <= 7) return 1.1;
+  return 1.0;
+}
+
 export function computeApplicationPriority(application = {}, config = LOCATION_PRIORITY) {
   const baseFivePoint = parseFivePointScore(application.score);
   const fit = baseFivePoint !== null
@@ -322,13 +344,14 @@ export function computeApplicationPriority(application = {}, config = LOCATION_P
     why: application.why,
   });
   const locationMultiplier = locationPriorityMultiplier(workArrangement, config);
+  const urgency = urgencyMultiplier(application.closeDate);
 
   const priorityScore = Math.max(
     0,
     Math.min(
       100,
       Math.round(
-        fit * freshnessDecay * statusMultiplier * (0.7 + 0.3 * confidence) * locationMultiplier,
+        fit * freshnessDecay * statusMultiplier * (0.7 + 0.3 * confidence) * locationMultiplier * urgency,
       ),
     ),
   );
@@ -347,6 +370,7 @@ export function computeApplicationPriority(application = {}, config = LOCATION_P
     confidence: Number(confidence.toFixed(2)),
     workArrangement,
     locationMultiplier,
+    urgencyMultiplier: urgency,
     priorityScore,
     band,
   };

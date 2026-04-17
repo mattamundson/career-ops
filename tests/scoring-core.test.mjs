@@ -8,6 +8,7 @@ import {
   scoreMessageAgainstApplication,
   scoreTitleAgainstFilter,
   selectBestApplicationMatch,
+  urgencyMultiplier,
 } from '../scripts/lib/scoring-core.mjs';
 
 test('scoreTitleAgainstFilter matches strong positive phrases', () => {
@@ -245,4 +246,50 @@ test('scoreMessageAgainstApplication records evidence for company and role token
   assert.ok(result.score >= 30);
   assert.ok(result.evidence.some((item) => item.startsWith('company:')));
   assert.ok(result.evidence.some((item) => item.startsWith('role_token:business')));
+});
+
+test('urgencyMultiplier: neutral when closeDate is absent or malformed', () => {
+  assert.equal(urgencyMultiplier(undefined), 1.0);
+  assert.equal(urgencyMultiplier(null), 1.0);
+  assert.equal(urgencyMultiplier(''), 1.0);
+  assert.equal(urgencyMultiplier('not-a-date'), 1.0);
+});
+
+test('urgencyMultiplier: bands map to 1.25 / 1.10 / 1.0 / 0.5', () => {
+  const now = new Date('2026-04-17T12:00:00Z');
+  const dayOffset = (days) => new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+  assert.equal(urgencyMultiplier(dayOffset(1), now), 1.25, '1 day out → high urgency');
+  assert.equal(urgencyMultiplier(dayOffset(2), now), 1.25, '2 days out → high urgency');
+  assert.equal(urgencyMultiplier(dayOffset(3), now), 1.1, '3 days out → moderate urgency');
+  assert.equal(urgencyMultiplier(dayOffset(7), now), 1.1, '7 days out → moderate urgency');
+  assert.equal(urgencyMultiplier(dayOffset(14), now), 1.0, '14 days out → neutral');
+  assert.equal(urgencyMultiplier(dayOffset(-1), now), 0.5, 'past close → heavy deprioritize');
+});
+
+test('computeApplicationPriority applies urgency multiplier when closeDate present', () => {
+  const base = {
+    score: '4.0/5',
+    status: 'Evaluating',
+    date: new Date().toISOString().slice(0, 10),
+    reportPath: 'reports/001-test.md',
+    remote: 'remote',
+  };
+  const neutral = computeApplicationPriority(base);
+  const urgentCloseIn2Days = computeApplicationPriority({
+    ...base,
+    closeDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+  const closed = computeApplicationPriority({
+    ...base,
+    closeDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+
+  assert.equal(neutral.urgencyMultiplier, 1.0);
+  assert.equal(urgentCloseIn2Days.urgencyMultiplier, 1.25);
+  assert.equal(closed.urgencyMultiplier, 0.5);
+  assert.ok(urgentCloseIn2Days.priorityScore > neutral.priorityScore,
+    `urgent should outrank neutral (${urgentCloseIn2Days.priorityScore} vs ${neutral.priorityScore})`);
+  assert.ok(closed.priorityScore < neutral.priorityScore,
+    `closed should rank below neutral (${closed.priorityScore} vs ${neutral.priorityScore})`);
 });
