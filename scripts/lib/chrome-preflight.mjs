@@ -121,6 +121,22 @@ export function clearStaleLockfiles({
   return { cleared, skipped, failed, missing: false };
 }
 
+/**
+ * Shared wrapper for browser-launch entrypoints.
+ * Keeps warning text consistent and centralizes future preflight policy.
+ *
+ * @param {string} label
+ * @param {object} options
+ * @returns {{ cleared: string[], skipped: Array<{path:string,ageMs:number}>, failed: Array<{path:string,reason:string}>, missing: boolean }}
+ */
+export function runChromePreflight(label = 'browser-preflight', options = {}) {
+  const result = clearStaleLockfiles(options);
+  if (result.failed.length > 0) {
+    console.warn(`[${label}] preflight could not clear ${result.failed.length} stale lockfile(s); launch may still fail.`);
+  }
+  return result;
+}
+
 // ─── CLI entrypoint ─────────────────────────────────────────────────────────
 // Only run when invoked directly, not when imported.
 const isMain = (() => {
