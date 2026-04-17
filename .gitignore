@@ -43,6 +43,9 @@ dashboard/career-dashboard.exe
 # Firecrawl cache
 .firecrawl/
 
+# Vendored reference material (local-only; not source of truth)
+vendor/
+
 # Batch merged output
 batch/tracker-additions/merged/
 
