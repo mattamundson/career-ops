@@ -26,6 +26,7 @@ import { getSourceOperationalStatus, portalDisplayLabel } from './lib/source-lab
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { resolveAutoScanSinceDays } from './lib/scan-window.mjs';
 import { runChromePreflight } from './lib/chrome-preflight.mjs';
+import { expandDirectJobBoardScans } from './lib/direct-board-config.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -1226,13 +1227,14 @@ async function runJobSpyScan() {
 // Policy: scripts/lib/source-labels.mjs + docs/SUPPORTED-JOB-SOURCES.md
 // ---------------------------------------------------------------------------
 async function runDirectBoardScans(cfg) {
-  let scans = (cfg.direct_job_board_queries || []).filter(scan => scan.enabled !== false);
+  let scans = expandDirectJobBoardScans(cfg.direct_job_board_queries || [])
+    .filter(scan => scan.enabled !== false);
   const subsetFilters = [];
   if (INCLUDE_INDEED)   subsetFilters.push('indeed');
   if (INCLUDE_CB)       subsetFilters.push('careerbuilder');
   if (INCLUDE_LINKEDIN) subsetFilters.push('linkedin-mcp');
   if (subsetFilters.length) {
-    scans = scans.filter(s => subsetFilters.includes(s.name));
+    scans = scans.filter(s => subsetFilters.includes(s.baseName) || subsetFilters.includes(s.name));
     console.log(`  Direct scan subset: ${subsetFilters.join(', ')}`);
   }
   if (!scans.length) return [];
