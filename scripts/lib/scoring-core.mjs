@@ -4,11 +4,16 @@ const STOP_TOKENS = new Set([
   'full', 'time', 'part', 'day', 'days', 'week', 'weeks', 'new', 'senior',
 ]);
 
-/** Minneapolis-area default: hybrid / in-office / local JD wording ranks above remote at similar fit (sync with dashboard/internal/data/work_arrangement.go). */
+/**
+ * Minneapolis-anchored priority: on-site MSP > hybrid MSP > unknown > remote.
+ * Non-MSP on-site/hybrid classifies as `unknown` (unreachable for MN-based candidate).
+ * Keep in sync with dashboard/internal/data/work_arrangement.go.
+ */
 export const LOCATION_PRIORITY = {
-  onsiteHybridMultiplier: 1.06,
-  remoteMultiplier: 0.92,
-  unknownMultiplier: 1.0,
+  onsiteMspMultiplier: 1.20,
+  hybridMspMultiplier: 1.10,
+  unknownMultiplier: 0.95,
+  remoteMultiplier: 0.85,
 };
 
 const STATUS_PRIORITY_MULTIPLIER = {
@@ -61,10 +66,15 @@ export function daysSince(dateLike, fallback = 30) {
 
 /**
  * Classify work arrangement from apply-queue remote line, role title, tracker notes,
- * and optional report snippets (TL;DR / why). Hybrid or explicit on-site / MSP-local
- * wording wins before generic "remote" so optional-hybrid JDs are not mis-bucketed as remote-only.
+ * and optional report snippets (TL;DR / why). Priority order:
+ *   1. MSP-local + hybrid → hybrid_msp
+ *   2. MSP-local (any or no mode) → onsite_msp
+ *   3. Strong-remote keywords (fully remote / 100% remote / anywhere) → remote
+ *   4. Non-MSP on-site/hybrid → unknown (physically unreachable for MN-based candidate)
+ *   5. Weak-remote keywords (remote / wfh) → remote
+ *   6. else → unknown
  * @param {object} fields
- * @returns {'onsite_hybrid'|'remote'|'unknown'}
+ * @returns {'onsite_msp'|'hybrid_msp'|'remote'|'unknown'}
  */
 export function classifyWorkArrangement(fields = {}) {
   const blob = String([
@@ -89,22 +99,23 @@ export function classifyWorkArrangement(fields = {}) {
   const mspLocal = blob.includes('minneapolis') || blob.includes('st. paul') || blob.includes('st paul')
     || blob.includes('twin cities') || blob.includes('eden prairie') || blob.includes('plymouth')
     || blob.includes('golden valley') || blob.includes('bloomington');
+  const strongRemote = blob.includes('100% remote') || blob.includes('fully remote')
+    || blob.includes('fully-remote') || blob.includes('remote only')
+    || blob.includes('work from anywhere') || blob.includes('verified remote')
+    || blob.includes('verifiable remote');
+  const weakRemote = blob.includes('remote') || blob.includes('wfh') || blob.includes('work from home');
 
-  if (hasHybrid || hasOnsite || mspLocal) return 'onsite_hybrid';
-
-  if (blob.includes('100% remote') || blob.includes('fully remote') || blob.includes('fully-remote')
-    || blob.includes('remote only') || blob.includes('work from anywhere')
-    || blob.includes('verified remote') || blob.includes('verifiable remote')) {
-    return 'remote';
-  }
-  if (blob.includes('remote') || blob.includes('wfh') || blob.includes('work from home')) {
-    return 'remote';
-  }
+  if (mspLocal && hasHybrid) return 'hybrid_msp';
+  if (mspLocal) return 'onsite_msp';
+  if (strongRemote) return 'remote';
+  if (hasHybrid || hasOnsite) return 'unknown';
+  if (weakRemote) return 'remote';
   return 'unknown';
 }
 
 export function locationPriorityMultiplier(arrangement) {
-  if (arrangement === 'onsite_hybrid') return LOCATION_PRIORITY.onsiteHybridMultiplier;
+  if (arrangement === 'onsite_msp') return LOCATION_PRIORITY.onsiteMspMultiplier;
+  if (arrangement === 'hybrid_msp') return LOCATION_PRIORITY.hybridMspMultiplier;
   if (arrangement === 'remote') return LOCATION_PRIORITY.remoteMultiplier;
   return LOCATION_PRIORITY.unknownMultiplier;
 }

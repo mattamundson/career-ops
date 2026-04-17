@@ -24,6 +24,7 @@ import { createRunSummaryContext, finalizeRunSummary } from './run-summary.mjs';
 import { scoreTitleAgainstFilter } from './lib/scoring-core.mjs';
 import { getSourceOperationalStatus, portalDisplayLabel } from './lib/source-labels.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { resolveAutoScanSinceDays } from './lib/scan-window.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -58,33 +59,13 @@ const INCLUDE_INDEED  = argv.includes('--indeed');
 const INCLUDE_CB      = argv.includes('--careerbuilder') || argv.includes('--cb');
 const INCLUDE_LINKEDIN = argv.includes('--linkedin');
 
-function clampSinceDays(n) {
-  return Math.min(90, Math.max(1, n));
+let SCAN_SINCE;
+try {
+  SCAN_SINCE = resolveAutoScanSinceDays({ argv });
+} catch (err) {
+  console.error(err.message);
+  process.exit(1);
 }
-
-/** CLI `--since=N` wins; else `CAREER_OPS_SCAN_SINCE_DAYS` from .env; else 7. */
-function resolveSinceDays() {
-  const flag = argv.find(a => a.startsWith('--since='));
-  if (flag) {
-    const val = flag.split('=')[1];
-    const n = parseInt(val, 10);
-    if (isNaN(n)) {
-      console.error(`Invalid --since value: ${val}`);
-      process.exit(1);
-    }
-    return { days: clampSinceDays(n), source: 'cli' };
-  }
-  const raw = process.env.CAREER_OPS_SCAN_SINCE_DAYS;
-  if (raw !== undefined && String(raw).trim() !== '') {
-    const n = parseInt(String(raw).trim(), 10);
-    if (!Number.isNaN(n)) {
-      return { days: clampSinceDays(n), source: 'env' };
-    }
-  }
-  return { days: 7, source: 'default' };
-}
-
-const SCAN_SINCE = resolveSinceDays();
 const SINCE_DAYS = SCAN_SINCE.days;
 
 // ---------------------------------------------------------------------------
@@ -1271,6 +1252,7 @@ async function runDirectBoardScans(cfg) {
     const scriptPath = resolve(__dir, scan.script);
     const args = [scriptPath, '--json'];
     if (scan.query) args.push('--query', String(scan.query));
+    if (scan.location) args.push('--location', String(scan.location));
     if (scan.limit) args.push('--limit', String(scan.limit));
 
     const jobs = await new Promise(resolve_ => {

@@ -2,6 +2,13 @@
 
 Scans configured job portals, filters by title relevance, and adds new offers to the pipeline for later evaluation.
 
+**Priority** (see `config/profile.yml` `location.work_modes`): **on-site MSP > hybrid MSP > remote**. All default scanner locations are Minneapolis-anchored. Remote queries/passes are still enabled but ranked last at equivalent fit score via `scripts/lib/scoring-core.mjs` location multipliers. Non-MSP on-site/hybrid postings classify as `unknown` (physically unreachable for a Minneapolis-based candidate).
+
+- **JobSpy** (`scripts/scan-jobspy.py`) runs two passes by default: MSP-anchored first (`location="Minneapolis, MN"`, `is_remote=False`), then Remote-US. Override with `--skip-remote`, `--skip-msp`, or `--location=X`.
+- **Indeed** (`scripts/scan-indeed.mjs`) defaults to `--location "Minneapolis, MN"`. Pass `--location Remote` to scan the remote bucket.
+- **LinkedIn MCP** (`scripts/scan-linkedin-mcp.mjs`) defaults to `--location "Minneapolis, Minnesota, United States"`. Pass `--location Remote` to scan the remote bucket.
+- **auto-scan orchestrator** (`scripts/auto-scan.mjs`) forwards the `location:` field from each `direct_job_board_queries` entry to the scanner, so portals.yml can encode MSP and Remote variants as separate entries.
+
 ## Recommended execution
 
 Run as a subagent to avoid consuming main context:
@@ -20,7 +27,9 @@ Read `portals.yml` which contains:
 - `search_queries`: List of WebSearch queries with `site:` filters per portal (broad discovery)
 - `tracked_companies`: Specific companies with `careers_url` for direct navigation
 - `title_filter`: Positive/negative/seniority_boost keywords for title filtering
-- `job_board_queries`: Firecrawl site: search queries for major job boards (Level 4 — requires `FIRECRAWL_API_KEY`)
+- `job_board_queries`: Firecrawl site: search queries for major job boards (Level 4 — requires `FIRECRAWL_API_KEY`; optional rows live in root `portals.yml` when using the Matt fork template)
+- **ATS date window:** `node scripts/auto-scan.mjs --since=N` or set `CAREER_OPS_SCAN_SINCE_DAYS` in `.env` when omitting `--since` (default 7 days; clamped 1–90)
+- **Post-scan report window:** `node scripts/scan-report.mjs --since=N`, or set `CAREER_OPS_SCAN_REPORT_SINCE_DAYS` when omitting `--since` (otherwise the report is **all-time**)
 
 ## Discovery strategy (4 levels)
 
@@ -190,3 +199,6 @@ Each company in `tracked_companies` must have `careers_url` — the direct URL t
 - Adjust filter keywords as target roles evolve
 - Add companies to `tracked_companies` when you want to follow them closely
 - Verify `careers_url` periodically — companies change their ATS platform
+
+---
+Inspired by the upstream repository: https://github.com/santifer/career-ops

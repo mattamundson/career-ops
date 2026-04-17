@@ -4,8 +4,13 @@
  *
  * Indeed pages are JS-rendered, so we use Playwright to load and extract job listings.
  *
+ * Priority (config/profile.yml work_modes): on-site MSP > hybrid MSP > remote.
+ * Default location is Minneapolis MN (surfaces on-site + hybrid first). Pass
+ * --location=Remote to scan the remote bucket instead.
+ *
  * Usage:
- *   node scripts/scan-indeed.mjs [--query "data architect"] [--limit 50] [--max-pages 3] [--json] [--live]
+ *   node scripts/scan-indeed.mjs [--query "data architect"] [--location "Minneapolis, MN"]
+ *                                [--limit 50] [--max-pages 3] [--json] [--live]
  *
  * ToS Risk: Indeed Section 5 prohibits scraping. Account ban risk: MEDIUM.
  * Mitigations: random delays, limited pages, respectful rate limiting.
@@ -24,6 +29,8 @@ const dryRun = !args.includes('--live');
 const jsonMode = args.includes('--json');
 const queryIdx = args.indexOf('--query');
 const query = queryIdx >= 0 ? args[queryIdx + 1] : 'data architect';
+const locationIdx = args.indexOf('--location');
+const location = locationIdx >= 0 ? args[locationIdx + 1] : 'Minneapolis, MN';
 const limitIdx = args.indexOf('--limit');
 const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1]) : 50;
 const maxPagesIdx = args.indexOf('--max-pages');
@@ -56,7 +63,7 @@ async function scrapeIndeed(searchQuery) {
 
     for (let pageNum = 0; pageNum < maxPages; pageNum++) {
       const start = pageNum * 10;
-      const url = `https://www.indeed.com/jobs?q=${encodeURIComponent(searchQuery)}&l=Remote&start=${start}&fromage=7&sort=date`;
+      const url = `https://www.indeed.com/jobs?q=${encodeURIComponent(searchQuery)}&l=${encodeURIComponent(location)}&start=${start}&fromage=7&sort=date`;
 
       console.error(`[${SOURCE}] Page ${pageNum + 1}/${maxPages}: ${url}`);
 
@@ -140,7 +147,7 @@ async function scrapeIndeed(searchQuery) {
     return;
   }
 
-  console.log(`[${SOURCE}] Query="${query}" → ${fresh.length} new (${jobs.length} total)`);
+  console.log(`[${SOURCE}] Query="${query}" Location="${location}" → ${fresh.length} new (${jobs.length} total)`);
 
   if (dryRun) {
     console.log('DRY-RUN — not writing');
@@ -153,8 +160,8 @@ async function scrapeIndeed(searchQuery) {
     appendAutomationEvent(ROOT, {
       type: 'scanner.indeed.completed',
       status: 'success',
-      summary: `Indeed scan: ${fresh.length} new jobs for "${query}"`,
-      details: { query, newCount: fresh.length, totalFound: jobs.length, pages: maxPages },
+      summary: `Indeed scan: ${fresh.length} new jobs for "${query}" @ "${location}"`,
+      details: { query, location, newCount: fresh.length, totalFound: jobs.length, pages: maxPages },
     });
     console.log(`Written ${fresh.length} entries to pipeline.md`);
   }

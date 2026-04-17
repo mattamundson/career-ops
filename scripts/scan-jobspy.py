@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 """
 scan-jobspy.py — Multi-board job scraper using python-jobspy
-Scrapes LinkedIn, Indeed, Glassdoor, ZipRecruiter, Google Jobs for remote data/AI roles.
+Scrapes LinkedIn, Indeed, Glassdoor, ZipRecruiter, Google Jobs for data/AI roles.
+
+Priority (config/profile.yml work_modes): on-site MSP > hybrid MSP > remote.
+Two-pass scan: pass 1 anchors on Minneapolis (surfaces MSP physical + hybrid roles);
+pass 2 scans remote-US (surfaces remote). Pass 1 runs first so MSP roles are seen
+earliest in the pipeline. Pass 2 can be skipped with --skip-remote.
 
 Usage:
-  python scripts/scan-jobspy.py              — run live scan, write to pipeline.md
+  python scripts/scan-jobspy.py              — MSP pass + remote pass, write to pipeline.md
   python scripts/scan-jobspy.py --dry-run    — print results without writing files
   python scripts/scan-jobspy.py --boards=X,Y — comma-separated board list override
   python scripts/scan-jobspy.py --term="X"   — single search term override
-  python scripts/scan-jobspy.py --results=N  — results per search term (default: 25)
+  python scripts/scan-jobspy.py --results=N  — results per search term (default: 30)
+  python scripts/scan-jobspy.py --skip-remote — MSP pass only
+  python scripts/scan-jobspy.py --skip-msp    — remote pass only (legacy mode)
+  python scripts/scan-jobspy.py --location="X" — override both passes with one location
 
 Boards available: linkedin, indeed, glassdoor, zip_recruiter, google
 (Wellfound / AngelList is intentionally not in BOARDS — not a JobSpy target in this repo.)
@@ -34,22 +42,47 @@ SCRIPTS_DIR = ROOT / "scripts"
 # CLI flags
 # ---------------------------------------------------------------------------
 args = sys.argv[1:]
-DRY_RUN      = "--dry-run" in args
-BOARDS_FLAG  = next((a.split("=", 1)[1] for a in args if a.startswith("--boards=")),  None)
-TERM_FLAG    = next((a.split("=", 1)[1] for a in args if a.startswith("--term=")),    None)
-RESULTS_FLAG = next((a.split("=", 1)[1] for a in args if a.startswith("--results=")), None)
+DRY_RUN       = "--dry-run" in args
+SKIP_REMOTE   = "--skip-remote" in args
+SKIP_MSP      = "--skip-msp" in args
+BOARDS_FLAG   = next((a.split("=", 1)[1] for a in args if a.startswith("--boards=")),   None)
+TERM_FLAG     = next((a.split("=", 1)[1] for a in args if a.startswith("--term=")),     None)
+RESULTS_FLAG  = next((a.split("=", 1)[1] for a in args if a.startswith("--results=")),  None)
+LOCATION_FLAG = next((a.split("=", 1)[1] for a in args if a.startswith("--location=")), None)
 
 # ---------------------------------------------------------------------------
 # Config: search terms, boards, title filters
 # Mirrors portals.yml title_filter.positive / negative
 # ---------------------------------------------------------------------------
-SEARCH_TERMS = [TERM_FLAG] if TERM_FLAG else [
+# MSP-pass terms: neutral (no "remote" anchor — location param carries geography)
+MSP_SEARCH_TERMS = [TERM_FLAG] if TERM_FLAG else [
+    "data architect",
+    "analytics engineer",
+    "power bi architect",
+    "power bi developer",
+    "business intelligence architect",
+    "business intelligence developer",
+    "microsoft fabric architect",
+    "fabric developer",
+    "principal bi developer",
+    "ai automation engineer",
+    "solutions architect data",
+    "senior bi developer",
+    "reports developer",
+    "data engineer",
+    "enterprise data architect",
+]
+
+# Remote-pass terms: explicit "remote" keyword to pull remote-tagged postings
+REMOTE_SEARCH_TERMS = [TERM_FLAG] if TERM_FLAG else [
     "data architect remote",
     "analytics engineer remote",
     "power bi architect",
     "power bi developer remote",
     "business intelligence architect remote",
     "microsoft fabric architect",
+    "fabric developer remote",
+    "principal bi developer remote",
     "ai automation engineer remote",
     "solutions architect data remote",
     "senior bi developer remote",
@@ -63,7 +96,7 @@ BOARDS = BOARDS_FLAG.split(",") if BOARDS_FLAG else [
     "google",
 ]
 
-RESULTS_WANTED = int(RESULTS_FLAG) if RESULTS_FLAG else 25
+RESULTS_WANTED = int(RESULTS_FLAG) if RESULTS_FLAG else 30
 
 POSITIVE_KW = [
     "data architect", "data engineer", "analytics engineer", "bi engineer",
@@ -179,10 +212,40 @@ def main():
 
     seen_urls = load_seen_urls()
 
+    # Build passes: MSP first (highest priority), remote second.
+    # Override via --location=X to run a single pass.
+    if LOCATION_FLAG:
+        passes = [{
+            "name": "custom",
+            "location": LOCATION_FLAG,
+            "is_remote": False,
+            "terms": MSP_SEARCH_TERMS,
+        }]
+    else:
+        passes = []
+        if not SKIP_MSP:
+            passes.append({
+                "name": "MSP",
+                "location": "Minneapolis, MN",
+                "is_remote": False,
+                "terms": MSP_SEARCH_TERMS,
+            })
+        if not SKIP_REMOTE:
+            passes.append({
+                "name": "Remote-US",
+                "location": "United States",
+                "is_remote": True,
+                "terms": REMOTE_SEARCH_TERMS,
+            })
+
+    if not passes:
+        print("[ERROR] Both --skip-msp and --skip-remote set — no passes to run.")
+        sys.exit(1)
+
     print(f"\nJobSpy Scan — {date.today().isoformat()}")
     print("━" * 50)
     print(f"  Boards:       {', '.join(BOARDS)}")
-    print(f"  Search terms: {len(SEARCH_TERMS)}")
+    print(f"  Passes:       {len(passes)} ({', '.join(p['name'] for p in passes)})")
     print(f"  Results/term: {RESULTS_WANTED}")
     print(f"  Already seen: {len(seen_urls)} URLs")
     print(f"  Mode:         {'DRY Run' if DRY_RUN else 'LIVE'}")
@@ -190,65 +253,72 @@ def main():
 
     all_new = []
 
-    for term in SEARCH_TERMS:
-        print(f"  Searching: {term!r}...")
-        try:
-            df = scrape_jobs(
-                site_name=BOARDS,
-                search_term=term,
-                location="United States",
-                results_wanted=RESULTS_WANTED,
-                country_indeed="USA",
-                is_remote=True,
-                description_format="markdown",
-            )
-        except Exception as exc:
-            print(f"    [ERROR] {exc}")
-            continue
+    for pass_cfg in passes:
+        pass_name = pass_cfg["name"]
+        pass_location = pass_cfg["location"]
+        pass_remote = pass_cfg["is_remote"]
+        pass_terms = pass_cfg["terms"]
+        print(f"Pass [{pass_name}] — location={pass_location!r}, is_remote={pass_remote}, terms={len(pass_terms)}")
 
-        if df is None or len(df) == 0:
-            print("    No results returned.")
-            continue
-
-        matched = 0
-        new_for_term = 0
-
-        for _, row in df.iterrows():
-            title    = str(row.get("title",    "") or "").strip()
-            company  = str(row.get("company",  "") or "").strip()
-            url      = str(row.get("job_url",  "") or "").strip()
-            site     = str(row.get("site",     "") or "").strip()
-            location = str(row.get("location", "") or "").strip()
-
-            # Skip empty or pandas NaN values
-            if not url or url == "nan" or not title or title == "nan":
+        for term in pass_terms:
+            print(f"  Searching: {term!r}...")
+            try:
+                df = scrape_jobs(
+                    site_name=BOARDS,
+                    search_term=term,
+                    location=pass_location,
+                    results_wanted=RESULTS_WANTED,
+                    country_indeed="USA",
+                    is_remote=pass_remote,
+                    description_format="markdown",
+                )
+            except Exception as exc:
+                print(f"    [ERROR] {exc}")
                 continue
 
-            if not title_passes(title):
+            if df is None or len(df) == 0:
+                print("    No results returned.")
                 continue
 
-            if is_international(title, location):
-                continue
+            matched = 0
+            new_for_term = 0
 
-            matched += 1
+            for _, row in df.iterrows():
+                title    = str(row.get("title",    "") or "").strip()
+                company  = str(row.get("company",  "") or "").strip()
+                url      = str(row.get("job_url",  "") or "").strip()
+                site     = str(row.get("site",     "") or "").strip()
+                location = str(row.get("location", "") or "").strip()
 
-            if url in seen_urls:
-                continue
+                # Skip empty or pandas NaN values
+                if not url or url == "nan" or not title or title == "nan":
+                    continue
 
-            seen_urls.add(url)  # prevent intra-run duplicates
-            new_for_term += 1
+                if not title_passes(title):
+                    continue
 
-            safe_company = company if company and company != "nan" else "Unknown"
-            all_new.append({
-                "url":      url,
-                "title":    title,
-                "company":  safe_company,
-                "site":     site,
-                "location": location,
-            })
-            print(f"    + [{site:<12}] {safe_company} | {title}")
+                if is_international(title, location):
+                    continue
 
-        print(f"    → {len(df)} total, {matched} title-matched, {new_for_term} new")
+                matched += 1
+
+                if url in seen_urls:
+                    continue
+
+                seen_urls.add(url)  # prevent intra-run duplicates
+                new_for_term += 1
+
+                safe_company = company if company and company != "nan" else "Unknown"
+                all_new.append({
+                    "url":      url,
+                    "title":    title,
+                    "company":  safe_company,
+                    "site":     site,
+                    "location": location,
+                })
+                print(f"    + [{site:<12}] {safe_company} | {title}")
+
+            print(f"    → {len(df)} total, {matched} title-matched, {new_for_term} new")
 
     print()
     print("━" * 50)

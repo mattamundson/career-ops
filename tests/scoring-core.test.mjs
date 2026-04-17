@@ -57,40 +57,72 @@ test('computeApplicationPriority favors fresh, high-score applications', () => {
   assert.ok(high.priorityScore > low.priorityScore);
 });
 
-test('classifyWorkArrangement treats optional hybrid JD as onsite_hybrid', () => {
+test('classifyWorkArrangement treats non-MSP fully-remote-with-hybrid as remote', () => {
+  // Salem OR is non-MSP, so "optional hybrid near Salem" doesn't help a MN-based candidate.
+  // Strong-remote keyword wins, classified as remote.
   assert.equal(
     classifyWorkArrangement({
       reportRemote: 'VERIFIED REMOTE — fully remote with optional hybrid near Salem OR',
     }),
-    'onsite_hybrid',
+    'remote',
   );
 });
 
-test('computeApplicationPriority boosts hybrid vs remote at same score', () => {
+test('classifyWorkArrangement buckets MSP on-site vs MSP hybrid vs remote', () => {
+  assert.equal(
+    classifyWorkArrangement({ reportRemote: 'Minneapolis MN — on-site' }),
+    'onsite_msp',
+  );
+  assert.equal(
+    classifyWorkArrangement({ reportRemote: 'Minneapolis MN — hybrid 3 days/week' }),
+    'hybrid_msp',
+  );
+  assert.equal(
+    classifyWorkArrangement({ reportRemote: 'Fully remote US' }),
+    'remote',
+  );
+  // Non-MSP on-site is unusable for Matt → unknown (no boost, mild penalty)
+  assert.equal(
+    classifyWorkArrangement({ role: 'Engineer — Austin TX on-site' }),
+    'unknown',
+  );
+});
+
+test('computeApplicationPriority ranks on-site MSP > hybrid MSP > remote at same score', () => {
   const base = {
     score: '4.2/5',
     status: 'Evaluated',
     date: new Date().toISOString().slice(0, 10),
     reportPath: 'reports/x.md',
   };
+  const onsiteMsp = computeApplicationPriority({
+    ...base,
+    role: 'Engineer — Minneapolis on-site',
+    reportRemote: 'Minneapolis MN — in-office',
+  });
+  const hybridMsp = computeApplicationPriority({
+    ...base,
+    role: 'Engineer — Minneapolis hybrid',
+    reportRemote: 'Hybrid 2 days in office (Minneapolis)',
+  });
   const remoteP = computeApplicationPriority({
     ...base,
     role: 'Engineer — Remote US',
     reportRemote: 'Fully remote',
   });
-  const hybridP = computeApplicationPriority({
-    ...base,
-    role: 'Engineer — Minneapolis hybrid',
-    reportRemote: 'Hybrid 2 days in office',
-  });
-  assert.ok(hybridP.priorityScore > remoteP.priorityScore);
-  assert.equal(hybridP.workArrangement, 'onsite_hybrid');
+  assert.ok(onsiteMsp.priorityScore > hybridMsp.priorityScore,
+    `onsite_msp (${onsiteMsp.priorityScore}) should beat hybrid_msp (${hybridMsp.priorityScore})`);
+  assert.ok(hybridMsp.priorityScore > remoteP.priorityScore,
+    `hybrid_msp (${hybridMsp.priorityScore}) should beat remote (${remoteP.priorityScore})`);
+  assert.equal(onsiteMsp.workArrangement, 'onsite_msp');
+  assert.equal(hybridMsp.workArrangement, 'hybrid_msp');
   assert.equal(remoteP.workArrangement, 'remote');
 });
 
-test('focusSortKey keeps very high remote above mid hybrid', () => {
+test('focusSortKey keeps very high remote above mid hybrid_msp', () => {
+  // A 5.0 remote (5.0 * 0.85 = 4.25) still beats a 3.5 hybrid_msp (3.5 * 1.10 = 3.85).
   const r = focusSortKey(5.0, { role: 'Remote', reportRemote: 'fully remote' });
-  const h = focusSortKey(4.0, { role: 'Hybrid', reportRemote: 'hybrid minneapolis' });
+  const h = focusSortKey(3.5, { role: 'Hybrid', reportRemote: 'hybrid minneapolis' });
   assert.ok(r > h);
 });
 

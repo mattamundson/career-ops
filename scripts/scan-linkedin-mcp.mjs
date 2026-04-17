@@ -8,8 +8,13 @@
  * Chromium window; user must sign in to linkedin.com there). Session persists
  * to ~/.linkedin-mcp/ between runs.
  *
+ * Priority (config/profile.yml work_modes): on-site MSP > hybrid MSP > remote.
+ * Default location is Minneapolis MN (surfaces on-site + hybrid first). Pass
+ * --location=Remote to scan the remote bucket instead.
+ *
  * Usage:
- *   node scripts/scan-linkedin-mcp.mjs [--query "data architect"] [--limit 50] [--json] [--live]
+ *   node scripts/scan-linkedin-mcp.mjs [--query "data architect"] [--location "Minneapolis, MN"]
+ *                                      [--limit 50] [--json] [--live]
  *
  * ToS Risk: browser automation against LinkedIn. Account restriction possible.
  * See docs/tos-risk-register.md.
@@ -28,6 +33,8 @@ const args = process.argv.slice(2);
 const dryRun = !args.includes('--live');
 const jsonMode = args.includes('--json');
 const queryIdx = args.indexOf('--query');
+const locationIdx = args.indexOf('--location');
+const location = locationIdx >= 0 ? args[locationIdx + 1] : 'Minneapolis, Minnesota, United States';
 const limitIdx = args.indexOf('--limit');
 const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1]) : 50;
 
@@ -79,7 +86,7 @@ function parseJobsFromMcpResponse(data) {
       url: `https://www.linkedin.com/jobs/view/${id}`,
       title,
       company,
-      location: 'Remote',
+      location,
     };
   });
 }
@@ -102,7 +109,7 @@ async function main() {
       try {
         const result = await client.callTool('search_jobs', {
           keywords: query,
-          location: 'Remote',
+          location,
           date_posted: 'past_24_hours',
           max_pages: 1,
         });
