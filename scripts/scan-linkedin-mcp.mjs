@@ -15,11 +15,11 @@
  * See docs/tos-risk-register.md.
  */
 
-import { spawn } from 'child_process';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { appendScanResults, loadSeenUrls } from './lib/scan-output.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { McpClient, parseJsonTextContent } from './lib/mcp-client.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -46,101 +46,6 @@ const DEFAULT_QUERIES = [
 
 const customQuery = queryIdx >= 0 ? args[queryIdx + 1] : null;
 const queries = customQuery ? [customQuery] : DEFAULT_QUERIES;
-
-// --- MCP stdio JSON-RPC client -------------------------------------------
-
-class McpClient {
-  constructor(cmd, cmdArgs) {
-    this.proc = spawn(cmd, cmdArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
-    this.buffer = '';
-    this.pending = new Map();
-    this.nextId = 1;
-    this.initialized = false;
-    this.closed = false;
-    this.proc.stdout.on('data', d => this._onData(d));
-    this.proc.stderr.on('data', d => {
-      const text = d.toString();
-      // MCP servers often emit startup diagnostics to stderr; don't dump verbatim
-      for (const line of text.split('\n')) {
-        if (line.trim() && !/^(INFO|DEBUG)/i.test(line)) {
-          process.stderr.write(`[mcp:linkedin] ${line}\n`);
-        }
-      }
-    });
-    this.proc.on('exit', code => {
-      this.closed = true;
-      for (const { reject } of this.pending.values()) {
-        reject(new Error(`MCP server exited (code ${code}) before response`));
-      }
-      this.pending.clear();
-    });
-    this.proc.on('error', err => {
-      this.closed = true;
-      console.error(`[mcp:linkedin] spawn error: ${err.message}`);
-    });
-  }
-
-  _onData(data) {
-    this.buffer += data.toString();
-    let nl;
-    while ((nl = this.buffer.indexOf('\n')) >= 0) {
-      const line = this.buffer.slice(0, nl).trim();
-      this.buffer = this.buffer.slice(nl + 1);
-      if (!line) continue;
-      let msg;
-      try { msg = JSON.parse(line); } catch { continue; }
-      if (msg.id !== undefined && this.pending.has(msg.id)) {
-        const { resolve: res, reject: rej } = this.pending.get(msg.id);
-        this.pending.delete(msg.id);
-        msg.error ? rej(new Error(msg.error.message || JSON.stringify(msg.error))) : res(msg.result);
-      }
-    }
-  }
-
-  request(method, params, timeoutMs = 60000) {
-    if (this.closed) return Promise.reject(new Error('MCP client closed'));
-    const id = this.nextId++;
-    return new Promise((res, rej) => {
-      const timer = setTimeout(() => {
-        this.pending.delete(id);
-        rej(new Error(`timeout: ${method}`));
-      }, timeoutMs);
-      this.pending.set(id, {
-        resolve: v => { clearTimeout(timer); res(v); },
-        reject: e => { clearTimeout(timer); rej(e); },
-      });
-      this.proc.stdin.write(JSON.stringify({ jsonrpc: '2.0', id, method, params: params || {} }) + '\n');
-    });
-  }
-
-  notify(method, params) {
-    if (this.closed) return;
-    this.proc.stdin.write(JSON.stringify({ jsonrpc: '2.0', method, params: params || {} }) + '\n');
-  }
-
-  async init() {
-    if (this.initialized) return;
-    await this.request('initialize', {
-      protocolVersion: '2024-11-05',
-      capabilities: {},
-      clientInfo: { name: 'career-ops-scan-linkedin-mcp', version: '1.0' },
-    });
-    this.notify('notifications/initialized');
-    this.initialized = true;
-  }
-
-  async callTool(name, toolArgs, timeoutMs = 90000) {
-    await this.init();
-    return this.request('tools/call', { name, arguments: toolArgs }, timeoutMs);
-  }
-
-  close() {
-    if (!this.closed) {
-      try { this.proc.kill(); } catch { /* noop */ }
-    }
-    this.closed = true;
-  }
-}
 
 // --- Response parsing -----------------------------------------------------
 
@@ -190,7 +95,7 @@ async function main() {
   const allJobs = [];
   const errors = [];
 
-  const client = new McpClient('uvx', ['linkedin-scraper-mcp@latest']);
+  const client = new McpClient('uvx', ['linkedin-scraper-mcp@latest'], { stderrPrefix: 'mcp:linkedin' });
 
   try {
     for (const query of queries) {
@@ -201,16 +106,9 @@ async function main() {
           date_posted: 'past_24_hours',
           max_pages: 1,
         });
-        const contentText = result?.content?.[0]?.text;
-        if (!contentText) {
-          console.error(`[${SOURCE}] empty content for "${query}"`);
-          continue;
-        }
-        let data;
-        try {
-          data = JSON.parse(contentText);
-        } catch {
-          console.error(`[${SOURCE}] non-JSON content for "${query}"`);
+        const data = parseJsonTextContent(result);
+        if (!data) {
+          console.error(`[${SOURCE}] empty or non-JSON content for "${query}"`);
           continue;
         }
         const jobs = parseJobsFromMcpResponse(data);
