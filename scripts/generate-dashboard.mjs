@@ -641,6 +641,72 @@ function generateApplyQueue(appList) {
   </div>`;
 }
 
+function generateNextActions(appList) {
+  const actionable = appList
+    .filter((a) => a.status === 'GO' || a.status === 'Conditional GO')
+    .filter((a) => a.priority && a.priority.priorityScore > 0)
+    .sort((a, b) => b.priority.priorityScore - a.priority.priorityScore)
+    .slice(0, 5);
+
+  if (actionable.length === 0) return '';
+
+  const rows = actionable.map((app, i) => {
+    const urgency = app.priority.urgencyMultiplier ?? 1.0;
+    const urgencyBadge = urgency >= 1.25
+      ? '<span style="color:#f38ba8;font-weight:600">Closing ≤2d</span>'
+      : urgency >= 1.10
+        ? '<span style="color:#f9e2af;font-weight:600">Closing ≤7d</span>'
+        : urgency < 1.0
+          ? '<span style="color:#6c7086">Past close</span>'
+          : '<span style="color:var(--overlay0)">—</span>';
+    const applyLink = app.jobUrl
+      ? `<a href="${app.jobUrl}" target="_blank" style="color:#89b4fa;font-weight:600">Apply →</a>`
+      : '<span style="color:var(--overlay0)">—</span>';
+    const isGO = app.status === 'GO';
+    const badgeColor = isGO ? '#a6e3a1' : '#f9e2af';
+    const statusBadge = `<span class="badge" style="color:${badgeColor};border-color:${badgeColor}22;background:${badgeColor}11">${app.status}</span>`;
+    return `<tr>
+      <td style="text-align:center;color:var(--subtext);font-weight:700;font-size:18px">${i + 1}</td>
+      <td>${statusBadge}</td>
+      <td class="company"><strong>${app.company}</strong></td>
+      <td class="role">${app.role}</td>
+      <td class="score">${scoreBar(app.score)}</td>
+      <td style="font-weight:600;color:#a6e3a1;text-align:center">${app.priority.priorityScore}</td>
+      <td style="text-align:center">${urgencyBadge}</td>
+      <td>${applyLink}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <!-- Next 5 Actions -->
+  <div class="section">
+    <div class="section-header">
+      <h2>🎯 Next 5 Applications</h2>
+      <span class="count">ranked by priority × urgency</span>
+    </div>
+    <div style="padding:8px 20px 0;font-size:12px;color:var(--subtext)">
+      Highest-priority GO / Conditional-GO rows after fit, freshness, location, and deadline urgency.
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:center">#</th>
+            <th>Status</th>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Score</th>
+            <th style="text-align:center">Priority</th>
+            <th style="text-align:center">Urgency</th>
+            <th>Apply</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
 // ─── v14 Response Tracker Sections ─────────────────────────────────────────
 
 function generateDailyGoal() {
@@ -1427,6 +1493,8 @@ const html = `<!DOCTYPE html>
         </div>` : ''}
     </div>
   </div>` : ''}
+
+  ${generateNextActions(apps)}
 
   ${generateDailyGoal()}
 
