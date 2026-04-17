@@ -45,6 +45,13 @@ cd dashboard && go build -o career-dashboard .
 ./career-dashboard -path ..
 ```
 
+### Git hooks
+
+Husky runs `.husky/pre-commit` and `.husky/pre-push` automatically.
+
+- **pre-commit** — runs `pnpm run secrets:check`, then regenerates `dashboard.html` when a tracked dashboard input is staged (`data/responses.md`, `dashboard.html` itself, `scripts/generate-dashboard.mjs`, or its `scripts/lib/*.mjs` deps). Primary data sources (`applications.md`, `pipeline.md`, `scan-history.tsv`) are gitignored and local-only — regenerate manually via `pnpm run dashboard` when those change.
+- **pre-push** — runs `pnpm run verify:ci` and `pnpm test`.
+
 ### Windows and Go (`dashboard/`)
 
 On some Windows machines, `go test ./...` or `go vet ./...` may be blocked by enterprise Application Control while `go build` still works. The canonical gate for dashboard changes is **CI** (Linux job in `.github/workflows/verify.yml`: `go vet` then `go test`). If local tests fail for policy reasons, push a branch and rely on the workflow, or run the same commands in WSL.
