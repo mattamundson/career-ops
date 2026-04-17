@@ -130,7 +130,7 @@ export function clearStaleLockfiles({
  * @returns {{ cleared: string[], skipped: Array<{path:string,ageMs:number}>, failed: Array<{path:string,reason:string}>, missing: boolean }}
  */
 export function runChromePreflight(label = 'browser-preflight', options = {}) {
-  const result = clearStaleLockfiles(options);
+  const result = clearStaleLockfiles({ log: console.error, ...options });
   if (result.failed.length > 0) {
     console.warn(`[${label}] preflight could not clear ${result.failed.length} stale lockfile(s); launch may still fail.`);
   }
