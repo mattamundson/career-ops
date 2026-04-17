@@ -63,7 +63,7 @@ Four commits, four sub-tasks from the prior handoff's §0 block, all four on `or
 |------|---------|--------------|
 | `data/company-intel/.gitkeep` | Preserves dir after gitignore applied | `281e7ec` |
 | `data/prefilter-results/.gitkeep` | Preserves dir after gitignore applied | `281e7ec` |
-| `docs/AI-SESSION-CONTINUITY-2026-04-17-early-morning.md` | THIS file — session close handoff | (uncommitted) |
+| `docs/AI-SESSION-CONTINUITY-2026-04-17-early-morning.md` | THIS file — session close handoff (+ addendum updates) | `fe28b2c`, `9683213` |
 
 ### Modified + committed this session
 
@@ -99,7 +99,7 @@ After this session: 734 modified + 113 untracked. Overwhelmingly:
 ## 3. Current state — what's running, what's stopped, what's broken
 
 ### Running / healthy
-- **Git**: `master` = `281e7ec`, in sync with `origin/master`. Four clean commits this session.
+- **Git**: `master` = `9683213`, in sync with `origin/master`. Seven clean commits in the full session arc.
 - **Test suites**:
   - JS: `pnpm test` → 42/42 pass (was 40 at session start, +2 SSOT-wiring tests)
   - Go: `go test ./internal/data/...` → 14/14 (unchanged)
@@ -112,10 +112,10 @@ After this session: 734 modified + 113 untracked. Overwhelmingly:
 
 ### Stopped
 - No long-running processes.
-- Playwright browser profile lockfile still stale (`.playwright-mcp/mcp-chrome-e1b3d30/lockfile`). Did not need browser this session.
+- No unresolved browser preflight blockers remain at the docs level; stale lock handling now exists in `scripts/lib/chrome-preflight.mjs` and is tracked as follow-up wiring work.
 
 ### Broken / known issues
-- **Playwright browser lock**: pre-existing, untouched. First browser-using session must clear it.
+- **Chrome preflight integration gap**: library exists and works, but broader entry-point wiring is still a follow-up task.
 - **Scanner portal-entry doubling**: `portals.yml` still has MSP/remote variants per board. Not refactored. (Tier 3 item.)
 - **Stash@{1} conflict potential**: the pre-existing dashboard Focus-button/sort WIP stashed off `generate-dashboard.mjs` will conflict with the surgical `, LOCATION_CONFIG` additions when popped. Resolution is straightforward (keep both). See §4.
 
@@ -160,7 +160,7 @@ Carried from prior handoff. Big reduction this session — 4 of 10 remaining blo
 | 9 | ~~`scan-jobspy.py` runs remote by default~~ | **RESOLVED** in `87497a4` |
 | 10 | Dashboard regen is manual | LOW | Pre-commit hook (Tier 3) |
 
-**7 of 10 blockers resolved total** (3 last session, 4 this session). Remaining: all LOW-to-MEDIUM Tier 3 items.
+**8 of 10 blockers resolved total** (3 in prior session + 5 in this session arc through `b51eef1`). Remaining: LOW-to-MEDIUM Tier 3/workflow items.
 
 **New observation** (this session):
 - Location-classification fallback heavy. With the location column brand-new, existing rows classify via `classifyWorkArrangement(remote=location, role=title, notes=company)` — and when location is empty, the classifier falls back to title/company keyword matching, which produces mostly `unknown`. Once new MSP-anchored scans accumulate location-populated rows, the LOCATION BUCKETS section will surface real signal. Could be worth synthesizing location from company-intel data too, but Tier 3 at best.
@@ -221,7 +221,7 @@ Carried from prior handoff. Big reduction this session — 4 of 10 remaining blo
 
 ## 8. Full current task list
 
-All tasks completed this session. No in-progress, no pending.
+All originally planned Tier 2 tasks are complete. Follow-up Tier 3/workflow items remain (see §7).
 
 | ID | Status | Subject |
 |----|--------|---------|
@@ -229,6 +229,8 @@ All tasks completed this session. No in-progress, no pending.
 | #2 | completed | Add location column to scan-history.tsv |
 | #3 | completed | Expand log-response.mjs event types for deferred/discarded |
 | #4 | completed | Decide + apply gitignore policy for scanner churn dirs |
+| #5 | completed | Add Playwright artifact gitignore + chrome preflight helper |
+| #6 | completed | Update handoff addendum after post-handoff commits |
 
 Next session should create fresh tasks from §7 Tier 3 or scan-derived workflow, not reuse these IDs.
 
@@ -239,7 +241,7 @@ Next session should create fresh tasks from §7 Tier 3 or scan-derived workflow,
 ### `git status -sb` (summary counts)
 
 ```
-## master...origin/master       ← in sync after push of 281e7ec
+## master...origin/master       ← in sync after push of 9683213
   M: 734 files
  ??: 113 files
 ```
@@ -262,7 +264,10 @@ Untracked (113) = handoff docs + miscellaneous session artifacts + any new scann
 ### `git log --oneline -10`
 
 ```
-281e7ec chore(gitignore): scanner-churn dirs + .gitkeep for structure           ← THIS SESSION, #4
+9683213 docs: update handoff with post-handoff Tier 3 commits                    ← THIS SESSION, #7
+b51eef1 feat(ops): chrome-preflight lib + gitignore Playwright artifact dirs     ← THIS SESSION, #6
+fe28b2c docs: session continuity handoff 2026-04-17 early morning                ← THIS SESSION, #5
+281e7ec chore(gitignore): scanner-churn dirs + .gitkeep for structure            ← THIS SESSION, #4
 22333d9 feat(log-response): accept deferred + discarded events                  ← THIS SESSION, #3
 fe6dd7c feat(scan-history): 7th location column + MSP bucket split              ← THIS SESSION, #2
 9fb65f5 feat(ssot): wire loadLocationConfig into generate-dashboard.mjs         ← THIS SESSION, #1
@@ -270,8 +275,6 @@ e72b2be docs: exhaustive session handoff 2026-04-16 late-night with Start Here  
 87497a4 feat: SSOT location priority + Deferred state + MSP-only scan default   ← earlier prior session
 def4609 feat(schema): pipeline.md Location column + process retrospective
 6701144 feat(priority): on-site MSP > hybrid MSP > remote across scoring + scanners
-49799cb docs: session continuity narrative for 2026-04-16 evening
-85cae1e refactor(mcp): extract shared stdio JSON-RPC client to scripts/lib/mcp-client.mjs
 ```
 
 ### This session's commits — diff stats
@@ -304,6 +307,9 @@ fe6dd7c  scripts/lib/scan-output.mjs |  4 ++--
 fe6dd7c  → 9fb65f5..fe6dd7c  master -> master  (pre-push hook pass)
 22333d9  → fe6dd7c..22333d9  master -> master  (pre-push hook pass)
 281e7ec  → 22333d9..281e7ec  master -> master  (pre-push hook pass)
+fe28b2c  → 281e7ec..fe28b2c  master -> master  (pre-push hook pass)
+b51eef1  → fe28b2c..b51eef1  master -> master  (pre-push hook pass)
+9683213  → b51eef1..9683213  master -> master  (pre-push hook pass)
 ```
 
 ### Stash list
