@@ -20,6 +20,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { appendScanResults, loadSeenUrls } from './lib/scan-output.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { runChromePreflight } from './lib/chrome-preflight.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -51,6 +52,7 @@ async function scrapeIndeed(searchQuery) {
     return [];
   }
 
+  runChromePreflight(SOURCE);
   const browser = await chromium.launch({ headless: true });
   const allJobs = [];
 

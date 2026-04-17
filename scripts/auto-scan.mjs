@@ -25,6 +25,7 @@ import { scoreTitleAgainstFilter } from './lib/scoring-core.mjs';
 import { getSourceOperationalStatus, portalDisplayLabel } from './lib/source-labels.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { resolveAutoScanSinceDays } from './lib/scan-window.mjs';
+import { runChromePreflight } from './lib/chrome-preflight.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -615,6 +616,7 @@ async function fetchGreenhouse(apiUrl, companyName) {
 async function fetchAshbyPlaywright(companies) {
   if (!companies.length) return [];
   const { chromium } = await import('playwright');
+  runChromePreflight('auto-scan:ashby');
   const browser = await chromium.launch({ headless: true });
   const results = []; // [{ company, jobs[] }]
   try {
@@ -728,6 +730,7 @@ async function fetchSmartRecruiters(slug, companyName, query = '') {
 async function fetchWorkday(companies) {
   if (!companies.length) return [];
   const { chromium } = await import('playwright');
+  runChromePreflight('auto-scan:workday');
   const browser = await chromium.launch({ headless: true });
   const results = [];
   try {
@@ -776,6 +779,7 @@ async function fetchWorkday(companies) {
 async function fetchICIMS(companies) {
   if (!companies.length) return [];
   const { chromium } = await import('playwright');
+  runChromePreflight('auto-scan:icims');
   const browser = await chromium.launch({ headless: true });
   const results = [];
   try {
@@ -861,6 +865,7 @@ async function fetchWorkable(slug, companyName) {
 async function fetchBuiltIn(queries) {
   if (!queries.length) return [];
   const { chromium } = await import('playwright');
+  runChromePreflight('auto-scan:builtin');
   const browser = await chromium.launch({ headless: true });
   const results = [];
   try {

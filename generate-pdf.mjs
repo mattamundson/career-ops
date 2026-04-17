@@ -15,6 +15,7 @@ import { resolve, dirname } from 'path';
 import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import { runChromePreflight } from './scripts/lib/chrome-preflight.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const toFileURL = (p) => 'file:///' + p.replace(/\\/g, '/');
@@ -81,6 +82,7 @@ async function generatePDF() {
     `file://$1.woff2')`
   );
 
+  runChromePreflight('generate-pdf');
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 

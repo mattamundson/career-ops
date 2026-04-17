@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { attachApplyArtifact } from './ats-run-state.mjs';
 import { loadProjectEnv } from './load-env.mjs';
-import { clearStaleLockfiles } from './lib/chrome-preflight.mjs';
+import { runChromePreflight } from './lib/chrome-preflight.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -18,10 +18,7 @@ const DRY_RUN = process.env.CAREER_OPS_DRY_RUN === '1';
  * Session saved to .playwright-session/ for cookie persistence across runs.
  */
 export async function launchBrowser() {
-  const preflight = clearStaleLockfiles();
-  if (preflight.failed.length > 0) {
-    console.warn(`[browser-preflight] failed to clear ${preflight.failed.length} stale lockfile(s); browser launch may still fail.`);
-  }
+  runChromePreflight('browser-preflight');
   return await chromium.launchPersistentContext('.playwright-session', {
     headless: false,
     viewport: { width: 1280, height: 800 },

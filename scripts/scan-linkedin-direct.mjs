@@ -20,7 +20,8 @@
  */
 
 import fs from 'fs';
-import { clearStaleLockfiles } from './lib/chrome-preflight.mjs';
+import { appendScanResults, loadSeenUrls } from './lib/scan-output.mjs';
+import { runChromePreflight } from './lib/chrome-preflight.mjs';
 
 // Kill switch: If DISABLE_LINKEDIN_SCRAPE=1, exit immediately
 if (process.env.DISABLE_LINKEDIN_SCRAPE === '1') {
@@ -53,31 +54,11 @@ const QUERIES = [
 ];
 
 const SOURCE = 'linkedin-direct';
-const HISTORY = 'data/scan-history.tsv';
 const OUTPUT = 'data/scan-linkedin-direct.json';
-
-async function loadSeen() {
-  if (!fs.existsSync(HISTORY)) return new Set();
-  return new Set(
-    fs.readFileSync(HISTORY, 'utf8')
-      .split('\n')
-      .filter(line => line.trim())
-      .map(line => line.split('\t')[0])
-  );
-}
-
-async function saveSeen(url, title, company, location) {
-  const timestamp = new Date().toISOString();
-  const line = `${url}\t${SOURCE}\t${timestamp}\t${title}\t${company}\t${location}\n`;
-  fs.appendFileSync(HISTORY, line);
-}
 
 (async () => {
   try {
-    const preflight = clearStaleLockfiles();
-    if (preflight.failed.length > 0) {
-      console.warn(`[scan-linkedin-direct] preflight could not clear ${preflight.failed.length} stale lockfile(s); launch may still fail.`);
-    }
+    runChromePreflight('scan-linkedin-direct');
     console.log('[scan-linkedin-direct] Starting Playwright context...');
     const browser = await chromium.launchPersistentContext(
       '.playwright-session-linkedin',
@@ -95,7 +76,7 @@ async function saveSeen(url, title, company, location) {
     // Wait for user to press Enter
     await new Promise(resolve => process.stdin.once('data', resolve));
 
-    const seen = await loadSeen();
+    const seen = loadSeenUrls();
     const results = [];
 
     for (const q of QUERIES) {
@@ -130,7 +111,6 @@ async function saveSeen(url, title, company, location) {
         for (const job of jobs) {
           if (job.url && !seen.has(job.url)) {
             results.push({ source: 'linkedin-direct', ...job, scanned_at: new Date().toISOString() });
-            await saveSeen(job.url, job.title, job.company, job.location);
             seen.add(job.url);
           }
         }
@@ -143,8 +123,10 @@ async function saveSeen(url, title, company, location) {
       await page.waitForTimeout(Math.round(cooldown));
     }
 
-    // Write results to output file
     if (results.length > 0) {
+      appendScanResults(results, { portal: `direct/${SOURCE}` });
+
+      // Write results to output file
       const existing = fs.existsSync(OUTPUT)
         ? JSON.parse(fs.readFileSync(OUTPUT, 'utf8'))
         : [];

@@ -21,7 +21,7 @@ import { existsSync, readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
-import { clearStaleLockfiles } from './lib/chrome-preflight.mjs';
+import { runChromePreflight } from './lib/chrome-preflight.mjs';
 import { loadProjectEnv } from './load-env.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -100,10 +100,7 @@ try {
   process.exit(1);
 }
 
-const preflight = clearStaleLockfiles();
-if (preflight.failed.length > 0) {
-  console.warn(`[playwright-submit] preflight could not clear ${preflight.failed.length} stale lockfile(s); launch may still fail.`);
-}
+runChromePreflight('playwright-submit');
 
 const browser = await chromium.launchPersistentContext('.playwright-session', {
   headless: false,

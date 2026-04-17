@@ -17,6 +17,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { runChromePreflight } from './lib/chrome-preflight.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -173,6 +174,7 @@ async function main() {
     return;
   }
 
+  runChromePreflight('resolve-aggregator-urls');
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
