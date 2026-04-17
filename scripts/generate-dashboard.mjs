@@ -18,6 +18,7 @@ import {
   portalDisplayLabel,
 } from './lib/source-labels.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { isBrainAvailable, getBrainStats } from './lib/brain-client.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -686,6 +687,37 @@ function generateGmailSyncTile() {
       <span>Last status: <strong style="color:${color}">${status}</strong></span>
       <span>Matched: <strong>${matched}</strong></span>
       <span>Event: <code>${latest.type}</code></span>
+    </div>
+  </div>`;
+}
+
+function generateBrainTile() {
+  if (!isBrainAvailable()) return '';
+  const s = getBrainStats();
+  if (!s.available) {
+    return `
+  <div class="section" style="margin-bottom:16px">
+    <div class="section-header"><h2>🧠 Brain</h2><span class="count" style="color:#f38ba8">unavailable</span></div>
+    <div style="padding:12px 20px;font-size:12px;color:var(--subtext)">
+      <code>${(s.error || 'unknown').replace(/</g, '&lt;').slice(0, 200)}</code>
+    </div>
+  </div>`;
+  }
+  const typeBadges = Object.entries(s.byType)
+    .sort((a, b) => b[1] - a[1])
+    .map(([t, n]) => `<span>${t}: <strong>${n}</strong></span>`)
+    .join('');
+  return `
+  <div class="section" style="margin-bottom:16px">
+    <div class="section-header">
+      <h2>🧠 Brain</h2>
+      <span class="count" style="color:#a6e3a1;font-weight:600">${s.pages} pages · ${s.links} links</span>
+    </div>
+    <div style="padding:12px 20px;font-size:12px;color:var(--subtext);display:flex;gap:24px;flex-wrap:wrap">
+      ${typeBadges}
+      <span>Chunks: <strong>${s.chunks}</strong></span>
+      <span>Embedded: <strong>${s.embedded}</strong></span>
+      <span>Timeline: <strong>${s.timeline}</strong></span>
     </div>
   </div>`;
 }
@@ -1544,6 +1576,8 @@ const html = `<!DOCTYPE html>
   </div>` : ''}
 
   ${generateGmailSyncTile()}
+
+  ${generateBrainTile()}
 
   ${generateNextActions(apps)}
 
