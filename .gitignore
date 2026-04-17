@@ -28,6 +28,10 @@ node_modules/
 *.mov
 *.mp4
 
+# Playwright agent / MCP artifacts (local only)
+.playwright-session/
+.playwright-mcp/
+
 # Claude Code local
 .claude/settings.local.json
 .claude/memory/
