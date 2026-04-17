@@ -84,3 +84,6 @@ data/company-intel/*.md
 !data/company-intel/.gitkeep
 data/prefilter-results/*.md
 !data/prefilter-results/.gitkeep
+
+# Brain staging output (regenerated from applications.md + responses.md by migrations)
+data/brain-staging-applications/
