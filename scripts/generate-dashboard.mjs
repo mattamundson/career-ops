@@ -641,6 +641,55 @@ function generateApplyQueue(appList) {
   </div>`;
 }
 
+function generateGmailSyncTile() {
+  const syncEvents = automationEvents.filter((e) =>
+    typeof e?.type === 'string' && e.type.startsWith('gmail-sync.run.'));
+  if (syncEvents.length === 0) {
+    return `
+  <div class="section" style="margin-bottom:16px">
+    <div class="section-header"><h2>📬 Gmail Sync</h2><span class="count" style="color:#f38ba8">no runs logged</span></div>
+    <div style="padding:12px 20px;font-size:12px;color:var(--subtext)">
+      No gmail-sync events in <code>data/events/*.jsonl</code>. Verify the Windows task is registered: see <code>scripts/register-gmail-sync-task.ps1</code>.
+    </div>
+  </div>`;
+  }
+  const latest = syncEvents
+    .map((e) => ({ ...e, ts: new Date(e.timestamp || e.ts || e.at || 0).getTime() }))
+    .sort((a, b) => b.ts - a.ts)[0];
+  const ageMs = latest.ts ? (Date.now() - latest.ts) : Infinity;
+  const ageMin = Math.floor(ageMs / 60000);
+  const ageStr = ageMin < 60
+    ? `${ageMin} min ago`
+    : ageMin < 1440
+      ? `${Math.floor(ageMin / 60)} hr ago`
+      : `${Math.floor(ageMin / 1440)} d ago`;
+  const isFailure = latest.type === 'gmail-sync.run.failed' || latest.status === 'failure';
+  // Task runs every 30 min; green <60m, yellow <4h, red >4h or last was failure.
+  let color = '#a6e3a1';
+  let label = 'healthy';
+  if (isFailure) {
+    color = '#f38ba8'; label = 'last run failed';
+  } else if (ageMs > 4 * 60 * 60 * 1000) {
+    color = '#f38ba8'; label = 'stale';
+  } else if (ageMs > 60 * 60 * 1000) {
+    color = '#f9e2af'; label = 'slow';
+  }
+  const matched = latest.details?.matched ?? '—';
+  const status = latest.status || 'success';
+  return `
+  <div class="section" style="margin-bottom:16px">
+    <div class="section-header">
+      <h2>📬 Gmail Sync</h2>
+      <span class="count" style="color:${color};font-weight:600">${label} · ${ageStr}</span>
+    </div>
+    <div style="padding:12px 20px;font-size:12px;color:var(--subtext);display:flex;gap:24px;flex-wrap:wrap">
+      <span>Last status: <strong style="color:${color}">${status}</strong></span>
+      <span>Matched: <strong>${matched}</strong></span>
+      <span>Event: <code>${latest.type}</code></span>
+    </div>
+  </div>`;
+}
+
 function generateNextActions(appList) {
   const actionable = appList
     .filter((a) => a.status === 'GO' || a.status === 'Conditional GO')
@@ -1493,6 +1542,8 @@ const html = `<!DOCTYPE html>
         </div>` : ''}
     </div>
   </div>` : ''}
+
+  ${generateGmailSyncTile()}
 
   ${generateNextActions(apps)}
 
