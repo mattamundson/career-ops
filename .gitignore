@@ -67,3 +67,13 @@ data/scan-scheduler.log
 # Append-only automation telemetry (local machine; dashboard reads last lines)
 data/events/*.jsonl
 !data/events/.gitkeep
+
+# Scanner-generated research / prefilter output (2,292+ .md files)
+# Gitignored 2026-04-17: these dirs churn constantly from background scans
+# and dominated the working tree. Files stay on disk; only git stops tracking.
+# Template files like _queue.txt remain tracked; only .md output is ignored.
+# Research notes that need to be shared should live elsewhere (e.g., docs/).
+data/company-intel/*.md
+!data/company-intel/.gitkeep
+data/prefilter-results/*.md
+!data/prefilter-results/.gitkeep
