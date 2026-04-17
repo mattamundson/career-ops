@@ -6,6 +6,8 @@
  *   node scripts/log-response.mjs --app-id 011 --event acknowledged --date 2026-04-11
  *   node scripts/log-response.mjs --app-id 011 --event recruiter_reply --date 2026-04-12 --notes "Jen from talent team wants to chat"
  *   node scripts/log-response.mjs --new --company "Agility Robotics" --role "Manager, BI" --ats Greenhouse --date 2026-04-10
+ *   node scripts/log-response.mjs --app-id 017 --event deferred --reason "Priority reversal — revisit if remote priority returns"
+ *   node scripts/log-response.mjs --app-id 025 --event discarded --reason "Offer closed before submission"
  *
  * Event types:
  *   submitted       - Initial application sent (usually via --new for new entries)
@@ -17,6 +19,12 @@
  *   rejected        - Rejection received
  *   withdrew        - Matt withdrew application
  *   ghosted         - No response after 14 days
+ *   deferred        - Pre-submission: paused for priority reasons, may revive (--reason required)
+ *   discarded       - Pre-submission: permanently out (offer closed, disqualifier) (--reason required)
+ *
+ * Pre-submission events (deferred, discarded) auto-create a responses.md row
+ * if the app_id doesn't exist yet, with submitted_at='—'. Use these instead
+ * of --new when the app was queued but never actually submitted.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -43,15 +51,27 @@ const ats = getArg('ats');
 const event = getArg('event') ?? 'submitted';
 const date = getArg('date') ?? new Date().toISOString().slice(0, 10);
 const notes = getArg('notes') ?? '';
+const reason = getArg('reason') ?? '';
 
 const VALID_EVENTS = [
   'submitted', 'acknowledged', 'recruiter_reply',
   'phone_screen', 'interview', 'offer',
-  'rejected', 'withdrew', 'ghosted', 'in_progress'
+  'rejected', 'withdrew', 'ghosted', 'in_progress',
+  'deferred', 'discarded',
 ];
+
+// Events that represent pre-submission state changes — allow auto-creation
+// of a responses.md row if the app_id doesn't exist yet, and require --reason
+// for audit trail (per templates/states.yml semantics).
+const PRE_SUBMIT_EVENTS = new Set(['deferred', 'discarded']);
 
 if (!VALID_EVENTS.includes(event)) {
   console.error(`[log-response] Invalid --event "${event}". Valid: ${VALID_EVENTS.join(', ')}`);
+  process.exit(1);
+}
+
+if (PRE_SUBMIT_EVENTS.has(event) && !reason && !notes) {
+  console.error(`[log-response] --event ${event} requires --reason "<explanation>" (or --notes) for audit trail.`);
   process.exit(1);
 }
 
@@ -132,19 +152,40 @@ if (isNew) {
     console.error('[log-response] Requires --app-id (or use --new to create)');
     process.exit(1);
   }
-  const row = rows.find(r => r.app_id === appId.padStart(3, '0') || r.app_id === appId);
-  if (!row) {
+  const paddedId = appId.padStart(3, '0');
+  let row = rows.find(r => r.app_id === paddedId || r.app_id === appId);
+
+  // Pre-submission events auto-create a minimal row when the app was queued
+  // but never actually submitted (so it isn't in responses.md yet).
+  if (!row && PRE_SUBMIT_EVENTS.has(event)) {
+    const noteText = reason || notes || `Pre-submission ${event}`;
+    row = {
+      app_id: paddedId,
+      company: company || '—',
+      role: role || '—',
+      submitted_at: '—',
+      ats: ats || '—',
+      status: event,
+      last_event_at: date,
+      response_days: '—',
+      notes: noteText,
+    };
+    rows.push(row);
+    console.log(`[log-response] Created pre-submission entry #${row.app_id} → ${event} on ${date} (${noteText})`);
+  } else if (!row) {
     console.error(`[log-response] No row found for app_id=${appId}`);
     console.error(`Existing IDs: ${rows.map(r => r.app_id).join(', ')}`);
     process.exit(1);
+  } else {
+    row.status = event;
+    row.last_event_at = date;
+    row.response_days = computeResponseDays(row.submitted_at, row.last_event_at);
+    const extraNote = reason || notes;
+    if (extraNote) {
+      row.notes = row.notes ? `${row.notes}; ${extraNote}` : extraNote;
+    }
+    console.log(`[log-response] Updated #${row.app_id} (${row.company}) → ${event} on ${date}${reason ? ` — ${reason}` : ''}`);
   }
-  row.status = event;
-  row.last_event_at = date;
-  row.response_days = computeResponseDays(row.submitted_at, row.last_event_at);
-  if (notes) {
-    row.notes = row.notes ? `${row.notes}; ${notes}` : notes;
-  }
-  console.log(`[log-response] Updated #${row.app_id} (${row.company}) → ${event} on ${date}`);
 }
 
 // ---- write back ----
