@@ -48,8 +48,11 @@ function normalizeStatus(raw) {
   // Aplicado with date → Applied (strip date)
   if (/^aplicado\s+\d{4}/i.test(s)) return { status: 'Applied' };
 
-  // CONDICIONAL/HOLD/MONITOR/EVALUAR/Verificar → Evaluated
-  if (/^(condicional|hold|monitor|evaluar|verificar)$/i.test(s)) return { status: 'Evaluated' };
+  // CONDICIONAL/HOLD/MONITOR/EVALUAR/Verificar/Evaluating → Evaluated
+  // "Evaluating" is emitted by auto-promotion when a scanner hit scores ≥4 and
+  // enters the evaluate queue; it slots semantically into "Evaluated, pending
+  // decision" once the report lands.
+  if (/^(condicional|hold|monitor|evaluar|verificar|evaluating)$/i.test(s)) return { status: 'Evaluated' };
 
   // GEO BLOCKER → SKIP
   if (/geo.?blocker/i.test(s)) return { status: 'SKIP' };
