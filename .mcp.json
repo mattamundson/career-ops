@@ -3,6 +3,14 @@
     "linkedin": {
       "command": "uvx",
       "args": ["linkedin-scraper-mcp@latest"]
+    },
+    "brain": {
+      "command": "bun",
+      "args": [
+        "run",
+        "C:\\Users\\mattm\\career-ops\\vendor\\gbrain\\src\\cli.ts",
+        "serve"
+      ]
     }
   }
 }
