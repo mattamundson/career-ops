@@ -1,0 +1,2 @@
+pnpm run verify:ci
+pnpm test
