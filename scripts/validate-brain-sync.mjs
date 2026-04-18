@@ -59,14 +59,14 @@ checks.push({
 checks.push({
   entity: 'reports (evaluation)',
   markdown: reportsCount,
-  brain_concept_pages: byType.concept || 0,
-  note: 'reports are imported as type=concept; brain count is cumulative concept pages (includes intel)',
+  brain: byType.evaluation || 0,
+  drift: reportsCount - (byType.evaluation || 0),
 });
 checks.push({
   entity: 'company-intel',
   markdown: intelCount,
-  brain_concept_pages: byType.concept || 0,
-  note: 'company-intel + reports share type=concept until frontmatter typing lands',
+  brain: byType.company || 0,
+  drift: intelCount - (byType.company || 0),
 });
 
 const drift = checks.filter((c) => typeof c.drift === 'number' && c.drift !== 0);
