@@ -6,6 +6,7 @@
   "scripts": {
     "verify": "node verify-pipeline.mjs",
     "verify:all": "node scripts/verify-all.mjs",
+    "respond": "node scripts/respond.mjs",
     "dedupe:intake": "node scripts/dedupe-intake-vs-tracker.mjs",
     "pipeline:dedupe": "node scripts/dedupe-pipeline-md.mjs",
     "pipeline:prune-tracked": "node scripts/prune-pipeline-tracked.mjs",
