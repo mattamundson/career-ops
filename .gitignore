@@ -39,6 +39,12 @@ node_modules/
 # Built binaries
 career-dashboard
 dashboard/career-dashboard.exe
+career-dashboard.exe
+
+# Personal cert/study HTMLs (not part of career-ops)
+MS Certification Planner_*.html
+MS_Cert_Tracker_*.html
+preview v1.html
 
 # Firecrawl cache
 .firecrawl/
@@ -87,3 +93,28 @@ data/prefilter-results/*.md
 
 # Brain staging output (regenerated from applications.md + responses.md by migrations)
 data/brain-staging-applications/
+data/brain-staging-intel/
+data/brain-staging-people/
+data/brain-staging-reports/
+
+# Application dispatch records (operational state, contains form-fill data + local paths)
+data/apply-runs/
+
+# Build artifacts (regenerable)
+data/index/
+data/run-summaries/
+
+# Date-stamped audit + summary outputs (regenerable from scripts)
+data/scan-summary-*.md
+data/stale-alert-*.md
+data/scan-expansion-*.md
+data/liveness-*.md
+data/resume-diff-*.md
+data/dedupe-intake-report.md
+data/pipeline-prune-log.md
+data/pipeline-raw-intake.md
+data/apply-queue-audit.md
+config/narrative-audit-*.md
+
+# Old session diff dumps (one-shot session artifacts, not source)
+docs/handoff-*.txt
