@@ -138,6 +138,34 @@ test('recentTaskEvents reads + filters last N hours', async () => {
   }
 });
 
+test('recentTaskEvents recognizes legacy status:"failure" events', async () => {
+  const root = mkRoot();
+  try {
+    // Simulate a legacy auto-scan failure event (status: 'failure')
+    const { writeFileSync } = await import('node:fs');
+    const today = new Date().toISOString().slice(0, 10);
+    const legacyEvent = {
+      type: 'scanner.run.failed',
+      status: 'failure',
+      summary: 'Navigation timeout',
+      recorded_at: new Date().toISOString(),
+    };
+    writeFileSync(
+      join(root, 'data', 'events', `${today}.jsonl`),
+      JSON.stringify(legacyEvent) + '\n',
+      'utf8',
+    );
+
+    const recent = recentTaskEvents(root, 24);
+    assert.equal(recent.failed.length, 1);
+    assert.equal(recent.failed[0].task, 'scanner');
+    assert.equal(recent.failed[0].error, 'Navigation timeout');
+    assert.equal(recent.failed[0].error_source, 'legacy');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('summary serialization caps oversize objects', async () => {
   const root = mkRoot();
   try {

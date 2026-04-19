@@ -127,6 +127,13 @@ function serializeSummary(result) {
 // Helper: read recent task events for verify-all + dashboard checks.
 // Returns { failed: [...], completed: [...], started: [...] } from the
 // trailing N hours across data/events/*.jsonl.
+//
+// Recognizes BOTH:
+//   - cron-wrap convention: type starts with "task." (task.start /
+//     task.complete / task.failed)
+//   - legacy convention used by generate-dashboard, auto-scan, etc:
+//     {type: "<name>.<verb>", status: "success"|"failure"} where any
+//     status === "failure" is treated as a failure regardless of type
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 
 export function recentTaskEvents(rootPath = ROOT, hours = 24) {
@@ -150,12 +157,38 @@ export function recentTaskEvents(rootPath = ROOT, hours = 24) {
       } catch {
         continue;
       }
-      if (!ev.type?.startsWith('task.')) continue;
-      const ts = Date.parse(ev.recorded_at || ev.started_at || ev.failed_at || ev.completed_at || 0);
+
+      const ts = Date.parse(
+        ev.recorded_at || ev.started_at || ev.failed_at || ev.completed_at || 0,
+      );
       if (!Number.isFinite(ts) || ts < cutoff) continue;
-      if (ev.type === 'task.failed') out.failed.push(ev);
-      else if (ev.type === 'task.complete') out.completed.push(ev);
-      else if (ev.type === 'task.start') out.started.push(ev);
+
+      // cron-wrap convention
+      if (ev.type === 'task.failed') {
+        out.failed.push(ev);
+        continue;
+      }
+      if (ev.type === 'task.complete') {
+        out.completed.push(ev);
+        continue;
+      }
+      if (ev.type === 'task.start') {
+        out.started.push(ev);
+        continue;
+      }
+
+      // Legacy convention: any event with status === 'failure' counts
+      // as a task failure (auto-scan emits scanner.run.failed, future
+      // entry scripts may follow similar patterns)
+      if (ev.status === 'failure') {
+        out.failed.push({
+          ...ev,
+          task: ev.task || ev.type?.split('.')[0] || 'unknown',
+          error: ev.error || ev.summary || 'failure (no message)',
+          failed_at: ev.recorded_at || new Date(ts).toISOString(),
+          error_source: 'legacy',
+        });
+      }
     }
   }
   return out;
