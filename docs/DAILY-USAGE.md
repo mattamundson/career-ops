@@ -151,13 +151,14 @@ The autonomy lives in 6 registered tasks. Verify they exist:
 schtasks /query /tn "Career-Ops*" /fo LIST | grep -i taskname
 ```
 
-You should see:
-- Career-Ops Dashboard (hourly)
-- Career-Ops Evening Scan (daily 18:00)
-- Career-Ops Gmail Sync (cadence)
-- Career-Ops Cadence Alert (daily)
-- Career-Ops Prefilter (post-scan)
-- Career-Ops Brain Refresh (post-scan, when added)
+You should see (registered as of 2026-04-19):
+- Career-Ops Dashboard — hourly regen
+- Career-Ops Scan — daily 06:00 CT (Greenhouse + portals)
+- Career-Ops Prefilter — daily 07:00 CT (post-scan)
+- Career-Ops Evening Scan — daily 18:00 CT (full source matrix + prefilter)
+- Career-Ops Cadence Alert — daily 09:00 + 16:00 CT (stale-app alerts)
+- Career-Ops Gmail Sync — **NOT YET REGISTERED**: requires `GOOGLE_REFRESH_TOKEN` in `.env`. Complete OAuth bootstrap per `docs/GMAIL_SYNC_SETUP.md`, then run `powershell -ExecutionPolicy Bypass -File scripts/register-gmail-sync-task.ps1`
+- Career-Ops Brain Refresh — not yet built (Week 2 plan; would chain off Evening Scan)
 
 **If any task is missing**: re-run its registration script as the current user (no admin needed):
 
