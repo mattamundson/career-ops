@@ -89,7 +89,7 @@ console.log('\n=== 7/7 recent cron-task failures (last 24h) ===\n');
 const recent = recentTaskEvents(ROOT, 24);
 if (recent.failed.length === 0) {
   console.log(
-    `  ✅ no failed scheduled-task runs in the last 24h ` +
+    `  ✅ no failed scheduled-task event logs in last 24h ` +
       `(${recent.completed.length} completed, ${recent.started.length} started)\n`,
   );
 } else {
@@ -98,13 +98,20 @@ if (recent.failed.length === 0) {
     .map((e) => `    - ${e.failed_at} ${e.task}: ${e.error} (${e.error_code ?? 'no code'})`)
     .join('\n');
   console.log(
-    `  ⚠️  ${recent.failed.length} failed task run(s) in the last 24h:\n${lines}\n`,
+    `  ⚠️  ${recent.failed.length} failed task event(s) in last 24h:\n${lines}\n`,
   );
   if (strictCron) {
     console.log('  --strict-cron set; failing.\n');
     process.exit(1);
   }
 }
+
+// Also catch silent failures: tasks where Windows Task Scheduler exit code
+// was non-zero but the entry script didn't emit an event. Warn-only by
+// default; --strict-cron makes it fail.
+const tsArgs = ['scripts/check-scheduled-tasks.mjs'];
+if (strictCron) tsArgs.push('--strict');
+runNode(tsArgs[0], tsArgs.slice(1));
 
 console.log(
   `\n✅ verify-all: pipeline + CV sync + index + dashboard + events JSONL${skipUnitTests ? '' : ' + unit tests'} + cron-status OK\n`,
