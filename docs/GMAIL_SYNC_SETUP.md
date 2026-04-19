@@ -1,6 +1,6 @@
 # Gmail Sync Setup
 
-This document covers the remaining manual setup for `scripts/gmail-recruiter-sync.mjs`.
+This document covers the manual setup for `scripts/gmail-recruiter-sync.mjs`.
 
 ## Required Values
 
@@ -12,35 +12,57 @@ Add the following keys to `.env` (example path `C:\Users\mattm\career-ops\.env`)
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GOOGLE_REFRESH_TOKEN=...
-GOOGLE_REDIRECT_URI=http://localhost
 GMAIL_OAUTH_SCOPE=https://www.googleapis.com/auth/gmail.readonly
 GMAIL_RECRUITER_QUERY=label:Recruiting newer_than:7d
 GMAIL_RECRUITER_MAX=10
 ```
 
-`GMAIL_RECRUITER_QUERY` and `GMAIL_RECRUITER_MAX` are optional, but start narrow for the first live validation.
+`GMAIL_RECRUITER_QUERY` and `GMAIL_RECRUITER_MAX` are optional, but start narrow for the first live validation. `GOOGLE_REDIRECT_URI` is **not needed** when using `gmail-oauth:bootstrap` — the loopback port is chosen at runtime.
 
 ## Google OAuth Setup
 
-1. Create or reuse a Google Cloud project.
-2. Enable the Gmail API for that project.
-3. Create an OAuth client for a desktop app or local tool.
-4. Capture the generated `client_id` and `client_secret`.
-5. Generate a consent URL locally:
+**Important:** career-ops should have its **own dedicated Google Cloud project** — do not share an OAuth client with other tools (e.g. jarvis-trader). Sharing causes scope, consent-screen, and quota collisions.
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project named `career-ops` (project picker → New Project).
+3. Enable the **Gmail API** for that project (APIs & Services → Library → Gmail API → Enable).
+4. Configure OAuth consent screen:
+   - User Type: **External**
+   - App name: `career-ops`
+   - User support email: your address
+   - Scopes: add `https://www.googleapis.com/auth/gmail.readonly`
+   - Test users: add the Gmail address you want to sync (e.g. `mattamundson@greenfieldmetalsales.com`)
+5. Create credentials:
+   - APIs & Services → Credentials → Create Credentials → **OAuth client ID**
+   - Application type: **Desktop app** (this is critical — Desktop clients accept any `http://127.0.0.1:<port>` loopback redirect per RFC 8252, so no per-port URI registration is needed)
+   - Name: `career-ops-cli`
+6. Copy the generated `client_id` and `client_secret` into `.env`.
+7. Run the one-shot bootstrap:
+
+```bash
+pnpm run gmail-oauth:bootstrap
+```
+
+The bootstrap script will:
+- Open the consent URL in your default browser
+- Listen on a free localhost port for the redirect
+- Exchange the auth code for tokens
+- Write `GOOGLE_REFRESH_TOKEN` directly into `.env`
+
+No copy/paste of authorization codes required.
+
+### Legacy two-step flow (fallback)
+
+If the bootstrap fails (e.g. browser can't reach localhost from a remote/SSH session), use the manual flow:
 
 ```bash
 pnpm run gmail-oauth:url
-```
-
-6. Open that URL, approve access, and copy the returned `code=` value from the redirect URL.
-7. Exchange the authorization code for tokens:
-
-```bash
+# open URL, approve, copy `code=...` value from redirect URL bar
 pnpm run gmail-oauth:exchange -- --code=PASTE_CODE_HERE
+# copy refresh_token into .env as GOOGLE_REFRESH_TOKEN
 ```
 
-8. Save the returned `refresh_token` as `GOOGLE_REFRESH_TOKEN` in `.env`.
-9. Save the three values in `.env`.
+For the manual flow the OAuth client must have `http://localhost` (no port) added under **Authorized redirect URIs** in the Google Cloud Console.
 
 ## Preflight Checks
 

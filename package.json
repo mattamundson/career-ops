@@ -25,6 +25,7 @@
     "preflight:scanner": "node scripts/automation-preflight-check.mjs --job=scanner",
     "gmail-oauth:url": "node scripts/gmail-oauth-url.mjs",
     "gmail-oauth:exchange": "node scripts/gmail-oauth-exchange.mjs",
+    "gmail-oauth:bootstrap": "node scripts/gmail-oauth-bootstrap.mjs",
     "gmail-sync:dry": "node scripts/gmail-recruiter-sync.mjs --dry-run",
     "gmail-sync": "node scripts/gmail-recruiter-sync.mjs --apply",
     "cadence-alert": "node scripts/check-cadence-alert.mjs",
