@@ -642,6 +642,319 @@ function generateApplyQueue(appList) {
   </div>`;
 }
 
+function generateMorningBriefing(appList) {
+  // Unified "what should Matt do right now?" — caps at 7 items, blends apply / follow-up / reply.
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 1. Top 3 stale apps from latest stale-alert file (highest overdue first).
+  const staleItems = (() => {
+    let files = [];
+    try {
+      files = readdirSync(join(ROOT, 'data'))
+        .filter((f) => /^stale-alert-\d{4}-\d{2}-\d{2}\.md$/.test(f))
+        .sort();
+    } catch { return []; }
+    if (files.length === 0) return [];
+    let body;
+    try { body = readFileSync(join(ROOT, 'data', files[files.length - 1]), 'utf8'); }
+    catch { return []; }
+    const lineRe = /^\s*\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)d\s+\(([+-]?\d+)d\s+(?:over|left)\)\s+—\s+(.+?)\s*$/;
+    const out = [];
+    for (const raw of body.split('\n')) {
+      const m = raw.match(lineRe);
+      if (!m) continue;
+      out.push({
+        kind: 'follow-up',
+        company: m[1].trim(),
+        role: m[2].trim(),
+        status: m[3].trim(),
+        days: Number(m[4]),
+        overdue: Number(m[5]),
+        action: m[6].trim(),
+      });
+    }
+    return out.sort((a, b) => b.overdue - a.overdue).slice(0, 3);
+  })();
+
+  // 2. Top 3 apply-now (GO / Conditional GO ranked by priorityScore × urgency).
+  const applyItems = appList
+    .filter((a) => (a.status === 'GO' || a.status === 'Conditional GO') && a.priority?.priorityScore > 0)
+    .sort((a, b) => b.priority.priorityScore - a.priority.priorityScore)
+    .slice(0, 3)
+    .map((a) => ({
+      kind: 'apply',
+      company: a.company,
+      role: a.role,
+      status: a.status,
+      score: a.score,
+      priority: a.priority.priorityScore,
+      urgency: a.priority.urgencyMultiplier ?? 1.0,
+      url: a.jobUrl,
+    }));
+
+  // 3. Top 3 reply-now (Responded status, oldest first — recruiter is waiting).
+  const replyItems = appList
+    .filter((a) => a.status === 'Responded' || a.status === 'Contact')
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    .slice(0, 3)
+    .map((a) => ({
+      kind: 'reply',
+      company: a.company,
+      role: a.role,
+      status: a.status,
+      date: a.date,
+    }));
+
+  // Interleave: stale (highest overdue) + apply (top 1-2) + reply (oldest) → max 7.
+  const merged = [];
+  const max = 7;
+  let si = 0, ai = 0, ri = 0;
+  // First: any stale +5d+ go first (matt is bleeding revenue).
+  while (si < staleItems.length && staleItems[si].overdue >= 5 && merged.length < max) merged.push(staleItems[si++]);
+  // Then: any active reply (recruiter waiting).
+  while (ri < replyItems.length && merged.length < max) merged.push(replyItems[ri++]);
+  // Then: top 1-2 apply-now.
+  while (ai < Math.min(2, applyItems.length) && merged.length < max) merged.push(applyItems[ai++]);
+  // Remaining stale (lower overdue).
+  while (si < staleItems.length && merged.length < max) merged.push(staleItems[si++]);
+  // Remaining apply.
+  while (ai < applyItems.length && merged.length < max) merged.push(applyItems[ai++]);
+
+  if (merged.length === 0) {
+    return `
+  <div class="section" style="margin-bottom:16px;border-color:#a6e3a144;background:#a6e3a108">
+    <div class="section-header"><h2>☀ Morning Briefing — ${today}</h2><span class="count" style="color:#a6e3a1">all clear</span></div>
+    <div style="padding:14px 20px;font-size:13px;color:var(--subtext)">
+      No urgent actions today. Pipeline is healthy. Run <code>node scripts/auto-scan.mjs</code> to refresh.
+    </div>
+  </div>`;
+  }
+
+  const verbColor = { 'follow-up': '#f9e2af', 'apply': '#a6e3a1', 'reply': '#89b4fa' };
+  const verbIcon = { 'follow-up': '⏰', 'apply': '📤', 'reply': '💬' };
+  const verbLabel = { 'follow-up': 'FOLLOW UP', 'apply': 'APPLY', 'reply': 'REPLY' };
+
+  const rows = merged.map((it, i) => {
+    const c = verbColor[it.kind];
+    const verb = `<span class="badge" style="color:${c};border-color:${c}33;background:${c}11;font-weight:700">${verbIcon[it.kind]} ${verbLabel[it.kind]}</span>`;
+    let context = '';
+    if (it.kind === 'follow-up') {
+      context = `<span style="color:${it.overdue >= 5 ? '#f38ba8' : '#f9e2af'};font-weight:600">${it.days}d (+${it.overdue}d over)</span> · ${escHtml(it.action)}`;
+    } else if (it.kind === 'apply') {
+      const urgencyTag = it.urgency >= 1.25
+        ? '<span style="color:#f38ba8;font-weight:600">Closing ≤2d</span>'
+        : it.urgency >= 1.10
+          ? '<span style="color:#f9e2af">Closing ≤7d</span>'
+          : '';
+      context = `Score ${it.score?.toFixed(1) ?? '—'} · Priority ${it.priority}${urgencyTag ? ' · ' + urgencyTag : ''}`;
+    } else if (it.kind === 'reply') {
+      const ageDays = it.date ? Math.floor((Date.now() - new Date(it.date).getTime()) / (24 * 60 * 60 * 1000)) : null;
+      context = `${escHtml(it.status)} · ${ageDays !== null ? ageDays + 'd ago' : 'unknown date'}`;
+    }
+    const link = it.kind === 'apply' && it.url
+      ? `<a href="${it.url}" target="_blank" style="color:#89b4fa;font-weight:600">Open →</a>`
+      : it.kind === 'reply'
+        ? `<code style="font-size:11px">pnpm respond</code>`
+        : `<code style="font-size:11px">pnpm respond</code>`;
+    return `<tr>
+      <td style="text-align:center;color:var(--subtext);font-weight:700;font-size:18px;width:36px">${i + 1}</td>
+      <td style="width:140px">${verb}</td>
+      <td><strong>${escHtml(it.company)}</strong> · <span style="color:var(--subtext)">${escHtml(it.role)}</span></td>
+      <td style="font-size:12px;color:var(--subtext)">${context}</td>
+      <td style="text-align:right">${link}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="section" style="margin-bottom:16px;border-color:#cba6f744;background:#cba6f706">
+    <div class="section-header" style="background:#cba6f714">
+      <h2>☀ Morning Briefing — ${today}</h2>
+      <span class="count" style="color:#cba6f7;font-weight:600">${merged.length} action${merged.length === 1 ? '' : 's'} ranked</span>
+    </div>
+    <div style="padding:8px 20px 4px;font-size:12px;color:var(--subtext)">
+      Stale (overdue 5d+) → reply-waiting → top apply-now → remaining stale → remaining apply.
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function generateStaleAlertPanel() {
+  // Latest data/stale-alert-YYYY-MM-DD.md → parse "N. Company | Role | Status | Xd (+Yd over) — Action".
+  let files = [];
+  try {
+    files = readdirSync(join(ROOT, 'data'))
+      .filter((f) => /^stale-alert-\d{4}-\d{2}-\d{2}\.md$/.test(f))
+      .sort();
+  } catch { return ''; }
+  if (files.length === 0) return '';
+
+  const latest = files[files.length - 1];
+  const dateStr = latest.match(/stale-alert-(\d{4}-\d{2}-\d{2})\.md/)[1];
+  let body;
+  try { body = readFileSync(join(ROOT, 'data', latest), 'utf8'); }
+  catch { return ''; }
+
+  const lineRe = /^\s*\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)d\s+\(([+-]?\d+)d\s+(?:over|left)\)\s+—\s+(.+?)\s*$/;
+  const items = [];
+  for (const raw of body.split('\n')) {
+    const m = raw.match(lineRe);
+    if (!m) continue;
+    items.push({
+      company: m[1].trim(),
+      role: m[2].trim(),
+      status: m[3].trim(),
+      days: Number(m[4]),
+      overdue: Number(m[5]),
+      action: m[6].trim(),
+    });
+  }
+  if (items.length === 0) return '';
+
+  const ageMs = Date.now() - new Date(dateStr + 'T00:00:00Z').getTime();
+  const ageDays = Math.floor(ageMs / (24 * 60 * 60 * 1000));
+  const ageBadge = ageDays === 0
+    ? '<span style="color:#a6e3a1">today</span>'
+    : ageDays === 1
+      ? '<span style="color:#f9e2af">1d old</span>'
+      : `<span style="color:#f38ba8">${ageDays}d old</span>`;
+
+  const colorFor = (overdue) => {
+    if (overdue >= 5) return '#f38ba8';
+    if (overdue >= 1) return '#f9e2af';
+    return '#a6e3a1';
+  };
+
+  const rows = items.map((it) => {
+    const c = colorFor(it.overdue);
+    const overdueStr = it.overdue >= 0 ? `+${it.overdue}d over` : `${it.overdue}d`;
+    return `<tr>
+      <td><strong>${escHtml(it.company)}</strong></td>
+      <td>${escHtml(it.role)}</td>
+      <td><span class="badge" style="color:${c};border-color:${c}33;background:${c}11">${escHtml(it.status)}</span></td>
+      <td style="color:${c};font-weight:600">${it.days}d</td>
+      <td style="color:${c}">${overdueStr}</td>
+      <td>${escHtml(it.action)}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="section" style="margin-bottom:16px">
+    <div class="section-header">
+      <h2>⏰ Stale Applications</h2>
+      <span class="count">${items.length} need action · ${dateStr} ${ageBadge}</span>
+    </div>
+    <div style="padding:12px 20px">
+      <table>
+        <thead>
+          <tr><th>Company</th><th>Role</th><th>Status</th><th>Age</th><th>Overdue</th><th>Action</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function generateFreshnessBadges() {
+  const now = Date.now();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+
+  // Source-of-truth list: each task we expect to see fire at least daily.
+  // expectedHours = how often it's supposed to run (used to color the badge).
+  const tasks = [
+    { id: 'dashboard',    label: '🖥 Dashboard',    types: ['dashboard.generated'],          expectedHours: 1 },
+    { id: 'scanner',      label: '🔎 Scanner',      types: ['scanner.run.completed', 'auto-scan.run.completed'], expectedHours: 24 },
+    { id: 'prefilter',    label: '🧮 Prefilter',    types: ['prefilter_templates_generated'], expectedHours: 24 },
+    { id: 'gmail-sync',   label: '📬 Gmail-Sync',   types: ['gmail-sync.run.success', 'gmail-sync.run.completed'], expectedHours: 1 },
+    { id: 'cadence',      label: '⏰ Cadence-Alert', types: ['cadence-alert.run.completed', 'cadence-alert.run.success'], expectedHours: 24 },
+    { id: 'brain-ingest', label: '🧠 Brain Ingest', types: ['brain.ingest.completed', 'brain.embed.completed'], expectedHours: 24, optional: true },
+  ];
+
+  const eventTs = (e) => new Date(e.recorded_at || e.timestamp || e.ts || e.at || 0).getTime();
+
+  // Recent task.failed events surface as a separate red strip.
+  const recentFailures = automationEvents
+    .filter((e) => e?.type === 'task.failed' && eventTs(e))
+    .filter((e) => (now - eventTs(e)) < oneDayMs)
+    .sort((a, b) => eventTs(b) - eventTs(a));
+
+  const lastByTask = (typesArr) => {
+    let latestTs = 0;
+    for (const e of automationEvents) {
+      if (!typesArr.includes(e?.type)) continue;
+      const ts = eventTs(e);
+      if (ts > latestTs) latestTs = ts;
+    }
+    return latestTs;
+  };
+
+  const fmtAge = (ageMs) => {
+    if (!isFinite(ageMs) || ageMs < 0) return '—';
+    const min = Math.floor(ageMs / 60000);
+    if (min < 60) return `${min}m`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h`;
+    return `${Math.floor(hr / 24)}d`;
+  };
+
+  const badges = tasks.map((t) => {
+    const ts = lastByTask(t.types);
+    if (!ts) {
+      const color = t.optional ? '#6c7086' : '#f38ba8';
+      const tip = t.optional ? 'no events (optional)' : 'no events recorded';
+      return { ...t, ts: 0, color, ageStr: 'never', tip };
+    }
+    const ageMs = now - ts;
+    const ageHrs = ageMs / (60 * 60 * 1000);
+    let color = '#a6e3a1';
+    let tip = 'fresh';
+    if (ageHrs > t.expectedHours * 3) {
+      color = '#f38ba8'; tip = `> ${(t.expectedHours * 3).toFixed(0)}h since last run`;
+    } else if (ageHrs > t.expectedHours * 1.5) {
+      color = '#f9e2af'; tip = `> ${(t.expectedHours * 1.5).toFixed(0)}h since last run`;
+    }
+    return { ...t, ts, color, ageStr: fmtAge(ageMs), tip };
+  });
+
+  const badgeHtml = badges.map((b) => `
+    <div title="${escHtml(b.tip)}" style="display:flex;flex-direction:column;align-items:center;padding:8px 12px;border:1px solid ${b.color}33;border-radius:6px;background:${b.color}0a;min-width:96px">
+      <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px">${b.label}</div>
+      <div style="font-size:18px;font-weight:700;color:${b.color};margin-top:4px">${b.ageStr}</div>
+    </div>`).join('');
+
+  const failureStrip = recentFailures.length === 0 ? '' : `
+    <div style="margin-top:12px;padding:10px 14px;border:1px solid #f38ba844;border-radius:6px;background:#f38ba811">
+      <div style="font-size:11px;color:#f38ba8;text-transform:uppercase;letter-spacing:0.5px;font-weight:700">
+        ⚠ ${recentFailures.length} task.failed event${recentFailures.length === 1 ? '' : 's'} in last 24h
+      </div>
+      <div style="margin-top:6px;font-size:12px;color:var(--text);line-height:1.6">
+        ${recentFailures.slice(0, 5).map((e) => `
+          <div><span class="muted">${escHtml(String(e.recorded_at || e.timestamp || '').slice(0, 19).replace('T', ' '))}</span>
+          <strong>${escHtml(e.task || 'unknown')}</strong>
+          ${e.error_code !== undefined ? `<span class="muted">exit ${e.error_code}</span>` : ''}
+          ${e.error ? `— <span style="color:var(--subtext)">${escHtml(String(e.error).slice(0, 120))}</span>` : ''}</div>
+        `).join('')}
+      </div>
+    </div>`;
+
+  return `
+  <div class="section" style="margin-bottom:16px">
+    <div class="section-header">
+      <h2>🟢 Freshness</h2>
+      <span class="count">last successful run by task</span>
+    </div>
+    <div style="padding:14px 18px">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:stretch">
+        ${badgeHtml}
+      </div>
+      ${failureStrip}
+    </div>
+  </div>`;
+}
+
 function generateGmailSyncTile() {
   const syncEvents = automationEvents.filter((e) =>
     typeof e?.type === 'string' && e.type.startsWith('gmail-sync.run.'));
@@ -1383,6 +1696,8 @@ const html = `<!DOCTYPE html>
 
 <div class="main">
 
+  ${generateMorningBriefing(apps)}
+
   <!-- Stats Row -->
   <div class="stats">
     <div class="stat-card">
@@ -1421,6 +1736,10 @@ const html = `<!DOCTYPE html>
   </div>
 
   ${operatorSnapshotSection}
+
+  ${generateFreshnessBadges()}
+
+  ${generateStaleAlertPanel()}
 
   <!-- Scan Sources -->
   <div class="section">

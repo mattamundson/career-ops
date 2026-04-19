@@ -27,6 +27,66 @@ purpose: Map everything career-ops needs to (a) be daily-usable, (b) update auto
 
 ---
 
+## Section 0 — Pre-existing handoff state (from 2026-04-17 ROI/PR/brain session)
+
+> Folded in from `docs/session-handoff-2026-04-17-roi-pr-brain.md`. Status as of 2026-04-19 evening.
+
+### 0.1 Branch reconciliation — `feat/roi-plan-hardening` vs `master`
+
+**State at handoff time:**
+- `feat/roi-plan-hardening` had 2 unpushed local commits ahead of `origin/feat/roi-plan-hardening`:
+  - `51ec0bf fix(submitters): include shared career data helpers`
+  - `be84470 feat(brain): phase 2 shadow import — applications + links`
+- `master` had moved much further ahead with verify-support, MCP registration, hooks, dashboard fixes.
+
+**Verified 2026-04-19:** master is now a strict superset of the feat branch's changes.
+- `scripts/lib/career-data.mjs` — present on master (160 lines, equivalent)
+- `scripts/lib/dashboard-runtime.mjs` — present on master, 55 lines longer than feat (more capabilities)
+- `scripts/migrations/import-applications-to-brain.mjs` — present on master
+- `scripts/migrations/link-applications-to-evaluations.mjs` — present on master
+- Plus master has all the verify-support, retry, cron-wrap, exit-trap, scheduler, respond-wrapper work that feat does not
+
+**Recommended action (requires Matt's explicit OK before delete):**
+- Local `feat/roi-plan-hardening` is **safe to abandon.** Its work is already on master.
+- Suggested cleanup: `git branch -D feat/roi-plan-hardening` after Matt confirms.
+- Remote `origin/feat/roi-plan-hardening` (PR branch at `d8eb032`): close the PR as superseded; delete remote branch only with Matt's explicit approval.
+
+### 0.2 Stash cleanup
+
+Five stashes carry over from the branch-switching friction:
+
+| Stash | Subject | Inspect result | Recommended action |
+|---|---|---|---|
+| `stash@{0}` | `temp-master-blockers-for-pr-fix` | `dashboard.html` 1-line diff (timestamp) | drop — obsolete |
+| `stash@{1}` | `temp-dashboard-refresh-before-pr` | `dashboard.html` 3-line diff | drop — obsolete |
+| `stash@{2}` | `autosave-dashboard-on-feat-again` | `dashboard.html` 3-line diff | drop — obsolete |
+| `stash@{3}` | `pre-log-response-wip` | `scripts/log-response.mjs` 139+/12- diff | inspect — `log-response.mjs` has been heavily reworked since; likely already incorporated, verify before drop |
+| `stash@{4}` | `pre-ssot-wiring-wip` | `scripts/generate-dashboard.mjs` 46+/21- diff | inspect — generate-dashboard has been heavily reworked since; likely incorporated, verify before drop |
+
+**Action:** `git stash show -p stash@{3}` and `stash@{4}` to confirm contents are now in `master`, then `git stash drop` each in sequence. Do **not** drop without Matt confirming the visual diff is irrelevant.
+
+### 0.3 Brain embedding status — RESOLVED
+
+Per the 2026-04-17 handoff this was unconfirmed. **As of 2026-04-19:**
+- `gbrain` MCP server is registered (`db95127`) and responsive.
+- 711 pages indexed, 2,171/2,171 chunks at **100% embed coverage**.
+- Search returns correct results — verified live.
+- No further action needed.
+
+### 0.4 `dashboard.html` working-tree drift — EXPECTED
+
+`dashboard.html` shows as modified at session start. Inspecting the diff: it's the auto-regenerated content from a 6:08 PM CT regen on 2026-04-19 (counts moved 2141→2187 pipeline, scan timestamp updated). This is **normal cron drift**, not a hand edit. Will be picked up by next dashboard commit. No risk of overwriting hand-edits.
+
+### 0.5 Rows 032–042 in `applications.md` — RESOLVED
+
+Per handoff, rows 032–042 had been moved back into the contiguous markdown table to fix a 31→42 visible-count bug. Confirmed in `da14a49`. The actual `data/applications.md` source is gitignored (intentional), but the regenerated `dashboard.html` reflects the correct 42-row state.
+
+### 0.6 Pre-push hook dependency — RESOLVED
+
+Verify-support modules tracked in `9990582`. `pre-push` hook tracked in `dbc49b9`. Pushes now reproducible from clones.
+
+---
+
 ## Phase 1 — Daily-Use Ready
 
 > Goal: Matt sits down with coffee, opens one URL or runs one command, sees exactly what to do, and the system makes acting on it frictionless.
@@ -243,6 +303,8 @@ For each ATS, "autonomous" means: form fully pre-filled, screenshot rendered, Ma
 4. **`data/outreach/*.md`**: Commit (auditable) or gitignore (personal drafts)?
 5. **`data/apply-runs/`**: Commit (auditable submission record) or gitignore (contains identifiable data)?
 6. **GitHub profile**: Populate with public projects (visible to recruiters) or keep empty and have submitters omit?
+7. **Branch cleanup (from §0.1)**: OK to `git branch -D feat/roi-plan-hardening` and close the upstream PR as superseded? Master contains all its work.
+8. **Stash cleanup (from §0.2)**: OK to drop stashes 0–2 (obsolete dashboard.html diffs) immediately, and inspect 3–4 before dropping?
 
 ---
 
