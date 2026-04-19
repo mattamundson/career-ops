@@ -26,6 +26,9 @@ import { execFileSync, spawnSync } from 'child_process';
 import { getJobReadiness, printJobReadiness } from './automation-preflight.mjs';
 import { loadProjectEnv } from './load-env.mjs';
 import { createRunSummaryContext, finalizeRunSummary } from './run-summary.mjs';
+import { installExitTrap } from './lib/exit-event-trap.mjs';
+
+installExitTrap('cadence-alert');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');

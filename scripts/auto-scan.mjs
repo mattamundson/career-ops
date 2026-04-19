@@ -27,6 +27,9 @@ import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { resolveAutoScanSinceDays } from './lib/scan-window.mjs';
 import { runChromePreflight } from './lib/chrome-preflight.mjs';
 import { expandDirectJobBoardScans } from './lib/direct-board-config.mjs';
+import { installExitTrap } from './lib/exit-event-trap.mjs';
+
+installExitTrap('scan');
 
 // ---------------------------------------------------------------------------
 // Paths
