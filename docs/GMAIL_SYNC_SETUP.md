@@ -31,7 +31,7 @@ GMAIL_RECRUITER_MAX=10
    - App name: `career-ops`
    - User support email: your address
    - Scopes: add `https://www.googleapis.com/auth/gmail.readonly`
-   - Test users: add the Gmail address you want to sync (e.g. `mattamundson@greenfieldmetalsales.com`)
+   - Test users: add the Gmail address you want to sync (e.g. `mattmamundson@gmail.com`)
 5. Create credentials:
    - APIs & Services → Credentials → Create Credentials → **OAuth client ID**
    - Application type: **Desktop app** (this is critical — Desktop clients accept any `http://127.0.0.1:<port>` loopback redirect per RFC 8252, so no per-port URI registration is needed)
