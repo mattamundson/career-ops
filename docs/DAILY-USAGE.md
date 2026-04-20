@@ -4,12 +4,23 @@
 
 ## The 30-Second Morning Routine
 
-1. **Open the dashboard**: `dashboard.html` (auto-refreshed hourly by Windows Task Scheduler)
-2. **Look at "Top Actions Today"** at the top of the page
-3. **Act on the top 3** (apply, follow up, log a response — usually one click each)
+1. **Read the 7:55 AM digest email** (sent to your Gmail). Top 7 actions, recruiter touches, yesterday's activity.
+2. **Open the dashboard** if you want detail: `dashboard.html` (auto-refreshed hourly).
+3. **Act on the top 3** (apply, follow up, log a response — usually one click each).
 4. **Done.** The system handles everything else.
 
 If the system is healthy, that's the entire ritual. The rest of this doc covers what to do when it isn't, or when you want to go deeper.
+
+### What surfaces what
+
+| Surface | Cadence | What you see |
+|---|---|---|
+| 📧 Email digest (`scripts/daily-digest.mjs`) | 7:55 AM CT daily | Top actions, recruiter touches (14d), yesterday's activity, pipeline counts |
+| 🖥 Dashboard `dashboard.html` | regenerated hourly | Morning Briefing, Recruiter Inbox, Stale Applications, freshness badges, full table |
+| 📱 Toast/Pushover via `scripts/lib/notify.mjs` | event-driven | Recruiter replies (gmail-sync), health-check failures, cron-task failures |
+| 📨 WhatsApp via OpenClaw | event-driven | Cadence stale-app summary (one daily message if any apps overdue) |
+
+When a recruiter replies, see [`docs/RESPONSE-PLAYBOOK.md`](RESPONSE-PLAYBOOK.md) for what to do per event type.
 
 ---
 
@@ -29,10 +40,14 @@ pnpm run verify:all
 - Application index regenerated
 - Dashboard regenerated
 - Automation event JSONL parses cleanly
-- 70 unit tests pass
+- 74 unit tests pass
 - **No scheduled tasks failed in the last 24 hours**
 
 If all 7 checks pass, the system is healthy. If anything is yellow/red, see [Troubleshooting](#troubleshooting) below.
+
+### Faster: `pnpm run health`
+
+`pnpm run health` is a 5-bucket probe (task freshness, recent failures, applications.md parse, stale-app count, brain coverage) — colored TTY output, exit-code-aware. Runs in <1s. Wired into a 6-hour cron (`Career-Ops Health Check`) that fires a notification when something fails or 3+ checks warn.
 
 ---
 
