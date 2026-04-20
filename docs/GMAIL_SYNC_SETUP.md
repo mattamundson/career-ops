@@ -12,7 +12,7 @@ Add the following keys to `.env` (example path `C:\Users\mattm\career-ops\.env`)
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GOOGLE_REFRESH_TOKEN=...
-GMAIL_OAUTH_SCOPE=https://www.googleapis.com/auth/gmail.readonly
+GMAIL_OAUTH_SCOPE=https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send
 GMAIL_RECRUITER_QUERY=label:Recruiting newer_than:7d
 GMAIL_RECRUITER_MAX=10
 ```
@@ -30,7 +30,7 @@ GMAIL_RECRUITER_MAX=10
    - User Type: **External**
    - App name: `career-ops`
    - User support email: your address
-   - Scopes: add `https://www.googleapis.com/auth/gmail.readonly`
+   - Scopes: add `https://www.googleapis.com/auth/gmail.readonly` AND `https://www.googleapis.com/auth/gmail.send` (the second is required for `daily-digest`; if you only need read, omit `gmail.send`)
    - Test users: add the Gmail address you want to sync (e.g. `mattmamundson@gmail.com`)
 5. Create credentials:
    - APIs & Services → Credentials → Create Credentials → **OAuth client ID**

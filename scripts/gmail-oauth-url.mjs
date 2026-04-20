@@ -15,7 +15,8 @@ if (!clientId) {
 }
 
 const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'http://localhost';
-const scope = process.env.GMAIL_OAUTH_SCOPE || 'https://www.googleapis.com/auth/gmail.readonly';
+const scope = process.env.GMAIL_OAUTH_SCOPE
+  || 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
 
 const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
 url.searchParams.set('client_id', clientId);

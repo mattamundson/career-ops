@@ -31,7 +31,10 @@ loadProjectEnv(ROOT);
 
 const clientId = process.env.GOOGLE_CLIENT_ID || '';
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-const scope = process.env.GMAIL_OAUTH_SCOPE || 'https://www.googleapis.com/auth/gmail.readonly';
+// Default scopes cover BOTH read (gmail-recruiter-sync) and send (daily-digest).
+// Override via GMAIL_OAUTH_SCOPE env if you want a narrower grant.
+const scope = process.env.GMAIL_OAUTH_SCOPE
+  || 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
 
 if (!clientId || !clientSecret) {
   console.error('[bootstrap] Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in .env');

@@ -37,6 +37,8 @@
     "scan:report": "node scripts/scan-report.mjs --since=7",
     "events:prune": "node scripts/prune-automation-events.mjs",
     "events:prune:apply": "node scripts/prune-automation-events.mjs --apply",
+    "digest": "node scripts/daily-digest.mjs",
+    "digest:dry": "node scripts/daily-digest.mjs --dry-run",
     "prepare": "husky"
   },
   "keywords": [
