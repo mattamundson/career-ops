@@ -17,7 +17,7 @@
  * waits for you to verify before clicking Submit (unless --auto-submit is passed).
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
@@ -41,6 +41,8 @@ const pdfPath = getArg('pdf') || resolve(ROOT, 'output', 'Matt_Amundson_TOP_2026
 const coverPath = getArg('cover-letter');
 const LIVE = args.includes('--live');
 const AUTO_SUBMIT = args.includes('--auto-submit');
+const HEADLESS = args.includes('--headless');
+const DRY_RUN = !LIVE; // explicit: dry-run is the default (rehearsal, no submit)
 
 // Profile data
 const PROFILE = {
@@ -83,13 +85,7 @@ if (!applyUrl) {
 
 console.log(`[playwright-submit] URL: ${applyUrl}`);
 console.log(`[playwright-submit] Resume: ${pdfPath}`);
-console.log(`[playwright-submit] Mode: ${LIVE ? (AUTO_SUBMIT ? 'LIVE + AUTO-SUBMIT' : 'LIVE (manual submit)') : 'DRY-RUN'}`);
-
-if (!LIVE) {
-  console.log('\n[playwright-submit] DRY-RUN — would open browser, fill form, and wait for human submit.');
-  console.log('Use --live to open browser and fill the form.');
-  process.exit(0);
-}
+console.log(`[playwright-submit] Mode: ${LIVE ? (AUTO_SUBMIT ? 'LIVE + AUTO-SUBMIT' : 'LIVE (manual submit)') : 'DRY-RUN (rehearsal — fill + screenshot, no submit)'}`);
 
 // ---- Playwright form-fill logic ----
 let chromium;
@@ -102,8 +98,12 @@ try {
 
 runChromePreflight('playwright-submit');
 
+// In LIVE mode, default to a visible browser unless --headless is forced.
+// In DRY-RUN, default to headless so apply-review prepare can run unattended.
+const launchHeadless = LIVE ? HEADLESS : (HEADLESS || true);
+
 const browser = await chromium.launchPersistentContext('.playwright-session', {
-  headless: false,
+  headless: launchHeadless,
   viewport: { width: 1280, height: 900 },
 });
 
@@ -268,7 +268,27 @@ try {
   console.log('');
   console.log('[playwright-submit] ✅ Form filling complete!');
 
-  if (AUTO_SUBMIT) {
+  if (DRY_RUN) {
+    // Rehearsal: screenshot the filled form, then close. NO submit.
+    const shotDir = resolve(ROOT, '.playwright-mcp');
+    mkdirSync(shotDir, { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const shotPath = resolve(shotDir, `submit-${appId || 'no-id'}-${ts}.png`);
+    try {
+      await page.screenshot({ path: shotPath, fullPage: true });
+      console.log(`[playwright-submit] 📸 Screenshot saved: ${shotPath}`);
+    } catch (e) {
+      console.warn(`[playwright-submit] Screenshot failed: ${e.message}`);
+    }
+    appendAutomationEvent(ROOT, {
+      type: 'playwright_submit.dry_run',
+      status: 'success',
+      app_id: appId,
+      url: applyUrl,
+      screenshot: shotPath,
+    });
+    console.log('[playwright-submit] DRY-RUN done. Use --live to actually submit.');
+  } else if (AUTO_SUBMIT) {
     // Find and click submit button
     const submitBtn = formPage.locator('button[type="submit"], input[type="submit"], button:has-text("Submit"), button:has-text("Apply")').last();
     if (await submitBtn.count() > 0) {

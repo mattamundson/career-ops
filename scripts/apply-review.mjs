@@ -74,6 +74,17 @@ function normalizeId(id) {
   return String(id).padStart(3, '0');
 }
 
+function urlFromReport(reportPath) {
+  if (!reportPath) return null;
+  const full = resolve(ROOT, reportPath);
+  if (!existsSync(full)) return null;
+  try {
+    const body = readFileSync(full, 'utf8');
+    const m = body.match(/^\*\*URL:\*\*\s+(https?:\/\/\S+)/m);
+    return m ? m[1].trim() : null;
+  } catch { return null; }
+}
+
 function loadApps() {
   const snap = buildApplicationIndex(ROOT);
   return snap.records.map((a) => ({
@@ -83,7 +94,7 @@ function loadApps() {
     role: a.role,
     score: parseFloat(a.score) || null,
     status: a.status,
-    applyUrl: a.applyUrl,
+    applyUrl: a.applyUrl || urlFromReport(a.reportPath),
     hasPdf: String(a.pdf || '').includes('✅'),
     notes: a.notes,
     reportPath: a.reportPath,
@@ -92,7 +103,21 @@ function loadApps() {
 
 function findApp(id) {
   const norm = normalizeId(id);
-  return loadApps().find((a) => a.id === norm) || null;
+  const app = loadApps().find((a) => a.id === norm) || null;
+  if (!app) return null;
+  // Enrich: if applyUrl is missing from index, try the report file.
+  if (!app.applyUrl && app.reportPath) {
+    const reportFull = resolve(ROOT, app.reportPath);
+    if (existsSync(reportFull)) {
+      const body = readFileSync(reportFull, 'utf8');
+      const m = body.match(/^\*\*URL:\*\*\s+(https?:\/\/\S+)/m);
+      if (m) {
+        app.applyUrl = m[1].trim();
+        app.applyUrlSource = 'report';
+      }
+    }
+  }
+  return app;
 }
 
 function reviewBundles(appId) {
@@ -138,8 +163,15 @@ function findResume(slug) {
   if (!slug) return null;
   const outputDir = resolve(ROOT, 'output');
   if (!existsSync(outputDir)) return null;
+  // Generators often drop or collapse separators (v4c-ai → v4cai),
+  // so check both the original slug and its dash-stripped form.
+  const compact = slug.replace(/-/g, '');
+  const matches = (name) => {
+    const lc = name.toLowerCase();
+    return lc.endsWith('.pdf') && (lc.includes(slug) || lc.includes(compact));
+  };
   const candidates = readdirSync(outputDir)
-    .filter((f) => f.toLowerCase().includes(slug) && f.endsWith('.pdf'))
+    .filter(matches)
     .sort()
     .reverse();
   return candidates[0] ? resolve(outputDir, candidates[0]) : null;
@@ -149,8 +181,13 @@ function findCoverLetter(slug) {
   if (!slug) return null;
   const clDir = resolve(ROOT, 'output', 'cover-letters');
   if (!existsSync(clDir)) return null;
+  const compact = slug.replace(/-/g, '');
+  const matches = (name) => {
+    const lc = name.toLowerCase();
+    return lc.endsWith('.txt') && (lc.includes(slug) || lc.includes(compact));
+  };
   const candidates = readdirSync(clDir)
-    .filter((f) => f.toLowerCase().includes(slug) && f.endsWith('.txt'))
+    .filter(matches)
     .sort()
     .reverse();
   return candidates[0] ? resolve(clDir, candidates[0]) : null;
