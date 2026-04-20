@@ -36,6 +36,7 @@ import { createRunSummaryContext, finalizeRunSummary } from './run-summary.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { selectBestApplicationMatch } from './lib/scoring-core.mjs';
 import { classifyResponse as aiClassifyResponse } from './lib/response-classifier.mjs';
+import { notify } from './lib/notify.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -428,6 +429,7 @@ async function main() {
   let updatedResponses = 0;
   let updatedApplications = 0;
   const unmatched = [];
+  const matchedSummary = []; // [{app_id, company, role, event, date, subject}] — for notification body
 
   for (const message of messages) {
     let event = classifyEvent(message);
@@ -476,6 +478,14 @@ async function main() {
     }
 
     matchedCount++;
+    matchedSummary.push({
+      app_id: app.id,
+      company: app.company,
+      role: app.role,
+      event,
+      date: eventDate,
+      subject: (message.subject || '').slice(0, 100),
+    });
     const note = messageSummary(message, event);
 
     let response = responsesTable.rows.find((row) => row.app_id === app.id);
@@ -560,6 +570,29 @@ async function main() {
   state.processed_message_ids.push(...messages.map((m) => m.id));
   saveState(state);
   console.log('[gmail-sync] Applied changes to tracker files.');
+
+  // Notify on real signal: at least one matched recruiter touch.
+  // High-priority events (interview/offer/rejected) escalate urgency.
+  if (matchedCount > 0) {
+    const escalateEvents = new Set(['phone_screen_scheduled', 'on_site_scheduled', 'interview', 'offer', 'rejected']);
+    const escalate = matchedSummary.some((m) => escalateEvents.has(m.event));
+    const lines = matchedSummary.slice(0, 8).map((m) =>
+      `• #${m.app_id} ${m.company} — ${m.event}${m.subject ? `\n   ↳ "${m.subject}"` : ''}`);
+    const more = matchedSummary.length > 8 ? `\n…and ${matchedSummary.length - 8} more` : '';
+    const action = 'See docs/RESPONSE-PLAYBOOK.md. Log via: pnpm run respond';
+    try {
+      const r = await notify({
+        kind: 'gmail-sync',
+        title: `📬 ${matchedCount} recruiter touch${matchedCount === 1 ? '' : 'es'} — career-ops`,
+        body: `${lines.join('\n')}${more}`,
+        action,
+        urgency: escalate ? 'high' : 'normal',
+      });
+      console.log(`[gmail-sync] Notify delivered: ${r.delivered.join(', ') || '(none)'}${r.errors.length ? ` | errors: ${r.errors.join('; ')}` : ''}`);
+    } catch (err) {
+      console.error(`[gmail-sync] Notify failed: ${err.message}`);
+    }
+  }
   const { mdPath } = finalizeRunSummary(run, 'success', {
     stats: {
       query,
