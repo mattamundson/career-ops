@@ -15,7 +15,7 @@ If the system is healthy, that's the entire ritual. The rest of this doc covers 
 
 | Surface | Cadence | What you see |
 |---|---|---|
-| 📧 Email digest (`scripts/daily-digest.mjs`) | 7:55 AM CT daily | Top actions, recruiter touches (14d), yesterday's activity, pipeline counts |
+| 📧 Email digest (`scripts/daily-digest.mjs`) | 7:55 AM CT daily | Top actions, recruiter touches (14d), **dead listings to discard**, yesterday's activity, pipeline counts |
 | 🖥 Dashboard `dashboard.html` | regenerated hourly | Morning Briefing, Recruiter Inbox, Stale Applications, freshness badges, full table |
 | 📱 Toast/Pushover via `scripts/lib/notify.mjs` | event-driven | Recruiter replies (gmail-sync), health-check failures, cron-task failures |
 | 📨 WhatsApp via OpenClaw | event-driven | Cadence stale-app summary (one daily message if any apps overdue) |
@@ -58,6 +58,7 @@ If all 7 checks pass, the system is healthy. If anything is yellow/red, see [Tro
 | Every hour | Regenerates `dashboard.html` from `data/applications.md` + `data/pipeline.md` | `dashboard.generated` event in `data/events/YYYY-MM-DD.jsonl` |
 | Daily 18:00 CT | Full scan (Greenhouse, Ashby, Lever, Workday, iCIMS, etc.) + prefilter | `scanner.run.completed` event |
 | Daily | Gmail recruiter sync — pulls labeled mail, classifies, maps to applications | `gmail-sync.completed` event |
+| Daily 6:00 AM CT | Apply-queue liveness — probes every GO/Conditional GO URL with HEAD + render-mode for SPAs. Catches dead listings before they waste prep cycles. | `data/apply-liveness-YYYY-MM-DD.md` and `apply-liveness.run.completed` event |
 | Daily | Cadence alert — flags applications stale > 14 days | `data/stale-alert-YYYY-MM-DD.md` |
 
 If a task hasn't run, see [Scheduled Tasks](#scheduled-tasks-windows-task-scheduler).
@@ -72,6 +73,20 @@ If a task hasn't run, see [Scheduled Tasks](#scheduled-tasks-windows-task-schedu
 
 # Log a response from a recruiter
 node scripts/log-response.mjs --app-id 042 --event recruiter_reply --notes "wants Tuesday call"
+
+# Apply-Review queue — see what's ready to prep, with URL classification
+pnpm run apply-review               # list all GO / Conditional GO with URL kind + ATS
+pnpm run apply-review --prepare 003 # dry-run: open browser, fill form, screenshot, no submit
+pnpm run apply-review --confirm 003 # actually submit (needs a recent prepare bundle)
+
+# Cover letters
+pnpm run cover-letter -- --app-id 003       # generate (auto-runs lint, blocks bad output)
+pnpm run cover-letter:lint                  # lint everything in output/cover-letters/
+pnpm run cover-letter:lint -- --strict      # treat em-dash as error
+
+# Apply-queue liveness
+pnpm run apply-liveness                     # cheap HEAD probe (catches 404/410)
+pnpm run apply-liveness:render              # +Playwright render for SPA hosts (Workable etc.)
 
 # Check the apply queue (what's ready to submit)
 grep -E '^\| .* \| (Ready to Submit|GO|Conditional GO) \|' data/applications.md
