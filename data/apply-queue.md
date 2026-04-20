@@ -182,7 +182,7 @@
 - **Score:** 3.8/5 | **Salary:** $136K–$204K
 - **Apply URL:** https://www.linkedin.com/jobs/view/4295073304
 - **PDF:** output/cv-matt-3cloud-2026-04-09.pdf
-- **CL:** output/cover-letters/3cloud-senior-architect.txt
+- **CL:** output/cover-letters/3cloud-senior-architect-data-architecture-engineering.txt
 - **Key Advantage:** Virtual-first + Minneapolis local candidate
 - **Blockers:**
   1. [ ] **Confirm travel requirement** — message recruiter: "Is this role truly virtual, or does it involve client travel?" If >20% travel, reassess to MAYBE.
