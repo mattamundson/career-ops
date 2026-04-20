@@ -59,13 +59,14 @@ export function parseApplyQueue(rootDir) {
   }
 
   for (const line of lines) {
-    const headerMatch = line.match(/^###\s+\d+\.\s+(.+?)\s+\[(\d{1,3})\s+[—-]\s+([^\]]+)\]/);
+    // Accept both "[NNN — Status]" and bare "[NNN]" — some queue sections omit the status label.
+    const headerMatch = line.match(/^###\s+\d+\.\s+(.+?)\s+\[(\d{1,3})(?:\s+[—-]\s+([^\]]+))?\]/);
     if (headerMatch) {
       flushCurrent();
       current = {
         companyRoleLabel: headerMatch[1].trim(),
         id: headerMatch[2].padStart(3, '0'),
-        queueDecision: headerMatch[3].trim(),
+        queueDecision: (headerMatch[3] || '').trim(),
         applyUrl: null,
         salary: null,
         remote: null,
