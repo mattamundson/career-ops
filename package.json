@@ -46,6 +46,7 @@
     "apply-liveness": "node scripts/check-apply-queue-liveness.mjs",
     "apply-liveness:render": "node scripts/check-apply-queue-liveness.mjs --render",
     "cover-letter": "node scripts/generate-cover-letter.mjs",
+    "cover-letter:lint": "node scripts/lint-cover-letters.mjs",
     "prepare": "husky"
   },
   "keywords": [

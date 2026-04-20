@@ -24,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { loadProjectEnv } from './load-env.mjs';
 import { buildApplicationIndex } from './lib/career-data.mjs';
 import { retry } from './lib/retry.mjs';
+import { lintCoverLetter, formatLintReport } from './lib/cover-letter-lint.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -213,6 +214,18 @@ const draft = await callOpenAI([
 if (!draft) {
   console.error('[cover-letter] OpenAI returned empty content');
   process.exit(1);
+}
+
+// Quality lint — abort on hard errors, surface warnings.
+const lint = lintCoverLetter(draft, { strict: false });
+console.log('\n' + formatLintReport(lint));
+if (lint.errors.length > 0) {
+  console.error('\n[cover-letter] ❌ Letter failed quality lint. Re-run (the model is non-deterministic) or refine the system prompt.');
+  console.error('[cover-letter] To override and write anyway, add --skip-lint.');
+  if (!flag('skip-lint')) {
+    process.exit(2);
+  }
+  console.warn('[cover-letter] --skip-lint: writing despite errors.');
 }
 
 const fullLetter = [
