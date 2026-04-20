@@ -42,6 +42,8 @@
     "health": "node scripts/health-check.mjs",
     "health:json": "node scripts/health-check.mjs --json",
     "health:cron": "node scripts/cron-health-check.mjs",
+    "apply-review": "node scripts/apply-review.mjs",
+    "cover-letter": "node scripts/generate-cover-letter.mjs",
     "prepare": "husky"
   },
   "keywords": [
