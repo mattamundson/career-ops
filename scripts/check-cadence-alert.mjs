@@ -27,6 +27,7 @@ import { getJobReadiness, printJobReadiness } from './automation-preflight.mjs';
 import { loadProjectEnv } from './load-env.mjs';
 import { createRunSummaryContext, finalizeRunSummary } from './run-summary.mjs';
 import { installExitTrap } from './lib/exit-event-trap.mjs';
+import { appendAutomationEvent } from './lib/automation-events.mjs';
 
 installExitTrap('cadence-alert');
 
@@ -301,39 +302,70 @@ function main() {
       stats: { scanned_rows: rows.length, stale_rows: 0, dry_run: DRY_RUN },
     });
     console.log(`[check-cadence-alert] Run summary: ${mdPath}`);
+    appendAutomationEvent(ROOT, {
+      type: 'cadence-alert.run.completed',
+      job: 'cadence-alert',
+      status: 'success',
+      scanned_rows: rows.length,
+      stale_rows: 0,
+      dry_run: DRY_RUN,
+    });
     process.exit(0);
   }
 
   const message = buildAlertMessage(stale, dateStr);
 
-  // Strategy 1: OpenClaw WhatsApp (requires OPENCLAW_WHATSAPP_TO)
+  // Always write the durable alert file FIRST — downstream consumers
+  // (morning briefing, recruiter inbox panel, dashboard stale panel) all read
+  // data/stale-alert-{date}.md regardless of which delivery channel was used.
+  // Earlier bug: only the toast/file fallback path wrote the file, so on the
+  // happy WhatsApp-success path the dashboard had no fresh stale data.
+  const alertFile = writeAlertFile(message, dateStr);
+
+  // Delivery strategy 1: OpenClaw WhatsApp (requires OPENCLAW_WHATSAPP_TO)
+  let whatsappSent = false;
   if (PHONE_TO) {
-    const sent = sendViaOpenClaw(message, PHONE_TO);
-    if (sent) process.exit(0);
+    whatsappSent = sendViaOpenClaw(message, PHONE_TO);
   } else {
     console.warn('[check-cadence-alert] OPENCLAW_WHATSAPP_TO not set — skipping WhatsApp send.');
   }
 
-  // Strategy 2: Windows toast notification
-  console.log('[check-cadence-alert] Trying Windows toast fallback...');
-  const toastSent = sendViaToast(message);
+  // Delivery strategy 2: Windows toast (only if WhatsApp didn't go through)
+  let toastSent = false;
+  if (!whatsappSent) {
+    console.log('[check-cadence-alert] Trying Windows toast fallback...');
+    toastSent = sendViaToast(message);
+  }
 
-  // Strategy 3: Always write alert file as a durable record
-  const alertFile = writeAlertFile(message, dateStr);
-  const status = toastSent ? 'success' : 'partial_success';
+  const delivered = whatsappSent || toastSent;
+  const status = delivered ? 'success' : 'partial_success';
   const { mdPath } = finalizeRunSummary(run, status, {
     stats: {
       scanned_rows: rows.length,
       stale_rows: stale.length,
       dry_run: DRY_RUN,
       whatsapp_configured: Boolean(PHONE_TO),
+      whatsapp_sent: whatsappSent,
       toast_sent: toastSent,
     },
     artifacts: [alertFile],
   });
   console.log(`[check-cadence-alert] Run summary: ${mdPath}`);
 
-  process.exit(toastSent ? 0 : 1);
+  appendAutomationEvent(ROOT, {
+    type: 'cadence-alert.run.completed',
+    job: 'cadence-alert',
+    status,
+    scanned_rows: rows.length,
+    stale_rows: stale.length,
+    delivery: whatsappSent ? 'whatsapp' : (toastSent ? 'toast' : 'file-only'),
+    dry_run: DRY_RUN,
+  });
+
+  // Even file-only counts as "we did our job" — alert is durable on disk.
+  // Only exit non-zero if we couldn't even write the file (alertFile would
+  // have thrown). Reaching here means file is on disk.
+  process.exit(0);
 }
 
 main();
