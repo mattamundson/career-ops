@@ -973,6 +973,89 @@ function generateMorningBriefing(appList) {
   </div>`;
 }
 
+function generateApplyLivenessPanel() {
+  // Latest data/apply-liveness-YYYY-MM-DD.md → totals + dead listings table.
+  let files = [];
+  try {
+    files = readdirSync(join(ROOT, 'data'))
+      .filter((f) => /^apply-liveness-\d{4}-\d{2}-\d{2}\.md$/.test(f))
+      .sort();
+  } catch { return ''; }
+  if (files.length === 0) return '';
+
+  const latest = files[files.length - 1];
+  const dateStr = latest.match(/apply-liveness-(\d{4}-\d{2}-\d{2})\.md/)[1];
+  let body;
+  try { body = readFileSync(join(ROOT, 'data', latest), 'utf8'); }
+  catch { return ''; }
+
+  // Parse totals from the "| Result | Count |" block
+  const totals = { ok: 0, dead: 0, unreachable: 0 };
+  for (const raw of body.split('\n')) {
+    const m = raw.trim().match(/^\|\s*(OK|DEAD\s*\/\s*REDIRECTED|UNREACHABLE)\s*\|\s*(\d+)\s*\|/i);
+    if (!m) continue;
+    const k = m[1].toLowerCase().includes('dead') ? 'dead' : m[1].toLowerCase().includes('un') ? 'unreachable' : 'ok';
+    totals[k] = Number(m[2]);
+  }
+
+  // Parse dead listings table: | # | Company | Role | Score | Reason | URL |
+  const dead = [];
+  let inDeadSection = false;
+  for (const raw of body.split('\n')) {
+    if (/^## Dead listings/i.test(raw)) { inDeadSection = true; continue; }
+    if (inDeadSection && /^## /.test(raw)) break;
+    if (!inDeadSection) continue;
+    const cells = raw.trim().split('|').map((c) => c.trim());
+    if (cells.length < 7 || !/^\d+$/.test(cells[1])) continue;
+    dead.push({
+      id: cells[1], company: cells[2], role: cells[3],
+      score: cells[4], reason: cells[5],
+      url: cells[6].replace(/^<|>$/g, ''),
+    });
+  }
+
+  const ageMs = Date.now() - new Date(dateStr + 'T00:00:00Z').getTime();
+  const ageDays = Math.floor(ageMs / (24 * 60 * 60 * 1000));
+  const ageBadge = ageDays === 0
+    ? '<span style="color:#a6e3a1">today</span>'
+    : ageDays === 1
+      ? '<span style="color:#f9e2af">1d old</span>'
+      : `<span style="color:#f38ba8">${ageDays}d old</span>`;
+
+  // Skip the panel entirely if everything is OK and no dead listings — nothing to do
+  if (dead.length === 0 && totals.unreachable === 0) return '';
+
+  const headerColor = dead.length > 0 ? '#f38ba8' : '#f9e2af';
+  const summary = `${totals.ok} OK · <span style="color:${dead.length > 0 ? '#f38ba8' : 'inherit'}">${totals.dead} dead</span>${totals.unreachable > 0 ? ` · ${totals.unreachable} unreachable` : ''}`;
+
+  const deadRows = dead.map((d) => `<tr>
+    <td><strong>#${escHtml(d.id)}</strong></td>
+    <td>${escHtml(d.company)}</td>
+    <td>${escHtml(d.role)}</td>
+    <td style="color:#f38ba8">${escHtml(d.reason)}</td>
+    <td><a href="${escHtml(d.url)}" target="_blank" style="color:#89b4fa;font-size:11px">link</a></td>
+  </tr>`).join('');
+
+  const deadBlock = dead.length > 0
+    ? `<div style="padding:12px 20px">
+        <div style="font-size:12px;color:var(--subtext);margin-bottom:6px">Dead listings — recommend marking <code>Discarded</code> in <code>data/applications.md</code>:</div>
+        <table>
+          <thead><tr><th>#</th><th>Company</th><th>Role</th><th>Reason</th><th>URL</th></tr></thead>
+          <tbody>${deadRows}</tbody>
+        </table>
+      </div>`
+    : `<div style="padding:12px 20px;color:var(--subtext);font-size:12px">No dead listings. ${totals.unreachable} probe(s) unreachable (HTTP 403 / network) — usually transient.</div>`;
+
+  return `
+  <div class="section" style="margin-bottom:16px;border-color:${headerColor}44">
+    <div class="section-header" style="background:${headerColor}14">
+      <h2>🩺 Apply-Queue Liveness</h2>
+      <span class="count" style="color:${headerColor}">${summary} · ${dateStr} ${ageBadge}</span>
+    </div>
+    ${deadBlock}
+  </div>`;
+}
+
 function generateStaleAlertPanel() {
   // Latest data/stale-alert-YYYY-MM-DD.md → parse "N. Company | Role | Status | Xd (+Yd over) — Action".
   let files = [];
@@ -1890,6 +1973,8 @@ const html = `<!DOCTYPE html>
   ${generateMorningBriefing(apps)}
 
   ${generateRecruiterInboxPanel()}
+
+  ${generateApplyLivenessPanel()}
 
   <!-- Stats Row -->
   <div class="stats">
