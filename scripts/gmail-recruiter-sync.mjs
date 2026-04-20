@@ -37,6 +37,24 @@ import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { selectBestApplicationMatch } from './lib/scoring-core.mjs';
 import { classifyResponse as aiClassifyResponse } from './lib/response-classifier.mjs';
 import { notify } from './lib/notify.mjs';
+import { retry } from './lib/retry.mjs';
+
+class HttpError extends Error {
+  constructor(message, status, body) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
+// Auth/permission errors won't fix on retry — fast-fail them. Real transient
+// errors (429, 5xx, network) fall through to default isTransient.
+const gmailShouldRetry = (err) => {
+  const s = err?.status;
+  if (s === 400 || s === 401 || s === 403 || s === 404 || s === 410) return false;
+  return true;
+};
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -182,32 +200,40 @@ function saveState(state) {
   writeFileSync(STATE_FILE, `${JSON.stringify(trimmed, null, 2)}\n`, 'utf8');
 }
 
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`${response.status} ${response.statusText}: ${body}`);
-  }
-  return response.json();
+async function fetchJson(url, options = {}, retryLabel = 'gmail-fetch') {
+  return retry(async () => {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      const body = await response.text();
+      throw new HttpError(
+        `${response.status} ${response.statusText}: ${body}`,
+        response.status,
+        body
+      );
+    }
+    return response.json();
+  }, { label: retryLabel, maxAttempts: 4, shouldRetry: gmailShouldRetry });
 }
 
 async function getAccessToken() {
-  const body = new URLSearchParams({
-    client_id: requiredEnv('GOOGLE_CLIENT_ID'),
-    client_secret: requiredEnv('GOOGLE_CLIENT_SECRET'),
-    refresh_token: requiredEnv('GOOGLE_REFRESH_TOKEN'),
-    grant_type: 'refresh_token',
-  });
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
-  if (!response.ok) {
-    throw new Error(`OAuth token exchange failed: ${response.status} ${await response.text()}`);
-  }
-  const json = await response.json();
-  return json.access_token;
+  return retry(async () => {
+    const body = new URLSearchParams({
+      client_id: requiredEnv('GOOGLE_CLIENT_ID'),
+      client_secret: requiredEnv('GOOGLE_CLIENT_SECRET'),
+      refresh_token: requiredEnv('GOOGLE_REFRESH_TOKEN'),
+      grant_type: 'refresh_token',
+    });
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new HttpError(`OAuth token exchange failed: ${response.status} ${text}`, response.status, text);
+    }
+    return (await response.json()).access_token;
+  }, { label: 'gmail-oauth', maxAttempts: 4, shouldRetry: gmailShouldRetry });
 }
 
 async function listMessages(accessToken, query, maxResults) {
@@ -216,7 +242,7 @@ async function listMessages(accessToken, query, maxResults) {
   url.searchParams.set('maxResults', String(maxResults));
   return fetchJson(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  }, 'gmail-list');
 }
 
 function decodeBase64Url(value) {
@@ -243,7 +269,7 @@ async function getMessage(accessToken, id) {
   url.searchParams.set('format', 'full');
   const json = await fetchJson(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  }, 'gmail-get');
   const headers = Object.fromEntries(
     (json.payload?.headers || []).map((h) => [h.name.toLowerCase(), h.value])
   );
