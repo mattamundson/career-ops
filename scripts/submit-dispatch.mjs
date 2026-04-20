@@ -115,10 +115,21 @@ console.log(`[submit-dispatch] Detected ATS: ${ats}`);
 console.log(`[submit-dispatch] Routing to: ${submitter}`);
 
 // ---- Invoke submitter with pass-through args ----
-const submitterPath = resolve(__dir, submitter);
+let submitterPath = resolve(__dir, submitter);
 if (!existsSync(submitterPath)) {
-  console.error(`[submit-dispatch] Submitter not found: ${submitterPath}`);
-  process.exit(1);
+  // Per-ATS submitters for lever, ashby, smartrecruiters, workable haven't been
+  // built yet. Rather than fail, fall through to the universal Playwright
+  // submitter — it handles arbitrary ATS forms via auto-detection. Slower and
+  // less precise than a dedicated submitter, but functional for the long tail.
+  const universal = resolve(__dir, 'submit-universal-playwright.mjs');
+  if (existsSync(universal)) {
+    console.warn(`[submit-dispatch] Submitter not built yet: ${submitter}. Falling back to submit-universal-playwright.mjs.`);
+    submitter = 'submit-universal-playwright.mjs';
+    submitterPath = universal;
+  } else {
+    console.error(`[submit-dispatch] Submitter not found and no fallback: ${submitterPath}`);
+    process.exit(1);
+  }
 }
 
 // Auto-resume selection: if --auto-resume is passed and no --pdf, pick best resume
