@@ -118,3 +118,10 @@ config/narrative-audit-*.md
 
 # Old session diff dumps (one-shot session artifacts, not source)
 docs/handoff-*.txt
+
+# Notification + cron-runtime artifacts (notify.mjs writes durable alert files;
+# gmail-sync writes per-run state + per-day review files; scheduler writes logs)
+data/notifications/
+data/gmail-sync-state.json
+data/outreach/gmail-sync-review-*.md
+data/prefilter-scheduler.log
