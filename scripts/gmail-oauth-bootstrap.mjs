@@ -54,24 +54,40 @@ consentUrl.searchParams.set('scope', scope);
 consentUrl.searchParams.set('access_type', 'offline');
 consentUrl.searchParams.set('prompt', 'consent');
 
-console.log(`[bootstrap] Listening on ${redirectUri}`);
-console.log('[bootstrap] Opening consent URL in browser…');
+const urlStr = consentUrl.toString();
 console.log('');
-console.log(consentUrl.toString());
+console.log('═══════════════════════════════════════════════════════════════════');
+console.log(`[bootstrap] LISTENING ON: ${redirectUri}`);
+console.log(`[bootstrap] CLIENT_ID:    ${clientId.slice(0, 20)}…`);
+console.log(`[bootstrap] URL LENGTH:   ${urlStr.length} chars (paste must be complete!)`);
+console.log('═══════════════════════════════════════════════════════════════════');
 console.log('');
-console.log('[bootstrap] If the browser does not open automatically, paste the URL above.');
+console.log('STEP 1 — Open this URL in your browser (paste from clipboard):');
+console.log('');
+console.log(urlStr);
+console.log('');
+console.log('STEP 2 — Sign in as the Gmail Test User you added in OAuth consent screen.');
+console.log('STEP 3 — Click "Advanced" → "Go to career-ops (unsafe)" → Allow.');
+console.log('STEP 4 — Browser shows green ✓ page; this script writes refresh_token to .env.');
+console.log('');
+console.log('[bootstrap] Waiting up to 15 minutes for redirect…');
+console.log('');
 
-// Best-effort: open default browser. Don't fail if it doesn't work.
+// Best-effort: open default browser using Windows explorer (handles long URLs reliably).
 try {
-  const cmd = process.platform === 'win32' ? 'cmd' : (process.platform === 'darwin' ? 'open' : 'xdg-open');
-  const args = process.platform === 'win32' ? ['/c', 'start', '', consentUrl.toString()] : [consentUrl.toString()];
-  spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref();
+  if (process.platform === 'win32') {
+    spawn('explorer.exe', [urlStr], { detached: true, stdio: 'ignore' }).unref();
+  } else if (process.platform === 'darwin') {
+    spawn('open', [urlStr], { detached: true, stdio: 'ignore' }).unref();
+  } else {
+    spawn('xdg-open', [urlStr], { detached: true, stdio: 'ignore' }).unref();
+  }
 } catch { /* user can paste manually */ }
 
 const code = await new Promise((resolve, reject) => {
   const timeout = setTimeout(() => {
-    reject(new Error('Timed out after 5 minutes waiting for OAuth redirect'));
-  }, 5 * 60 * 1000);
+    reject(new Error('Timed out after 15 minutes waiting for OAuth redirect'));
+  }, 15 * 60 * 1000);
 
   server.on('request', (req, res) => {
     try {
