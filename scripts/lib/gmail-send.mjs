@@ -11,26 +11,42 @@
  * Set CAREER_OPS_DRY_RUN=1 to log instead of sending.
  */
 
+import { retry } from './retry.mjs';
+
 function requiredEnv(name) {
   const v = process.env[name];
   if (!v) throw new Error(`Missing required env var: ${name}`);
   return v;
 }
 
+class HttpError extends Error {
+  constructor(message, status, body) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
 export async function getAccessToken() {
-  const body = new URLSearchParams({
-    client_id: requiredEnv('GOOGLE_CLIENT_ID'),
-    client_secret: requiredEnv('GOOGLE_CLIENT_SECRET'),
-    refresh_token: requiredEnv('GOOGLE_REFRESH_TOKEN'),
-    grant_type: 'refresh_token',
-  });
-  const r = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
-  if (!r.ok) throw new Error(`OAuth token exchange failed: ${r.status} ${await r.text()}`);
-  return (await r.json()).access_token;
+  return retry(async () => {
+    const body = new URLSearchParams({
+      client_id: requiredEnv('GOOGLE_CLIENT_ID'),
+      client_secret: requiredEnv('GOOGLE_CLIENT_SECRET'),
+      refresh_token: requiredEnv('GOOGLE_REFRESH_TOKEN'),
+      grant_type: 'refresh_token',
+    });
+    const r = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!r.ok) {
+      const text = await r.text();
+      throw new HttpError(`OAuth token exchange failed: ${r.status} ${text}`, r.status, text);
+    }
+    return (await r.json()).access_token;
+  }, { label: 'oauth-token', maxAttempts: 4 });
 }
 
 function buildMime({ to, from, subject, html, text }) {
@@ -93,15 +109,33 @@ export async function sendGmail({ to, subject, html, text, from }) {
   const mime = buildMime({ to, from: fromAddr, subject, html, text });
   const raw = base64UrlEncode(mime);
 
-  const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
+  // Don't retry 403 (insufficient scope) — it'll never become permitted on retry.
+  // 401 is similar (revoked token) — also permanent until human intervention.
+  // Retry only the truly transient stuff (429, 5xx, network).
+  const json = await retry(async () => {
+    const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ raw }),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      throw new HttpError(`Gmail send failed: ${r.status} ${t}`, r.status, t);
+    }
+    return r.json();
+  }, {
+    label: 'gmail-send',
+    maxAttempts: 3,
+    shouldRetry: (err) => {
+      const s = err?.status;
+      // 401/403 = auth issue, won't fix on retry. 400 = bad request. 404/410 = gone.
+      if (s === 400 || s === 401 || s === 403 || s === 404 || s === 410) return false;
+      // Otherwise defer to default isTransient (handles 429, 5xx, network).
+      return true;
     },
-    body: JSON.stringify({ raw }),
   });
-  if (!r.ok) throw new Error(`Gmail send failed: ${r.status} ${await r.text()}`);
-  const json = await r.json();
   return { ok: true, messageId: json.id };
 }
