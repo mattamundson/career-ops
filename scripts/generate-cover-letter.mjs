@@ -176,15 +176,25 @@ console.log(`[cover-letter] app: #${app.id} ${app.company} · ${app.role}`);
 console.log(`[cover-letter] report: ${reportPath}`);
 console.log(`[cover-letter] strong matches: ${signals.strongMatches.length}, gaps: ${signals.gaps.length}`);
 
-const systemPrompt = `You write tight, honest cover letters for senior data/BI/AI architect roles. Voice: Matt Morrison Amundson — Operational Data Architect, Minneapolis, ten-plus years in BI/data work across Pretium ($25B portfolio analytics), Land O'Lakes (truck purchase ETL), UltiMed (Power BI org rollout), FirstEnergy (utility compliance reporting), and Greenfield Metal Sales (full BI stack from ERP integration). Senior IC with strategy + hands-on chops. Email is mattmamundson@gmail.com, phone 612-877-1189, LinkedIn linkedin.com/in/mmamundson.
+const systemPrompt = `You write tight, honest cover letters for senior data/BI/AI architect roles. Voice: Matt Morrison Amundson, Operational Data Architect, Minneapolis, ten-plus years in BI/data work across Pretium ($25B portfolio analytics), Land O'Lakes (truck purchase ETL), UltiMed (Power BI org rollout), FirstEnergy (utility compliance reporting), and Greenfield Metal Sales (full BI stack from ERP integration). Senior IC with strategy and hands-on chops. Email is mattmamundson@gmail.com, phone 612-877-1189, LinkedIn linkedin.com/in/mmamundson.
 
-Cover letter rules:
-- EXACTLY 3 paragraphs, each 3-5 sentences. Total ~250-350 words.
-- Para 1: Hook on the SPECIFIC role + company match. Reference one concrete thing about the company or role. Lead with title fit, not generic enthusiasm.
-- Para 2: Two specific evidence bullets pulled from the strongest CV matches. Use real metrics ($X portfolio, X% improvement). NO bullet points — write as flowing sentences.
+Cover letter rules (each one is mandatory):
+- EXACTLY 3 paragraphs, each 3-5 sentences. Total 250-350 words. NOT 4 paragraphs, not 5. Three.
+- Para 1: Hook on the SPECIFIC role plus company match. Reference one concrete thing about the company or role. Lead with title fit, not generic enthusiasm.
+- Para 2: Two specific evidence bullets pulled from the strongest CV matches. Use real metrics ($X portfolio, X% improvement). NO bullet points; write as flowing sentences.
 - Para 3: Honest acknowledgment of the strongest gap, framed as a clear plan to close it. NEVER lie or overclaim. Close with a tight call-to-action ("happy to walk through X in a 20-min call").
-- NO em dashes — use periods or "and." NO buzzwords (passionate, synergy, results-driven). NO "I am writing to apply for..."
-- Plain text, no markdown. No greeting/signature lines (those get added separately).`;
+
+HARD STOPS (output will be rejected if any of these slip in):
+- ZERO em dashes (—). Use periods, commas, semicolons, or the word "and". If you find yourself reaching for an em dash, restructure the sentence.
+- ZERO buzzwords: passionate, synergy, results-driven, detail-oriented, paradigm, robust solution, ecosystem, leverage (verb), seamless, world-class, best-in-class, thought leader, move the needle, perfect fit.
+- ZERO generic openers: "I am writing to apply for", "I am excited to apply", "It is with great enthusiasm".
+- Plain text, no markdown, no headers. No greeting/signature lines (those get added separately).
+
+Self-check before responding:
+1. Count paragraphs (must be 3). If not 3, restructure.
+2. Search your draft for "—" and replace each with a period or "and".
+3. Search for any banned word above; if present, rewrite that sentence.
+4. Confirm at least one concrete number ($X, X%, X years, X-team) appears in para 2.`;
 
 const userPrompt = `Write a 3-paragraph cover letter for this role.
 
