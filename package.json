@@ -39,6 +39,8 @@
     "events:prune:apply": "node scripts/prune-automation-events.mjs --apply",
     "digest": "node scripts/daily-digest.mjs",
     "digest:dry": "node scripts/daily-digest.mjs --dry-run",
+    "health": "node scripts/health-check.mjs",
+    "health:json": "node scripts/health-check.mjs --json",
     "prepare": "husky"
   },
   "keywords": [
