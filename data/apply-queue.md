@@ -34,7 +34,7 @@
 - **Remote:** Verified fully remote (Menomonee Falls WI HQ, occasional on-site TBD)
 - **Apply URL:** https://www.indeed.com/viewjob?jk=ab9cfb4148755453
 - **PDF:** output/cv-matt-modine-2026-04-09.pdf
-- **CL:** output/cover-letters/modine-senior-ai-data-architect.txt
+- **CL:** output/cover-letters/modine-manufacturing-senior-ai-data-architect.txt
 - **Status:** [ ] Not started
 
 ---
