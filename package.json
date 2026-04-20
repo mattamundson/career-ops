@@ -35,6 +35,8 @@
     "pipeline:liveness": "node scripts/check-liveness.mjs",
     "apply-queue:audit": "node scripts/sync-apply-queue-audit.mjs",
     "apply-queue:audit:apply": "node scripts/sync-apply-queue-audit.mjs --apply",
+    "brain:fix-slugs": "node scripts/fix-brain-staging-slugs.mjs",
+    "brain:fix-slugs:apply": "node scripts/fix-brain-staging-slugs.mjs --apply",
     "scan:report": "node scripts/scan-report.mjs --since=7",
     "events:prune": "node scripts/prune-automation-events.mjs",
     "events:prune:apply": "node scripts/prune-automation-events.mjs --apply",
