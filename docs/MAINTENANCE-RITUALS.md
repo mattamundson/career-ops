@@ -65,6 +65,16 @@ pnpm run apply-queue:audit
 
 Writes `data/apply-queue-audit.md`: orphans, status drift, stale “ship” labels.
 
+If the audit reports drift > 0, run the autofix to rewrite the `[NNN — Status]` bracket
+labels in `data/apply-queue.md` to match the tracker (creates `apply-queue.md.bak`):
+
+```bash
+pnpm run apply-queue:audit:apply
+```
+
+Section bodies are untouched — only the bracket label after the title is updated.
+Manual review still required for stale "ship" sections (tracker terminal but queue still listed).
+
 ## Stale job URLs (network)
 
 Spot-check or monthly pass on the top of the inbox:
