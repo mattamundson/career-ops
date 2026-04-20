@@ -161,6 +161,14 @@ async function checkBrainCoverage() {
     if (!stats || stats.available === false || typeof stats.chunks !== 'number') {
       add('brain:coverage', 'warn', 'brain stats unavailable'); return;
     }
+    // If the configured brain has no career-ops content (e.g. shared DB pointed
+    // at another project), don't fail this project's health on it.
+    const careerPages = (stats.byType?.evaluation || 0) + (stats.byType?.company || 0)
+      + (stats.byType?.application || 0) + (stats.byType?.person || 0);
+    if (careerPages === 0 && (stats.pages || 0) > 0) {
+      add('brain:coverage', 'warn', `brain has ${stats.pages} pages but 0 career-ops pages — DB may be pointed at another project (see runbook)`);
+      return;
+    }
     const total = stats.chunks || 0;
     const embedded = stats.embedded || 0;
     const pct = total > 0 ? (embedded / total) * 100 : 0;
