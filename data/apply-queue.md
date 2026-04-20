@@ -8,7 +8,7 @@
 **10 roles | Tracker: `GO` or `Ready to Submit` — PDF + CL ready — you still click Submit**
 **Sorted by salary (descending)**
 
-### 1. Agility Robotics — Manager, Business Intelligence [025 — GO]
+### 1. Agility Robotics — Manager, Business Intelligence [025 — Discarded]
 - **Salary:** $157K–$204K USD confirmed
 - **Remote:** Fully remote (optional hybrid near Salem OR / Pittsburgh PA / Fremont CA)
 - **Apply URL:** https://job-boards.greenhouse.io/agilityrobotics/jobs/5841009004
@@ -19,7 +19,7 @@
 
 ---
 
-### 2. KinderCare Learning Companies — Senior Power BI Developer / Fabric Administrator [024 — GO]
+### 2. KinderCare Learning Companies — Senior Power BI Developer / Fabric Administrator [024 — Responded]
 - **Salary:** ~$110K–$140K (market estimate; not stated in JD)
 - **Remote:** Verified fully remote
 - **Apply URL:** https://www.linkedin.com/jobs/view/4385530845
@@ -39,7 +39,7 @@
 
 ---
 
-### 4. Aledade — Enterprise Data Architect [023 — GO]
+### 4. Aledade — Enterprise Data Architect [023 — Discarded]
 - **Salary:** Not listed (target: $165K–$185K base + equity)
 - **Remote:** Confirmed remote — Bethesda, MD / Remote
 - **Apply URL:** https://jobs.lever.co/aledade/3532b394-a4d4-4248-adfa-b22d61b3b634
@@ -59,7 +59,7 @@
 
 ---
 
-### 6. Rescale — Solutions Architect, Data & AI [017 — GO]
+### 6. Rescale — Solutions Architect, Data & AI [017 — Discarded]
 - **Salary:** $133K–$180K + equity
 - **Remote:** Fully remote, US only
 - **Apply URL:** https://jobs.ashbyhq.com/rescale/2f43e26a-a331-4648-8523-d83c258bd8a2
@@ -69,7 +69,7 @@
 
 ---
 
-### 7. V4C.ai — Power BI Architect [015 — GO]
+### 7. V4C.ai — Power BI Architect [015 — Discarded]
 - **Salary:** Not disclosed (target: $150K+)
 - **Remote:** Confirmed remote — V4C.ai is remote-first
 - **Apply URL:** https://apply.workable.com/v4c/j/084E1FAE7B/
@@ -89,7 +89,7 @@
 
 ---
 
-### 9. Valtech — Data and AI Architect [002 — Ready to Submit]
+### 9. Valtech — Data and AI Architect [002 — Discarded]
 - **Salary:** Not listed (target: $165K+)
 - **Remote:** Remote/hybrid confirmed (enterprise data & AI architecture)
 - **Apply URL:** https://job-boards.greenhouse.io/valtech/jobs/4632199101
@@ -99,7 +99,7 @@
 
 ---
 
-### 10. Panopto — DataOps Engineer [001 — Ready to Submit]
+### 10. Panopto — DataOps Engineer [001 — Applied]
 - **Salary:** $140K–$150K confirmed
 - **Remote:** Fully remote, US only
 - **Apply URL:** https://jobs.lever.co/panopto/cfd10ade-b230-4c3b-9626-f2e6aa8080d0
@@ -275,7 +275,7 @@
 
 ---
 
-### Unknown Company — Data Architect (Azure + Finance GL/AR/AP) [022 — BLOCKED]
+### Unknown Company — Data Architect (Azure + Finance GL/AR/AP) [022 — Conditional GO]
 - **Apply URL:** https://www.indeed.com/viewjob?jk=ffa724aa3602f6ed
 - **Score:** 3.6/5 (Azure + finance domain strong archetype match)
 - **Current Status:** JD not accessible (Indeed JS-blocked), company identity unknown, remote policy unconfirmed

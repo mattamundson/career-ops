@@ -7,9 +7,11 @@
  * - Status drift (queue label ≠ tracker status column)
  * - Stale "ship" labels when tracker already moved past GO / Ready to Submit
  *
- * Writes data/apply-queue-audit.md (overwrite). Read-only on tracker/queue.
+ * Writes data/apply-queue-audit.md (overwrite). Read-only on tracker/queue by default.
  *
- *   node scripts/sync-apply-queue-audit.mjs
+ *   node scripts/sync-apply-queue-audit.mjs              # audit only
+ *   node scripts/sync-apply-queue-audit.mjs --apply      # also rewrite drifted [NNN — X] labels
+ *                                                          to match tracker (creates apply-queue.md.bak)
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
@@ -140,6 +142,24 @@ function main() {
   writeFileSync(OUT, lines.join('\n'), 'utf8');
   console.log(`Wrote ${OUT}`);
   console.log(`Refs ${refs.length}, orphans ${orphans.length}, drift ${drift.length}, staleShip ${staleShip.length}`);
+
+  if (process.argv.includes('--apply') && drift.length > 0) {
+    const bak = `${QUEUE}.bak`;
+    writeFileSync(bak, qText, 'utf8');
+    let updated = qText;
+    let rewrites = 0;
+    for (const r of drift) {
+      const pattern = new RegExp(
+        `\\[${String(r.num).padStart(3, '0')}\\s*[—–-]\\s*${r.queueLabel.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\s*\\]`,
+        'g',
+      );
+      const before = updated;
+      updated = updated.replace(pattern, `[${String(r.num).padStart(3, '0')} — ${r.trackerStatus}]`);
+      if (updated !== before) rewrites++;
+    }
+    writeFileSync(QUEUE, updated, 'utf8');
+    console.log(`Rewrote ${rewrites}/${drift.length} drift labels in ${QUEUE} (backup at ${bak})`);
+  }
 }
 
 main();

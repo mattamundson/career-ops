@@ -153,6 +153,20 @@ The cron only notifies when `fail>=1` OR `warn>=3`. If you're getting paged on e
 3. Health-check is broken → `pnpm run verify:all` is the cross-check (slower but more thorough).
 4. Brain MCP is down → all `mcp__brain__*` calls fail. Restart MCP server config: re-register via the project-MCP setup (see commit `db95127`).
 
+## Known false-positives
+
+### Windows Task Scheduler reports exit-1 but `*.run.completed` event is present
+
+Windows + Node sometimes reports a non-zero exit code when the script completed cleanly but had async handles still mid-close at `process.exit()`. Symptom: `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` in console output.
+
+**Diagnosis:** Check `data/events/automation_events-YYYY-MM-DD.jsonl` for the matching `*.run.completed` event. If `status: success` (or `partial_success` with all expected work done), the script logic finished — Windows is reporting a libuv quirk, not a real failure.
+
+**When to actually worry:** No completion event at all, OR `status: failed` in the event, OR repeated exit-1s with no completion event over multiple runs.
+
+Confirmed seen on: cadence-alert (2026-04-19 21:01 — partial_success completion event present, Task Scheduler still reported exit-1).
+
+---
+
 ## Standing principle
 
 The notify channel is the canary, not the only signal. Every failure has a durable artifact (file under `data/` or event in `data/events/`). When notify is wrong, trust the artifact; when both are silent, trust the dashboard; when the dashboard is wrong, trust `pnpm run verify:all`.
