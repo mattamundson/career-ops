@@ -20,3 +20,4 @@
 | 001 | Panopto | DataOps Engineer | 2026-04-06 | Lever | submitted | 2026-04-06 | — | 4 days stale as of 2026-04-10, cover letter added v13 |
 | 002 | Valtech | Data and AI Architect | 2026-04-06 | Greenhouse | submitted | 2026-04-06 | — | 4 days stale as of 2026-04-10, cover letter added v13 |
 | 011 | Wipfli | Enterprise Data Architect | 2026-04-10 | iCIMS | in_progress | 2026-04-10 | — | iCIMS Step 1/4 filled, blocked at hCaptcha, browser session died. Requires recovery via Appendix D. |
+| 024 | KinderCare Learning Companies | Senior Power BI Developer / Microsoft Fabric Administrator | 2026-04-18 | Gmail Sync | acknowledged | 2026-04-18 | 1 | Auto-reply: "we noticed you started a job application" — finish partial ATS submission. |
