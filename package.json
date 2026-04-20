@@ -43,6 +43,8 @@
     "health:json": "node scripts/health-check.mjs --json",
     "health:cron": "node scripts/cron-health-check.mjs",
     "apply-review": "node scripts/apply-review.mjs",
+    "apply-liveness": "node scripts/check-apply-queue-liveness.mjs",
+    "apply-liveness:render": "node scripts/check-apply-queue-liveness.mjs --render",
     "cover-letter": "node scripts/generate-cover-letter.mjs",
     "prepare": "husky"
   },
