@@ -155,6 +155,29 @@ function detectAts(url) {
   return 'unknown';
 }
 
+// classifyUrl returns one of:
+//   direct-ats        — supported ATS, dispatch will handle it
+//   linkedin          — needs manual resolution to underlying ATS or LinkedIn EasyApply
+//   indeed            — needs manual resolution
+//   company-site      — direct apply page, may work with universal-playwright
+//   none              — no URL at all
+function classifyUrl(url) {
+  if (!url) return 'none';
+  const ats = detectAts(url);
+  if (ats !== 'unknown') return 'direct-ats';
+  if (/linkedin\.com/i.test(url)) return 'linkedin';
+  if (/indeed\.com/i.test(url)) return 'indeed';
+  return 'company-site';
+}
+
+const URL_KIND_HINT = {
+  'direct-ats': 'auto-prep ready',
+  'linkedin': 'manual: open URL → "Apply on company site" → paste real URL into report',
+  'indeed': 'manual: same as linkedin (Indeed proxies the ATS)',
+  'company-site': 'try --prepare; universal-playwright may handle it',
+  'none': 'no URL on file — populate report **URL:** field',
+};
+
 function slugify(name) {
   return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -207,11 +230,14 @@ function modeList() {
 
   const C = { reset: '\x1b[0m', dim: '\x1b[2m', green: '\x1b[32m', yellow: '\x1b[33m', red: '\x1b[31m', cyan: '\x1b[36m', bold: '\x1b[1m' };
   console.log(`\n  ${C.bold}Apply-Review Queue${C.reset} — ${apps.length} candidate${apps.length === 1 ? '' : 's'}\n`);
-  console.log(`  ${C.dim}ID   Status            Score  ATS         Pdf  Bundle  Company / Role${C.reset}`);
-  console.log(`  ${C.dim}───  ───────────────   ─────  ──────────  ───  ──────  ──────────────${C.reset}`);
+  console.log(`  ${C.dim}ID   Status            Score  Kind           ATS         Pdf  Bundle  Company / Role${C.reset}`);
+  console.log(`  ${C.dim}───  ───────────────   ─────  ─────────────  ──────────  ───  ──────  ──────────────${C.reset}`);
 
+  const kindCounts = {};
   for (const a of apps) {
     const ats = detectAts(a.applyUrl);
+    const kind = classifyUrl(a.applyUrl);
+    kindCounts[kind] = (kindCounts[kind] || 0) + 1;
     const bundles = reviewBundles(a.id);
     const lastBundle = bundles[0];
     const bundleAgeH = lastBundle ? Math.floor((Date.now() - lastBundle.mtime) / 3600_000) : null;
@@ -222,12 +248,16 @@ function modeList() {
         : `${C.yellow}${bundleAgeH}h${C.reset}`;
     const scoreColor = (a.score ?? 0) >= 4 ? C.green : (a.score ?? 0) >= 3.5 ? C.yellow : C.red;
     const pdfStr = a.hasPdf ? `${C.green}✓${C.reset}` : `${C.red}✗${C.reset}`;
+    const kindColor = kind === 'direct-ats' ? C.green : kind === 'company-site' ? C.yellow : C.dim;
     const statusPad = (a.status || '').padEnd(15);
     const atsPad = ats.padEnd(10);
+    const kindPad = (kindColor + kind.padEnd(13) + C.reset);
 
-    console.log(`  ${C.cyan}${a.id}${C.reset}  ${statusPad}   ${scoreColor}${(a.score ?? 0).toFixed(1)}${C.reset}    ${atsPad}  ${pdfStr}    ${bundleStr.padEnd(15)}  ${a.company} · ${a.role}`);
+    console.log(`  ${C.cyan}${a.id}${C.reset}  ${statusPad}   ${scoreColor}${(a.score ?? 0).toFixed(1)}${C.reset}    ${kindPad}  ${atsPad}  ${pdfStr}    ${bundleStr.padEnd(15)}  ${a.company} · ${a.role}`);
   }
 
+  console.log(`\n  ${C.dim}URL kinds:${C.reset} ${Object.entries(kindCounts).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
+  console.log(`  ${C.dim}Auto-preppable (direct-ats + company-site): ${(kindCounts['direct-ats'] || 0) + (kindCounts['company-site'] || 0)}${C.reset}`);
   console.log(`\n  Next: ${C.bold}pnpm run apply-review --prepare <id>${C.reset}\n`);
 }
 
