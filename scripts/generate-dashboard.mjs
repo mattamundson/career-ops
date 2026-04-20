@@ -642,6 +642,197 @@ function generateApplyQueue(appList) {
   </div>`;
 }
 
+function parseResponsesLog() {
+  // data/responses.md is pipe-delimited markdown with header rows. Returns array of
+  // { app_id, company, role, submitted_at, ats, event, last_event_at, response_days, notes }.
+  // Note: the column labeled "status" actually holds the event type (acknowledged,
+  // recruiter_reply, phone_screen_scheduled, …) per the file's own seed comment.
+  const path = join(ROOT, 'data', 'responses.md');
+  if (!existsSync(path)) return [];
+  let body;
+  try { body = readFileSync(path, 'utf8'); } catch { return []; }
+  const out = [];
+  for (const raw of body.split('\n')) {
+    const line = raw.trim();
+    if (!line.startsWith('|') || line.startsWith('|--')) continue;
+    if (line.startsWith('| app_id')) continue; // header
+    const cells = line.split('|').slice(1, -1).map((c) => c.trim());
+    if (cells.length < 9) continue;
+    if (!/^\d+$/.test(cells[0])) continue; // skip any stray non-data row
+    out.push({
+      app_id: cells[0],
+      company: cells[1],
+      role: cells[2],
+      submitted_at: cells[3],
+      ats: cells[4],
+      event: cells[5],
+      last_event_at: cells[6],
+      response_days: cells[7],
+      notes: cells[8],
+    });
+  }
+  return out;
+}
+
+function parseGmailReview() {
+  // Returns { date, totalUnmatched, topPromising[3] } from the latest
+  // data/outreach/gmail-sync-review-YYYY-MM-DD.md file. topPromising = rows with
+  // confidence ≥ 30% (still likely false-positives, but the highest signal of
+  // the unmatched bunch and worth eyeballing).
+  let files = [];
+  try {
+    files = readdirSync(join(ROOT, 'data', 'outreach'))
+      .filter((f) => /^gmail-sync-review-\d{4}-\d{2}-\d{2}\.md$/.test(f))
+      .sort();
+  } catch { return null; }
+  if (files.length === 0) return null;
+  const latest = files[files.length - 1];
+  const dateStr = latest.match(/(\d{4}-\d{2}-\d{2})/)[1];
+  let body;
+  try { body = readFileSync(join(ROOT, 'data', 'outreach', latest), 'utf8'); }
+  catch { return null; }
+
+  // Sections start with "## " — each section is one unmatched email.
+  const items = [];
+  const blocks = body.split(/^## /m).slice(1);
+  for (const block of blocks) {
+    const lines = block.split('\n');
+    const subject = (lines[0] || '').trim();
+    const get = (label) => {
+      const m = block.match(new RegExp(`^- ${label}:\\s*(.+)$`, 'm'));
+      return m ? m[1].trim() : '';
+    };
+    const conf = parseInt(get('Match confidence').replace('%', ''), 10) || 0;
+    items.push({
+      subject,
+      from: get('From'),
+      date: get('Date'),
+      event: get('Event'),
+      confidence: conf,
+    });
+  }
+  const topPromising = items
+    .filter((i) => i.confidence >= 30)
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, 3);
+  return { date: dateStr, totalUnmatched: items.length, topPromising };
+}
+
+function generateRecruiterInboxPanel() {
+  // Surfaces Gmail-sync recruiter activity:
+  //   1. Recent recruiter touches (last 14d) from data/responses.md — sorted desc
+  //   2. Unmatched count + top-3 highest-confidence rows from latest review file
+  //
+  // Hidden entirely if both buckets are empty (clean slate).
+
+  const responses = parseResponsesLog();
+  const review = parseGmailReview();
+
+  // Only events that represent the *other side* touching us. Excludes
+  // 'submitted' (Matt's own send), 'in_progress' (data-quality leak from
+  // applications.md status), 'withdrew' (Matt's call), 'ghosted' (meta-state).
+  const recruiterEvents = new Set([
+    'acknowledged', 'recruiter_reply',
+    'phone_screen_scheduled', 'phone_screen_done', 'phone_screen',
+    'on_site_scheduled', 'interview', 'offer', 'rejected',
+  ]);
+  const now = Date.now();
+  const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+  const recentTouches = responses
+    .filter((r) => recruiterEvents.has(r.event))
+    .filter((r) => {
+      if (!r.last_event_at) return false;
+      const ts = new Date(r.last_event_at + 'T00:00:00Z').getTime();
+      return Number.isFinite(ts) && (now - ts) <= fourteenDaysMs;
+    })
+    .sort((a, b) => (b.last_event_at || '').localeCompare(a.last_event_at || ''))
+    .slice(0, 8);
+
+  if (recentTouches.length === 0 && (!review || review.totalUnmatched === 0)) return '';
+
+  const eventColor = {
+    acknowledged: '#89b4fa',
+    recruiter_reply: '#a6e3a1',
+    phone_screen_scheduled: '#a6e3a1',
+    phone_screen_done: '#a6e3a1',
+    on_site_scheduled: '#cba6f7',
+    interview: '#cba6f7',
+    offer: '#f9e2af',
+    rejected: '#f38ba8',
+    withdrew: '#6c7086',
+    ghosted: '#6c7086',
+    submitted: '#89b4fa',
+  };
+  const eventIcon = {
+    acknowledged: '📨',
+    recruiter_reply: '💬',
+    phone_screen_scheduled: '📞',
+    phone_screen_done: '✅',
+    on_site_scheduled: '🏢',
+    interview: '🎤',
+    offer: '🎉',
+    rejected: '✖',
+    submitted: '📤',
+  };
+
+  const touchRows = recentTouches.map((r) => {
+    const c = eventColor[r.event] || '#bac2de';
+    const icon = eventIcon[r.event] || '•';
+    const ageDays = r.last_event_at
+      ? Math.floor((now - new Date(r.last_event_at + 'T00:00:00Z').getTime()) / (24 * 60 * 60 * 1000))
+      : null;
+    const ageStr = ageDays === 0 ? 'today' : ageDays === 1 ? '1d ago' : ageDays !== null ? `${ageDays}d ago` : '—';
+    return `<tr>
+      <td style="text-align:center;color:var(--subtext);font-weight:600;width:48px">#${escHtml(r.app_id)}</td>
+      <td><strong>${escHtml(r.company)}</strong> · <span style="color:var(--subtext)">${escHtml(r.role)}</span></td>
+      <td><span class="badge" style="color:${c};border-color:${c}33;background:${c}11">${icon} ${escHtml(r.event)}</span></td>
+      <td style="font-size:12px;color:var(--subtext)">${ageStr}</td>
+      <td style="font-size:12px;color:var(--subtext)">${escHtml((r.notes || '').slice(0, 80))}</td>
+    </tr>`;
+  }).join('');
+
+  const touchesBlock = recentTouches.length > 0 ? `
+    <div style="padding:12px 20px 4px;font-size:12px;color:var(--subtext)">
+      Last 14 days · sorted newest first · see <code>docs/RESPONSE-PLAYBOOK.md</code> for what to do
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>App</th><th>Company / Role</th><th>Event</th><th>When</th><th>Notes</th></tr></thead>
+        <tbody>${touchRows}</tbody>
+      </table>
+    </div>` : `
+    <div style="padding:14px 20px;font-size:13px;color:var(--subtext)">
+      No recruiter touches in the last 14 days. Cron is watching every 30 min.
+    </div>`;
+
+  let reviewBlock = '';
+  if (review && review.totalUnmatched > 0) {
+    const promisingRows = review.topPromising.map((p) => `
+      <li style="margin-bottom:6px">
+        <strong>${escHtml(p.subject || '(no subject)')}</strong>
+        <span style="color:var(--subtext)"> — ${escHtml(p.from)} · ${escHtml(p.date)} · <span style="color:#f9e2af">${p.confidence}% confidence</span></span>
+      </li>`).join('');
+    reviewBlock = `
+    <div style="border-top:1px solid var(--surface);padding:12px 20px;margin-top:8px">
+      <div style="font-size:12px;color:var(--subtext);margin-bottom:8px">
+        <strong style="color:var(--text)">📭 ${review.totalUnmatched} unmatched message${review.totalUnmatched === 1 ? '' : 's'}</strong>
+        in <code>data/outreach/gmail-sync-review-${review.date}.md</code> — most are noise (digests, partner mail), but worth scanning
+      </div>
+      ${review.topPromising.length > 0 ? `<ul style="font-size:12px;margin:0;padding-left:20px">${promisingRows}</ul>` : '<div style="font-size:12px;color:var(--subtext);font-style:italic">No high-confidence unmatched rows.</div>'}
+    </div>`;
+  }
+
+  return `
+  <div class="section" style="margin-bottom:16px;border-color:#89b4fa44">
+    <div class="section-header" style="background:#89b4fa14">
+      <h2>📬 Recruiter Inbox</h2>
+      <span class="count" style="color:#89b4fa">${recentTouches.length} recent touch${recentTouches.length === 1 ? '' : 'es'}${review ? ` · ${review.totalUnmatched} unmatched` : ''}</span>
+    </div>
+    ${touchesBlock}
+    ${reviewBlock}
+  </div>`;
+}
+
 function generateMorningBriefing(appList) {
   // Unified "what should Matt do right now?" — caps at 7 items, blends apply / follow-up / reply.
   const today = new Date().toISOString().slice(0, 10);
@@ -1697,6 +1888,8 @@ const html = `<!DOCTYPE html>
 <div class="main">
 
   ${generateMorningBriefing(apps)}
+
+  ${generateRecruiterInboxPanel()}
 
   <!-- Stats Row -->
   <div class="stats">
