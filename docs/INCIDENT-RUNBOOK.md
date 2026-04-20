@@ -32,7 +32,7 @@ Returns 5 buckets — tasks, failures, parse, stale, brain. Any `fail` → that 
 | `failures.fail` (5+ task.failed in 24h) | `Get-Content data/events/*.jsonl | Select-String task.failed | Select-Object -Last 5` — read the errors, fix root cause. |
 | `parse.fail` | Validation failed on `data/events/*.jsonl`. Run `pnpm run verify:all` to see the bad row. Edit/delete it. |
 | `stale.fail` (10+ apps not touched in 14d) | Run `pnpm run apply-liveness:render` to find dead listings. Mark closed listings as Discarded. Close stale apps that aren't progressing. |
-| `brain.fail` (<80% chunk coverage) | Brain embedding pipeline broken. `cd ../brain && pnpm run reindex` (or whatever the brain rebuild command is). |
+| `brain.fail` (<80% chunk coverage) | Brain embedding pipeline broken. First run `cd vendor/gbrain && bun run src/cli.ts config show` — if `database_path` points outside career-ops (e.g. `.gbrain-trading` for JARVIS), the metric is reading the wrong brain. The shared PGLite DB can be re-targeted with `gbrain init` at a career-ops-specific path. If the path is right, run `cd vendor/gbrain && bun run src/cli.ts embed --stale` to backfill embeddings. |
 
 ### Notify-spam control
 The cron only notifies when `fail>=1` OR `warn>=3`. If you're getting paged on every run, threshold drift is the problem — adjust `scripts/cron-health-check.mjs` notify gate, not the underlying check.
