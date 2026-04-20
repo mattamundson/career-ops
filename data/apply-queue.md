@@ -53,6 +53,7 @@
 - **Salary:** Unknown (staffing firm — client salary TBD)
 - **Remote:** Unknown (staffing firm — client engagement TBD)
 - **Apply URL:** https://www.linkedin.com/jobs/view/4376761988
+- **Apply Channel:** LinkedIn Easy Apply (no external ATS — submission happens inside LinkedIn)
 - **PDF:** output/cv-matt-gsquared-2026-04-09.pdf
 - **CL:** output/cover-letters/gsquared-senior-power-bi-architect.txt
 - **Status:** [ ] Not started — priority: gather client identity and true salary in first recruiter call
@@ -82,7 +83,8 @@
 ### 8. Vultr — Senior Business Intelligence Architect [003 — GO]
 - **Salary:** $125K–$150K
 - **Remote:** Fully remote
-- **Apply URL:** https://www.linkedin.com/jobs/view/4355082925
+- **Apply URL:** https://www.vultr.com/company/careers/?ashby_jid=8bca4da7-4451-483a-b826-fb10fdd54f7f&utm_source=nMNKlo6LA9&src=linkedin
+- **LinkedIn Mirror:** https://www.linkedin.com/jobs/view/4355082925
 - **PDF:** output/cv-matt-vultr-2026-04-09.pdf
 - **CL:** output/cover-letters/vultr-senior-bi-architect.txt
 - **Status:** [ ] Not started
@@ -114,17 +116,12 @@
 ## SECTION 2: CONDITIONAL GO — RESOLVE BLOCKERS FIRST
 **8 applications | GO/Conditional decision pending blocker resolution | PDF + CL present**
 
-### 1. Callaway Golf — Principal Business Intelligence Developer [031]
+### 1. Callaway Golf — Principal Business Intelligence Developer [031 — Discarded]
 - **Score:** 3.5/5 | **Salary:** ~$130K–$150K (confirm $130K+ first)
 - **Apply URL:** https://www.linkedin.com/jobs/view/4382025832
 - **PDF:** output/cv-matt-callaway-golf-2026-04-09.pdf
 - **CL:** output/cover-letters/callaway-golf-principal-bi-developer.txt
-- **Blockers:**
-  1. [ ] **Confirm comp band reaches $130K+** in recruiter screen (ask first)
-  2. [ ] **Snowflake trial** — 2-table star schema + DirectQuery to Power BI + 3–5 analytic queries (FLATTEN, DATE_TRUNC). 4–6 hours.
-  3. [ ] **Python visual in Power BI** — matplotlib/seaborn chart in .pbix. 30 min.
-  4. [ ] **Confirm Snowflake is ramp requirement, not day-1 hard gate** in recruiter screen
-- **Status:** [ ] Hold — complete Snowflake trial + Python visual first; confirm comp in recruiter call
+- **Status:** **DEAD** — Original Callaway listing gone; LinkedIn ID reassigned to "Operations Engineer | Grupo Seven" which also shows "No longer accepting applications" (verified 2026-04-20 via Playwright)
 
 ---
 
@@ -143,6 +140,7 @@
 ### 3. Vivid Resourcing — Microsoft Fabric Solutions Architect [026]
 - **Score:** 3.5/5 | **Salary:** $75–$110/hr ($156K–$229K annualized); W2 vs. C2C TBD
 - **Apply URL:** https://www.linkedin.com/jobs/view/4389494778
+- **Apply Channel:** LinkedIn Easy Apply (no external ATS — submission happens inside LinkedIn)
 - **PDF:** output/cv-matt-vivid-resourcing-2026-04-09.pdf
 - **CL:** output/cover-letters/vivid-resourcing-fabric-solutions-architect.txt
 - **Employment Type:** CONTRACT — 6–12 months, potential extension or conversion
@@ -156,7 +154,8 @@
 
 ### 4. Dminds Solutions Inc. — MS Fabric Architect [027]
 - **Score:** 3.5/5 | **Salary:** Not listed (target: $130K–$160K)
-- **Apply URL:** https://www.linkedin.com/jobs/view/4393200568
+- **Apply URL:** https://dminds.oorwin.ai/#/careers/index.html/job/be98fbb5fef1a2a7ce8be317fcbce6b1912024c3?source=linkedin_free&postedby=6
+- **LinkedIn Mirror:** https://www.linkedin.com/jobs/view/4393200568
 - **PDF:** output/cv-matt-dminds-2026-04-09.pdf
 - **CL:** output/cover-letters/dminds-ms-fabric-architect.txt
 - **Blockers:**
@@ -166,21 +165,20 @@
 
 ---
 
-### 5. Proactive Technology Management — Senior Full-Stack BI Architect [020]
+### 5. Proactive Technology Management — Senior Full-Stack BI Architect [020 — Discarded]
 - **Score:** 3.8/5 | **Salary:** Not specified (confirm $120K+ before proceeding)
 - **Apply URL:** https://www.linkedin.com/jobs/view/4400268850
 - **PDF:** output/cv-matt-proactive-tech-2026-04-09.pdf
 - **CL:** output/cover-letters/proactive-tech-bi-architect.txt
 - **Remote:** Flexible remote (Ferndale, MI listed)
-- **Blockers:**
-  1. [ ] **Salary TBD** — small MSP, SMB client base. Confirm $120K+ before investing further.
-- **Status:** [ ] Contact recruiter first to confirm comp
+- **Status:** **DEAD** — LinkedIn listing shows "No longer accepting applications" (verified 2026-04-20 via Playwright)
 
 ---
 
 ### 6. 3Cloud — Senior Architect, Data Architecture & Engineering [019]
 - **Score:** 3.8/5 | **Salary:** $136K–$204K
-- **Apply URL:** https://www.linkedin.com/jobs/view/4295073304
+- **Apply URL:** https://job-boards.greenhouse.io/3cloud/jobs/7973449002?gh_jid=7973449002
+- **LinkedIn Mirror:** https://www.linkedin.com/jobs/view/4295073304
 - **PDF:** output/cv-matt-3cloud-2026-04-09.pdf
 - **CL:** output/cover-letters/3cloud-senior-architect-data-architecture-engineering.txt
 - **Key Advantage:** Virtual-first + Minneapolis local candidate
@@ -194,6 +192,7 @@
 ### 7. Factspan — Enterprise Data Architect [016]
 - **Score:** 4.0/5 | **Salary:** Not disclosed (target: $160K+)
 - **Apply URL:** https://www.linkedin.com/jobs/view/4396303155
+- **Apply Channel:** LinkedIn Easy Apply (no external ATS — submission happens inside LinkedIn)
 - **PDF:** output/cv-matt-factspan-2026-04-09.pdf
 - **CL:** output/cover-letters/factspan-enterprise-data-architect.txt
 - **Remote:** Remote (Boston, MA listed — likely hybrid-eligible or client-site travel)
