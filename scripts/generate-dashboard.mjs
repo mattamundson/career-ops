@@ -354,6 +354,33 @@ const staleTouchApps = apps
 const automationTail = automationEvents.slice(-10).reverse();
 const lastScannerEvent = [...automationEvents].reverse().find((e) => e.type === 'scanner.run.completed');
 
+// Gmail sync heartbeat — surface whether sync is running.
+// Gmail sync runs every 30 min via scheduled task. Silent failure here means
+// decisions are made against a stale responses.md. Show freshness explicitly.
+const lastGmailEvent = [...automationEvents].reverse().find(
+  (e) => e.type === 'gmail-sync.run.completed' || e.type === 'gmail-sync.run.failed'
+);
+const gmailFreshness = (() => {
+  if (!lastGmailEvent) return { status: 'missing', ageMinutes: null, label: 'never' };
+  const ts = lastGmailEvent.recorded_at || lastGmailEvent.timestamp || lastGmailEvent.ts || lastGmailEvent.at;
+  if (!ts) return { status: 'missing', ageMinutes: null, label: 'never', event: lastGmailEvent };
+  const ageMs = Date.now() - new Date(ts).getTime();
+  const ageMinutes = Math.max(0, Math.round(ageMs / 60000));
+  const failed = lastGmailEvent.type === 'gmail-sync.run.failed';
+  // Green < 60 min, yellow < 240, red otherwise.
+  const statusColor = failed
+    ? 'error'
+    : ageMinutes < 60 ? 'fresh'
+    : ageMinutes < 240 ? 'warn'
+    : 'error';
+  const label =
+    ageMinutes < 1 ? 'just now' :
+    ageMinutes < 60 ? `${ageMinutes} min ago` :
+    ageMinutes < 1440 ? `${Math.round(ageMinutes / 60)}h ago` :
+    `${Math.round(ageMinutes / 1440)}d ago`;
+  return { status: statusColor, ageMinutes, label, event: lastGmailEvent, failed };
+})();
+
 // Follow-up drafts pending review — read data/outreach/followup-*.md
 const followupDrafts = (() => {
   const dir = join(ROOT, 'data', 'outreach');
@@ -415,6 +442,26 @@ const operatorSnapshotSection = `
       ? `<div class="muted" style="margin-top:6px;font-size:11px">new: ${escHtml(String(lastScannerEvent.details.new_added ?? '—'))} | jobspy: ${escHtml(String(lastScannerEvent.details.jobspy_new ?? '—'))}</div>`
       : ''}
           </div>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+          Gmail sync freshness
+          ${(() => {
+            const colors = { fresh: '#a6e3a1', warn: '#f9e2af', error: '#f38ba8', missing: '#f38ba8' };
+            const labels = { fresh: 'green', warn: 'stale', error: lastGmailEvent && lastGmailEvent.type === 'gmail-sync.run.failed' ? 'failed' : 'silent', missing: 'never' };
+            const c = colors[gmailFreshness.status];
+            const l = labels[gmailFreshness.status];
+            return ` <span style="background:${c};color:#1e1e2e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600">${l}</span>`;
+          })()}
+        </div>
+        ${!lastGmailEvent
+    ? '<div class="muted" style="font-size:13px">No <code>gmail-sync.run.*</code> event — scheduled task may have stopped. Run <code>node scripts/gmail-recruiter-sync.mjs</code>.</div>'
+    : `<div style="font-size:12px;line-height:1.6">
+          <div><strong>Last run</strong> <span class="muted">${escHtml(gmailFreshness.label)}</span></div>
+          <div class="muted" style="margin-top:4px;font-size:11px">${escHtml((lastGmailEvent.recorded_at || '').slice(0, 19))}</div>
+          <div style="margin-top:6px;font-size:11px">${escHtml(lastGmailEvent.summary || '')}</div>
+          ${lastGmailEvent.details?.matched != null ? `<div class="muted" style="margin-top:4px;font-size:11px">matched: ${escHtml(String(lastGmailEvent.details.matched))} | unmatched: ${escHtml(String(lastGmailEvent.details.unmatched ?? '—'))}</div>` : ''}
+        </div>`}
       </div>
       <div>
         <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
