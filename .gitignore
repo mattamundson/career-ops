@@ -126,6 +126,7 @@ docs/handoff-*.txt
 data/notifications/
 data/gmail-sync-state.json
 data/outreach/gmail-sync-review-*.md
+data/outreach/followup-*.md
 data/prefilter-scheduler.log
 data/scan-run-*.log
 

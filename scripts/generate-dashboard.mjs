@@ -354,6 +354,28 @@ const staleTouchApps = apps
 const automationTail = automationEvents.slice(-10).reverse();
 const lastScannerEvent = [...automationEvents].reverse().find((e) => e.type === 'scanner.run.completed');
 
+// Follow-up drafts pending review — read data/outreach/followup-*.md
+const followupDrafts = (() => {
+  const dir = join(ROOT, 'data', 'outreach');
+  if (!existsSync(dir)) return [];
+  try {
+    return readdirSync(dir)
+      .filter((n) => n.startsWith('followup-') && n.endsWith('.md'))
+      .map((name) => {
+        const m = name.match(/^followup-(\d{4}-\d{2}-\d{2})-(\d{3})-(.+)\.md$/);
+        if (!m) return null;
+        const [, dateStr, appId, slug] = m;
+        const ageDays = daysSinceIsoDate(dateStr);
+        if (ageDays > 14) return null; // only surface drafts from the last 2 weeks
+        return { dateStr, appId, slug, path: join(dir, name), ageDays };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.dateStr.localeCompare(a.dateStr));
+  } catch {
+    return [];
+  }
+})();
+
 const operatorSnapshotSection = `
   <div class="section">
     <div class="section-header">
@@ -393,6 +415,18 @@ const operatorSnapshotSection = `
       ? `<div class="muted" style="margin-top:6px;font-size:11px">new: ${escHtml(String(lastScannerEvent.details.new_added ?? '—'))} | jobspy: ${escHtml(String(lastScannerEvent.details.jobspy_new ?? '—'))}</div>`
       : ''}
           </div>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+          Follow-up drafts pending
+          ${followupDrafts.length > 0 ? ` <span style="background:#f9e2af;color:#1e1e2e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600">${followupDrafts.length}</span>` : ''}
+        </div>
+        ${followupDrafts.length === 0
+    ? '<div class="muted" style="font-size:13px">No follow-up drafts awaiting review. Run <code>node scripts/generate-followups.mjs</code> to check for stale apps.</div>'
+    : `<ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.5">
+            ${followupDrafts.slice(0, 8).map((d) => `<li><strong>#${escHtml(d.appId)}</strong> ${escHtml(d.slug.split('-').join(' '))} <span class="muted">(drafted ${d.ageDays === 0 ? 'today' : d.ageDays + 'd ago'})</span></li>`).join('')}
+          </ul>
+          <div class="muted" style="margin-top:8px;font-size:11px">Review at <code>data/outreach/</code></div>`}
       </div>
     </div>
   </div>`;
