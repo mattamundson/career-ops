@@ -1,6 +1,37 @@
 # Mode: pdf — ATS-Optimized PDF Generation
 
-## Full pipeline
+## Primary path (DOCX) — use this by default
+
+The HTML template pipeline described below has known issues producing empty
+sections and stale content. The trustworthy path tailors Matt's professionally
+designed master DOCX (`output/Matt_Amundson_TOP_2026.docx`) via python-docx
+and converts to PDF via docx2pdf (Word COM automation, Windows).
+
+**Quick use:**
+```bash
+node scripts/cv-docx-to-pdf.mjs \
+  --headline "Data Architect | Snowflake · dbt · Airflow" \
+  --summary  "Data & analytics leader with 10+ years..." \
+  --out output/cv-acme-data-architect
+```
+
+**From a report's YAML frontmatter** (when `cv_headline` + `cv_summary` are set
+in the report file):
+```bash
+node scripts/cv-docx-to-pdf.mjs --from-report reports/NNN-acme-2026-04-21.md --out output/cv-acme
+```
+
+Both `.docx` and `.pdf` are produced. Only paragraphs 1 (headline) and 4
+(summary) are rewritten; all experience/skills formatting comes from the
+master and stays pristine.
+
+**When to fall back to the HTML path:** archetype-variant CVs (different
+structural emphasis) still use `scripts/generate-variant.mjs` → `generate-pdf.mjs`.
+Those live at `config/archetype-variants.yml`; see step 6 below.
+
+---
+
+## Full pipeline (HTML path — legacy / archetype-variants only)
 
 1. Read `cv.md` as source of truth
 2. Ask the user for the JD if not in context (text or URL)

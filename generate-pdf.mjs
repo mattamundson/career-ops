@@ -3,11 +3,23 @@
 /**
  * generate-pdf.mjs — HTML → PDF via Playwright
  *
+ * ⚠️  NOT THE PRIMARY CV PATH anymore. The HTML template at
+ * templates/cv-template.html has known issues producing empty sections and
+ * stale content. For the canonical role-tailored CV → PDF flow, use:
+ *
+ *   node scripts/cv-docx-to-pdf.mjs --headline "..." --summary "..." --out ...
+ *
+ * That path tailors output/Matt_Amundson_TOP_2026.docx (Matt's professionally
+ * designed master) via python-docx + docx2pdf — trustworthy visual output.
+ *
+ * This file is preserved for:
+ *   - scripts/generate-variant.mjs (HTML variant pipeline)
+ *   - Ad-hoc HTML-to-PDF rendering
+ *
  * Usage:
- *   node career-ops/generate-pdf.mjs <input.html> <output.pdf> [--format=letter|a4]
+ *   node generate-pdf.mjs <input.html> <output.pdf> [--format=letter|a4]
  *
  * Requires: @playwright/test (or playwright) installed.
- * Uses Chromium headless to render the HTML and produce a clean, ATS-parseable PDF.
  */
 
 import { chromium } from 'playwright';
