@@ -5,51 +5,32 @@
 ---
 
 ## SECTION 1: READY TO SHIP TODAY ✅
-**10 roles | Tracker: `GO` or `Ready to Submit` — PDF + CL ready — you still click Submit**
+**2 roles | Tracker: `GO` — PDF + CL ready — you still click Submit**
 **Sorted by salary (descending)**
 
-### 1. Agility Robotics — Manager, Business Intelligence [025 — Discarded]
-- **Salary:** $157K–$204K USD confirmed
-- **Remote:** Fully remote (optional hybrid near Salem OR / Pittsburgh PA / Fremont CA)
-- **Apply URL:** https://job-boards.greenhouse.io/agilityrobotics/jobs/5841009004
-- **Original LinkedIn URL:** https://www.linkedin.com/jobs/view/4393992086 (resolved via grnh.se/b444bbd04us → Greenhouse job_id 5841009004, 2026-04-10 by coordinator)
-- **PDF:** output/cv-matt-agility-robotics-2026-04-09.pdf
-- **CL:** output/cover-letters/agility-robotics-bi-manager.txt
-- **Status:** [ ] Not started — apply this week; target ask $180K–$195K base
+*Cleaned 2026-04-20: removed 5 Discarded (#025 Agility, #023 Aledade, #017 Rescale, #015 V4C.ai, #002 Valtech) and 3 Applied (#024 KinderCare ✅, #003 Vultr ✅, #001 Panopto ✅). See Section 6 for new 2026-04-18 GO batch pending queue entry.*
+
+### 1. Protolabs — Data Architect [044 — GO] 🔥 TOP PRIORITY
+- **Salary:** $131,500–$175,400 confirmed
+- **Location:** Maple Plain, MN — Hybrid (Tue/Wed/Thu on-site)
+- **Apply URL:** https://www.linkedin.com/jobs/view/4401027184
+- **PDF:** output/cv-matt-protolabs-2026-04-20.pdf
+- **CL:** output/cover-letters/protolabs-data-architect.txt
+- **Status:** [ ] Apply immediately — 22 applicants at 1 week, window closing. ITAR-compliant (US citizen). Confirm comp floor $130K+ in recruiter call.
 
 ---
 
-### 2. KinderCare Learning Companies — Senior Power BI Developer / Fabric Administrator [024 — Responded]
-- **Salary:** ~$110K–$140K (market estimate; not stated in JD)
-- **Remote:** Verified fully remote
-- **Apply URL:** https://www.linkedin.com/jobs/view/4385530845
-- **PDF:** output/cv-matt-kindercare-2026-04-09.pdf
-- **CL:** output/cover-letters/kindercare-senior-power-bi-developer.txt
-- **Status:** [ ] Not started — apply within 48 hours; confirm salary band in first call (floor: $115K)
-
----
-
-### 3. Modine Manufacturing — Senior AI Data Architect [012 — GO]
+### 2. Modine Manufacturing — Senior AI Data Architect [012 — GO]
 - **Salary:** $150K–$185K confirmed
 - **Remote:** Verified fully remote (Menomonee Falls WI HQ, occasional on-site TBD)
-- **Apply URL:** https://www.indeed.com/viewjob?jk=ab9cfb4148755453
+- **Apply URL:** https://careers.modine.com/job/Remote-Senior-AI-Data-Architect/7594-en_US/
 - **PDF:** output/cv-matt-modine-2026-04-09.pdf
 - **CL:** output/cover-letters/modine-manufacturing-senior-ai-data-architect.txt
-- **Status:** [ ] Not started
+- **Status:** ⚠️ MANUAL SUBMIT REQUIRED — talentcommunity ATS blocks headless browser (HTTP 403 anti-bot). Open URL above in your real browser and submit manually.
 
 ---
 
-### 4. Aledade — Enterprise Data Architect [023 — Discarded]
-- **Salary:** Not listed (target: $165K–$185K base + equity)
-- **Remote:** Confirmed remote — Bethesda, MD / Remote
-- **Apply URL:** https://jobs.lever.co/aledade/3532b394-a4d4-4248-adfa-b22d61b3b634
-- **PDF:** output/cv-matt-aledade-2026-04-09.pdf
-- **CL:** output/cover-letters/aledade-enterprise-data-architect.txt
-- **Status:** [ ] Not started
-
----
-
-### 5. GSquared Group — Senior Power BI Architect [004 — GO]
+### 2. GSquared Group — Senior Power BI Architect [004 — GO]
 - **Salary:** Unknown (staffing firm — client salary TBD)
 - **Remote:** Unknown (staffing firm — client engagement TBD)
 - **Apply URL:** https://www.linkedin.com/jobs/view/4376761988
@@ -57,57 +38,6 @@
 - **PDF:** output/cv-matt-gsquared-2026-04-09.pdf
 - **CL:** output/cover-letters/gsquared-senior-power-bi-architect.txt
 - **Status:** [ ] Not started — priority: gather client identity and true salary in first recruiter call
-
----
-
-### 6. Rescale — Solutions Architect, Data & AI [017 — Discarded]
-- **Salary:** $133K–$180K + equity
-- **Remote:** Fully remote, US only
-- **Apply URL:** https://jobs.ashbyhq.com/rescale/2f43e26a-a331-4648-8523-d83c258bd8a2
-- **PDF:** output/cv-matt-rescale-2026-04-09.pdf
-- **CL:** output/cover-letters/rescale-solutions-architect.txt
-- **Status:** [ ] Not started
-
----
-
-### 7. V4C.ai — Power BI Architect [015 — Discarded]
-- **Salary:** Not disclosed (target: $150K+)
-- **Remote:** Confirmed remote — V4C.ai is remote-first
-- **Apply URL:** https://apply.workable.com/v4c/j/084E1FAE7B/
-- **PDF:** output/cv-matt-v4cai-2026-04-09.pdf
-- **CL:** output/cover-letters/v4cai-power-bi-architect.txt
-- **Status:** [ ] Not started
-
----
-
-### 8. Vultr — Senior Business Intelligence Architect [003 — GO]
-- **Salary:** $125K–$150K
-- **Remote:** Fully remote
-- **Apply URL:** https://www.vultr.com/company/careers/?ashby_jid=8bca4da7-4451-483a-b826-fb10fdd54f7f&utm_source=nMNKlo6LA9&src=linkedin
-- **LinkedIn Mirror:** https://www.linkedin.com/jobs/view/4355082925
-- **PDF:** output/cv-matt-vultr-2026-04-09.pdf
-- **CL:** output/cover-letters/vultr-senior-bi-architect.txt
-- **Status:** [ ] Not started
-
----
-
-### 9. Valtech — Data and AI Architect [002 — Discarded]
-- **Salary:** Not listed (target: $165K+)
-- **Remote:** Remote/hybrid confirmed (enterprise data & AI architecture)
-- **Apply URL:** https://job-boards.greenhouse.io/valtech/jobs/4632199101
-- **PDF:** output/cv-matt-valtech-2026-04-06.pdf
-- **CL:** output/cover-letters/valtech-data-ai-architect.txt
-- **Status:** [ ] URGENT — materials ready since 2026-04-06; CL refreshed 2026-04-10. **Not** marked `Applied` in tracker until you confirm Greenhouse/Lever send. After you click Submit, set tracker to **`Applied`** and file any confirmation email in your workflow.
-
----
-
-### 10. Panopto — DataOps Engineer [001 — Applied]
-- **Salary:** $140K–$150K confirmed
-- **Remote:** Fully remote, US only
-- **Apply URL:** https://jobs.lever.co/panopto/cfd10ade-b230-4c3b-9626-f2e6aa8080d0
-- **PDF:** output/cv-matt-panopto-2026-04-06.pdf
-- **CL:** output/cover-letters/panopto-dataops-engineer.txt
-- **Status:** [ ] URGENT — same as Valtech: **Ready to Submit** means human final send. After employer submission, set tracker to **`Applied`**.
 
 ---
 
