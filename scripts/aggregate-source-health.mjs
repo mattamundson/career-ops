@@ -71,7 +71,7 @@ function readEvents(eventsDir, sinceMs) {
   return events;
 }
 
-function classifySource(eventType) {
+export function classifySource(eventType) {
   // scanner.<source>.completed → source
   // scanner.run.completed        → 'run' (aggregate)
   // scanner.run.failed           → 'run' (aggregate)
@@ -80,7 +80,7 @@ function classifySource(eventType) {
   return m[1];
 }
 
-function aggregate(events, windowDays) {
+export function aggregate(events, windowDays) {
   const sources = {};
   for (const e of events) {
     const source = classifySource(e.type);
