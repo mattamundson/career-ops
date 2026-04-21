@@ -1403,13 +1403,20 @@ async function main() {
 
   const seenUrls = new Set([...historyUrls, ...pipelineUrls]);
 
-  // Fetch all Greenhouse companies in parallel
+  // Fetch all Greenhouse companies in parallel (tolerate per-company failures)
   let fetchResults = [];
   if (!DIRECT_ONLY) {
     console.log('Fetching Greenhouse APIs...');
-    fetchResults = await Promise.all(
+    setSourceAttempted('greenhouse', ghCompanies.length);
+    const settled = await Promise.allSettled(
       ghCompanies.map(c => fetchGreenhouse(c.api, c.name))
     );
+    fetchResults = settled.map((s, i) => {
+      if (s.status === 'fulfilled') return s.value;
+      console.warn(`  [greenhouse] ${ghCompanies[i].name} failed: ${s.reason?.message || 'unknown'}`);
+      bumpSourceError('greenhouse');
+      return [];
+    });
   } else {
     console.log('Skipping Greenhouse APIs (--direct-only)');
   }
@@ -1422,6 +1429,22 @@ async function main() {
 
   const toAdd     = [];  // entries to write to pipeline.md
   const historyRows = []; // all rows to append to scan-history.tsv
+  // Per-source error tracking for honest scanner.<source>.completed events.
+  // Keyed by portal-prefix ('greenhouse', 'ashby', 'lever', ...). Values:
+  //   { errors: N, attempted: N } — errors is count of failed fetches,
+  //   attempted is total companies/queries tried. Emitter classifies status
+  //   based on ratio: 0→success, some→partial, all→error.
+  const sourceErrors = new Map();
+  const bumpSourceError = (src) => {
+    const b = sourceErrors.get(src) || { errors: 0, attempted: 0 };
+    b.errors += 1;
+    sourceErrors.set(src, b);
+  };
+  const setSourceAttempted = (src, n) => {
+    const b = sourceErrors.get(src) || { errors: 0, attempted: 0 };
+    b.attempted = n;
+    sourceErrors.set(src, b);
+  };
 
   for (let idx = 0; idx < ghCompanies.length; idx++) {
     const company = ghCompanies[idx];
@@ -1498,7 +1521,16 @@ async function main() {
     const ashbyCompanies = (cfg.ashby_companies || []).filter(c => c.enabled !== false);
     if (ashbyCompanies.length > 0) {
       console.log(`Fetching Ashby (Playwright) (${ashbyCompanies.length} companies)...`);
-      const ashbyResults = await fetchAshbyPlaywright(ashbyCompanies);
+      setSourceAttempted('ashby', ashbyCompanies.length);
+      let ashbyResults = [];
+      try {
+        ashbyResults = await fetchAshbyPlaywright(ashbyCompanies);
+      } catch (err) {
+        markPartialSuccess(`Ashby scan recovered after fatal error: ${err.message.slice(0, 100)}`);
+        console.warn(`  [FATAL recovered] Ashby scan crashed: ${err.message.slice(0, 100)}`);
+        for (let i = 0; i < ashbyCompanies.length; i++) bumpSourceError('ashby');
+        ashbyResults = [];
+      }
       for (const { company, jobs } of ashbyResults) {
         console.log(`  ${company.name}: ${jobs.length} jobs`);
         totalFound += jobs.length;
@@ -1537,9 +1569,16 @@ async function main() {
     const leverCompanies = (cfg.lever_companies || []).filter(c => c.enabled !== false);
     if (leverCompanies.length > 0) {
       console.log(`Fetching Lever APIs (${leverCompanies.length} companies)...`);
-      const leverResults = await Promise.all(
+      setSourceAttempted('lever', leverCompanies.length);
+      const leverSettled = await Promise.allSettled(
         leverCompanies.map(c => fetchLever(c.slug, c.name))
       );
+      const leverResults = leverSettled.map((s, i) => {
+        if (s.status === 'fulfilled') return s.value;
+        console.warn(`  [lever] ${leverCompanies[i].name} failed: ${s.reason?.message || 'unknown'}`);
+        bumpSourceError('lever');
+        return [];
+      });
       for (let idx = 0; idx < leverCompanies.length; idx++) {
         const company = leverCompanies[idx];
         const jobs    = leverResults[idx];
@@ -1581,9 +1620,16 @@ async function main() {
     const srCompanies = (cfg.smartrecruiters_companies || []).filter(c => c.enabled !== false);
     if (srCompanies.length > 0) {
       console.log(`Fetching SmartRecruiters APIs (${srCompanies.length} companies)...`);
-      const srResults = await Promise.all(
+      setSourceAttempted('smartrecruiters', srCompanies.length);
+      const srSettled = await Promise.allSettled(
         srCompanies.map(c => fetchSmartRecruiters(c.slug, c.name, c.query || ''))
       );
+      const srResults = srSettled.map((s, i) => {
+        if (s.status === 'fulfilled') return s.value;
+        console.warn(`  [smartrecruiters] ${srCompanies[i].name} failed: ${s.reason?.message || 'unknown'}`);
+        bumpSourceError('smartrecruiters');
+        return [];
+      });
       for (let idx = 0; idx < srCompanies.length; idx++) {
         const company = srCompanies[idx];
         const jobs    = srResults[idx];
@@ -1626,6 +1672,7 @@ async function main() {
     const wdCompanies = (cfg.workday_companies || []).filter(c => c.enabled !== false);
     if (wdCompanies.length > 0) {
       console.log(`Fetching WorkDay (Playwright) (${wdCompanies.length} companies)...`);
+      setSourceAttempted('workday', wdCompanies.length);
       let wdResults = [];
       try {
         wdResults = await fetchWorkday(wdCompanies);
@@ -1633,6 +1680,7 @@ async function main() {
         markPartialSuccess(`WorkDay scan recovered after fatal error: ${err.message.slice(0, 100)}`);
         console.warn(`  [FATAL recovered] WorkDay scan crashed: ${err.message.slice(0, 100)}`);
         console.warn(`  Continuing with other scanners...`);
+        for (let i = 0; i < wdCompanies.length; i++) bumpSourceError('workday');
         wdResults = [];
       }
       for (const { company, jobs } of wdResults) {
@@ -1673,7 +1721,17 @@ async function main() {
     const icimsCompanies = (cfg.icims_companies || []).filter(c => c.enabled !== false);
     if (icimsCompanies.length > 0) {
       console.log(`Fetching iCIMS (Playwright) (${icimsCompanies.length} companies)...`);
-      const icimsResults = await fetchICIMS(icimsCompanies);
+      setSourceAttempted('icims', icimsCompanies.length);
+      let icimsResults = [];
+      try {
+        icimsResults = await fetchICIMS(icimsCompanies);
+      } catch (err) {
+        markPartialSuccess(`iCIMS scan recovered after fatal error: ${err.message.slice(0, 100)}`);
+        console.warn(`  [FATAL recovered] iCIMS scan crashed: ${err.message.slice(0, 100)}`);
+        console.warn(`  Continuing with other scanners...`);
+        for (let i = 0; i < icimsCompanies.length; i++) bumpSourceError('icims');
+        icimsResults = [];
+      }
       for (const { company, jobs } of icimsResults) {
         console.log(`  ${company.name}: ${jobs.length} jobs`);
         totalFound += jobs.length;
@@ -1858,11 +1916,17 @@ async function main() {
     }
   }
 
-  // --- Per-source completion events (derived from historyRows) ---
+  // --- Per-source completion events (derived from historyRows + sourceErrors) ---
   // Groups by portal prefix (greenhouse/ashby/lever/etc.), emits one event
   // per source. Skips `direct/*` prefixes since those scripts emit their own
   // events via their child processes (see scan-linkedin-mcp.mjs, scan-indeed.mjs).
   // Feeds the Source Health registry (scripts/aggregate-source-health.mjs).
+  //
+  // Status classification (honest, not hardcoded 'success'):
+  //   - 0 errors                     → 'success'
+  //   - some errors, some results    → 'partial'
+  //   - all attempted failed         → 'failed'
+  //   - attempted=0 (no companies)   → skip emission entirely
   {
     const bySource = new Map();
     for (const row of historyRows) {
@@ -1874,17 +1938,48 @@ async function main() {
       if (row.company) b.companies.add(row.company);
       bySource.set(prefix, b);
     }
-    for (const [source, stats] of bySource) {
+
+    // Union of sources that either produced history rows OR were attempted
+    // (a source that caught fire before any row was added still deserves an event).
+    const allSources = new Set([...bySource.keys(), ...sourceErrors.keys()]);
+
+    for (const source of allSources) {
+      const stats = bySource.get(source) || { added: 0, skipped_title: 0, skipped_dup: 0, total: 0, companies: new Set() };
+      const errBucket = sourceErrors.get(source) || { errors: 0, attempted: 0 };
+      const { errors, attempted } = errBucket;
+
+      // Don't emit for sources that weren't attempted this run.
+      if (attempted === 0 && stats.total === 0) continue;
+
+      let status;
+      let eventType;
+      if (errors === 0) {
+        status = 'success';
+        eventType = `scanner.${source}.completed`;
+      } else if (attempted > 0 && errors >= attempted) {
+        status = 'failed';
+        eventType = `scanner.${source}.failed`;
+      } else {
+        status = 'partial';
+        eventType = `scanner.${source}.partial`;
+      }
+
+      const summary = errors > 0
+        ? `${source} scan: ${stats.added || 0} new from ${stats.companies.size}/${attempted} target(s) (${errors} failed)`
+        : `${source} scan: ${stats.added || 0} new from ${stats.companies.size} target(s) (${stats.total} matched)`;
+
       appendAutomationEvent(ROOT, {
-        type: `scanner.${source}.completed`,
-        status: 'success',
-        summary: `${source} scan: ${stats.added || 0} new from ${stats.companies.size} target(s) (${stats.total} matched)`,
+        type: eventType,
+        status,
+        summary,
         details: {
           newCount: stats.added || 0,
           totalFound: stats.total,
           titleSkipped: stats.skipped_title || 0,
           dupSkipped: stats.skipped_dup || 0,
           companies: stats.companies.size,
+          attempted,
+          errors,
         },
       });
     }
