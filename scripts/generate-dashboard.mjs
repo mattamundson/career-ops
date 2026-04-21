@@ -19,6 +19,7 @@ import {
 } from './lib/source-labels.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { isBrainAvailable, getBrainStats } from './lib/brain-client.mjs';
+import { matchStories } from './match-stories.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -381,6 +382,23 @@ const gmailFreshness = (() => {
   return { status: statusColor, ageMinutes, label, event: lastGmailEvent, failed };
 })();
 
+// Interview-status applications — surface matched stories so prep is one-click.
+const interviewApps = (() => {
+  const rows = apps.filter((a) => a.status === 'Interview');
+  if (rows.length === 0) return [];
+  const storyBankPath = join(ROOT, 'interview-prep', 'story-bank.md');
+  if (!existsSync(storyBankPath)) return rows.map((a) => ({ ...a, matches: [] }));
+  try {
+    const text = readFileSync(storyBankPath, 'utf-8');
+    return rows.map((a) => ({
+      ...a,
+      matches: matchStories({ query: `${a.company} ${a.role} ${a.notes || ''}`, storyBankText: text, topN: 3 }),
+    }));
+  } catch {
+    return rows.map((a) => ({ ...a, matches: [] }));
+  }
+})();
+
 // Ghosted applications — Applied + silent ≥ ghost_threshold_days (default 14)
 // Separate from staleTouchApps because this is the subset that auto-flips
 // into the follow-up-drafts queue via check-cadence-alert.mjs.
@@ -482,6 +500,18 @@ const operatorSnapshotSection = `
             ${followupDrafts.slice(0, 8).map((d) => `<li><strong>#${escHtml(d.appId)}</strong> ${escHtml(d.slug.split('-').join(' '))} <span class="muted">(drafted ${d.ageDays === 0 ? 'today' : d.ageDays + 'd ago'})</span></li>`).join('')}
           </ul>
           <div class="muted" style="margin-top:8px;font-size:11px">Review at <code>data/outreach/</code></div>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+          Upcoming interviews — prep ready
+          ${interviewApps.length > 0 ? ` <span style="background:#a6e3a1;color:#1e1e2e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600">${interviewApps.length}</span>` : ''}
+        </div>
+        ${interviewApps.length === 0
+    ? '<div class="muted" style="font-size:13px">No applications currently in Interview status. Matched stories will appear here when one flips.</div>'
+    : `<ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.5">
+            ${interviewApps.slice(0, 5).map((a) => `<li><strong>${escHtml(a.company)}</strong> — ${escHtml(a.role)}<br><span class="muted" style="font-size:11px">Top stories: ${a.matches.length === 0 ? '<em>no match — run <code>match-stories.mjs</code></em>' : a.matches.map((m) => `<span title="${escHtml(m.bestFor)}">${escHtml(m.title)}</span>`).join(' · ')}</span></li>`).join('')}
+          </ul>
+          <div class="muted" style="margin-top:8px;font-size:11px">Run <code>node scripts/match-stories.mjs --application-id=NNN</code> for full match report.</div>`}
       </div>
       <div>
         <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
