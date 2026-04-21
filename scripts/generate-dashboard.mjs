@@ -381,6 +381,14 @@ const gmailFreshness = (() => {
   return { status: statusColor, ageMinutes, label, event: lastGmailEvent, failed };
 })();
 
+// Ghosted applications — Applied + silent ≥ ghost_threshold_days (default 14)
+// Separate from staleTouchApps because this is the subset that auto-flips
+// into the follow-up-drafts queue via check-cadence-alert.mjs.
+const GHOST_THRESHOLD_DAYS = 14;
+const ghostedApps = apps
+  .filter((a) => a.status === 'Applied' && a.date && daysSinceIsoDate(a.date) >= GHOST_THRESHOLD_DAYS)
+  .sort((a, b) => daysSinceIsoDate(b.date) - daysSinceIsoDate(a.date));
+
 // Follow-up drafts pending review — read data/outreach/followup-*.md
 const followupDrafts = (() => {
   const dir = join(ROOT, 'data', 'outreach');
@@ -474,6 +482,18 @@ const operatorSnapshotSection = `
             ${followupDrafts.slice(0, 8).map((d) => `<li><strong>#${escHtml(d.appId)}</strong> ${escHtml(d.slug.split('-').join(' '))} <span class="muted">(drafted ${d.ageDays === 0 ? 'today' : d.ageDays + 'd ago'})</span></li>`).join('')}
           </ul>
           <div class="muted" style="margin-top:8px;font-size:11px">Review at <code>data/outreach/</code></div>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+          Ghosted (≥${GHOST_THRESHOLD_DAYS}d Applied)
+          ${ghostedApps.length > 0 ? ` <span style="background:#f38ba8;color:#1e1e2e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600">${ghostedApps.length}</span>` : ''}
+        </div>
+        ${ghostedApps.length === 0
+    ? '<div class="muted" style="font-size:13px">No Applied rows silent beyond the ghost threshold. Cadence alert will auto-queue drafts when any cross it.</div>'
+    : `<ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.5">
+            ${ghostedApps.slice(0, 8).map((a) => `<li><strong>${escHtml(a.company)}</strong> — ${escHtml(a.role)} <span class="muted">(${daysSinceIsoDate(a.date)}d silent)</span></li>`).join('')}
+          </ul>
+          <div class="muted" style="margin-top:8px;font-size:11px">Next <code>check-cadence-alert</code> run will queue follow-up drafts.</div>`}
       </div>
     </div>
   </div>`;

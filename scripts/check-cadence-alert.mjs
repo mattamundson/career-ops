@@ -80,6 +80,7 @@ const DEFAULT_THRESHOLDS = {
   responded_days: 5,
   contact_days:   5,
   interview_days: 10,
+  ghost_threshold_days: 14,
 };
 
 function loadThresholds() {
@@ -271,6 +272,7 @@ function main() {
 
   const stale = [];
   for (const row of rows) {
+    const appId   = row['#']       || '';
     const date    = row['date']    || '';
     const company = row['company'] || '(unknown)';
     const role    = row['role']    || '(unknown)';
@@ -283,7 +285,7 @@ function main() {
     if (threshold === null) continue;
 
     if (days >= threshold) {
-      stale.push({ company, role, status, date, days, threshold });
+      stale.push({ appId, company, role, status, date, days, threshold });
     }
   }
 
@@ -295,6 +297,69 @@ function main() {
   process.stderr.write(
     `[check-cadence-alert] ${rows.length} entries scanned, ${stale.length} stale.\n`
   );
+
+  // ── Ghost detection: Applied rows silent ≥ ghost_threshold_days ───────────
+  // When a row hits this threshold, invoke generate-followups per-app to
+  // queue a draft. This is the T6 feedback loop — ghosted apps don't just
+  // age silently; they auto-generate a nudge that Matt can review+send.
+  const ghostThreshold = thresholds.ghost_threshold_days ?? 14;
+  const ghosted = stale.filter((e) => {
+    const s = (e.status || '').toLowerCase().trim();
+    return s === 'applied' && e.days >= ghostThreshold;
+  });
+
+  const ghostResults = [];
+  if (ghosted.length > 0) {
+    process.stderr.write(`[check-cadence-alert] ${ghosted.length} ghosted (≥${ghostThreshold}d) — queuing follow-up drafts.\n`);
+    for (const g of ghosted) {
+      // Recover app id from the row we already parsed. Row headers use '#'
+      // as the first column; parseMarkdownTable keeps it under key '#'.
+      const appId = (g.appId || '').toString().padStart(3, '0');
+      if (!/^\d{3}$/.test(appId)) {
+        ghostResults.push({ company: g.company, ok: false, reason: 'missing app id' });
+        continue;
+      }
+      if (DRY_RUN) {
+        console.log(`[DRY RUN] Would invoke generate-followups --application-id=${appId} for ${g.company}`);
+        ghostResults.push({ appId, company: g.company, ok: true, dryRun: true });
+        continue;
+      }
+      const result = spawnSync(
+        process.execPath,
+        [resolve(__dirname, 'generate-followups.mjs'),
+          `--application-id=${appId}`,
+          `--stale-days=${ghostThreshold}`,
+        ],
+        { encoding: 'utf8', timeout: 60_000, cwd: ROOT, env: process.env }
+      );
+      const ok = result.status === 0;
+      ghostResults.push({
+        appId,
+        company: g.company,
+        role: g.role,
+        daysSilent: g.days,
+        ok,
+        stderr: (result.stderr || '').slice(0, 500),
+      });
+      if (!ok) {
+        console.error(`[check-cadence-alert] follow-up draft for ${appId} (${g.company}) failed: ${result.stderr?.slice(0, 200)}`);
+      }
+    }
+
+    appendAutomationEvent(ROOT, {
+      type: 'automation.ghost_detection.flagged',
+      status: ghostResults.every((r) => r.ok) ? 'success' : 'partial_success',
+      summary: `${ghosted.length} ghosted application(s) flagged, ${ghostResults.filter((r) => r.ok).length} draft(s) queued`,
+      details: {
+        threshold_days: ghostThreshold,
+        ghosted_count: ghosted.length,
+        drafted_count: ghostResults.filter((r) => r.ok).length,
+        applications: ghostResults.map((r) => ({
+          id: r.appId, company: r.company, role: r.role, days_silent: r.daysSilent, ok: r.ok,
+        })),
+      },
+    });
+  }
 
   if (stale.length === 0) {
     console.log(`[check-cadence-alert] All applications within cadence as of ${dateStr}.`);
