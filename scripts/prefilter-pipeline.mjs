@@ -7,6 +7,8 @@
  *   node scripts/prefilter-pipeline.mjs --list        — list all prefilter results and their statuses
  *   node scripts/prefilter-pipeline.mjs --semantic    — include semantic score from match-jd.mjs output if present
  *   node scripts/prefilter-pipeline.mjs --ai-score    — compute AI semantic score via OpenAI embeddings (requires OPENAI_API_KEY)
+ *   node scripts/prefilter-pipeline.mjs --auto-score  — LLM-fill Quick Score + matches/gaps/recommendation per modes/prefilter-auto-score.md (requires ANTHROPIC_API_KEY, falls back to OPENAI_API_KEY)
+ *   node scripts/prefilter-pipeline.mjs --auto-score --max=10  — cap LLM calls (default 50)
  *   node scripts/prefilter-pipeline.mjs --dry-run     — show what would be created without writing files
  *
  * No external dependencies — ESM only.
@@ -19,6 +21,7 @@ import { execFileSync } from 'child_process';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { computeSemanticScore } from './lib/semantic-match.mjs';
 import { loadCompanyIntel, formatIntelBlock } from './lib/company-intel-loader.mjs';
+import { isMainEntry } from './lib/main-entry.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -38,8 +41,16 @@ const argv = process.argv.slice(2);
 const LIST_MODE  = argv.includes('--list');
 const SEMANTIC   = argv.includes('--semantic');
 const AI_SCORE   = argv.includes('--ai-score');
+const AUTO_SCORE = argv.includes('--auto-score');
 const SKIP_SEMANTIC = argv.includes('--skip-semantic');
 const DRY_RUN    = argv.includes('--dry-run');
+const MAX_AUTO_SCORE = (() => {
+  const flag = argv.find((a) => a.startsWith('--max='));
+  if (!flag) return 50;
+  const n = parseInt(flag.split('=')[1], 10);
+  return Number.isFinite(n) && n > 0 ? n : 50;
+})();
+const AUTO_SCORE_RATE_MS = 200;
 
 // ---------------------------------------------------------------------------
 // Slug helpers
@@ -219,6 +230,189 @@ ${intelBlock ? '\n---\n\n' + intelBlock : ''}
 }
 
 // ---------------------------------------------------------------------------
+// Pure parser for LLM auto-score output. Exported for unit testing without
+// touching the network. Returns { ok: true, ...parsed } or { ok: false, reason }.
+// ---------------------------------------------------------------------------
+export function parseAutoScoreResponse(text) {
+  if (typeof text !== 'string' || !text.trim()) {
+    return { ok: false, reason: 'empty response' };
+  }
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return { ok: false, reason: 'no JSON in response' };
+
+  let parsed;
+  try { parsed = JSON.parse(jsonMatch[0]); }
+  catch (err) { return { ok: false, reason: `JSON parse: ${err.message}` }; }
+
+  const score = Number(parsed.score);
+  if (!Number.isFinite(score) || score < 1 || score > 5) {
+    return { ok: false, reason: `bad score: ${parsed.score}` };
+  }
+  const rec = String(parsed.recommendation || '').toUpperCase();
+  if (!['EVALUATE', 'MAYBE', 'SKIP', 'UNCLEAR'].includes(rec)) {
+    return { ok: false, reason: `bad recommendation: ${rec}` };
+  }
+  if (!Array.isArray(parsed.matches) || !Array.isArray(parsed.gaps)) {
+    return { ok: false, reason: 'matches/gaps not arrays' };
+  }
+  return {
+    ok: true,
+    score,
+    archetype: String(parsed.archetype || 'unknown').trim(),
+    matches: parsed.matches.slice(0, 3).map((s) => String(s).trim()),
+    gaps: parsed.gaps.slice(0, 3).map((s) => String(s).trim()),
+    recommendation: rec,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Auto-score — LLM fills Quick Score + matches/gaps/recommendation per
+// modes/prefilter-auto-score.md. Returns null if the call fails or the LLM
+// responds with "UNCLEAR" — card stays at status: pending for manual review.
+// ---------------------------------------------------------------------------
+async function autoScoreEntry(entry) {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!anthropicKey && !openaiKey) return { ok: false, reason: 'no API key' };
+
+  const cvPath = resolve(ROOT, 'cv.md');
+  if (!existsSync(cvPath)) return { ok: false, reason: 'cv.md missing' };
+  const cvText = readFileSync(cvPath, 'utf8');
+  const intel = loadCompanyIntel(entry.company, { intelDir: INTEL_DIR });
+  const intelBlock = formatIntelBlock(intel);
+
+  const prompt = `You are Matt Amundson's AI pre-filter. Score a job listing on a 1-5 scale using only the listing metadata + his CV. You are NOT fetching the URL. You are triaging quickly.
+
+Matt's profile:
+- Operational data architect + AI automation leader
+- Minneapolis-based, on-site MSP > hybrid MSP > remote (strict preference)
+- Target archetypes: Operational Data Architect, AI Automation / Workflow Engineer, BI & Analytics Lead, Business Systems / ERP Specialist, Applied AI / Solutions Architect, Operations Technology Leader
+
+CV (canonical):
+${cvText.slice(0, 8000)}
+
+Listing:
+- Company: ${entry.company}
+- Title: ${entry.title}
+- URL: ${entry.url}
+${intelBlock ? '\nCompany intel (already researched):\n' + intelBlock.slice(0, 2000) : ''}
+
+Work-mode bias: if listing signals on-site MSP, add +0.5 to score; hybrid MSP +0.25; remote-only no boost. Cap at 5.0.
+
+Output ONLY a JSON object (no markdown, no prose):
+{"score": 3.5, "archetype": "Operational Data Architect", "matches": ["..","..",".."], "gaps": ["..","..",".."], "recommendation": "EVALUATE"}
+
+Rules:
+- score in [1.0, 5.0], half-points allowed
+- archetype is one of the 6 listed
+- matches/gaps each exactly 3 short phrases (max 80 chars each)
+- recommendation is one of: EVALUATE (score>=3.5), MAYBE (2.5-3.4), SKIP (<2.5), UNCLEAR (signal too thin)`;
+
+  try {
+    let text;
+    if (anthropicKey) {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 600,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!response.ok) throw new Error(`Anthropic ${response.status}: ${(await response.text()).slice(0, 200)}`);
+      const data = await response.json();
+      text = data.content?.[0]?.text || '';
+    } else {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          max_tokens: 600,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!response.ok) throw new Error(`OpenAI ${response.status}: ${(await response.text()).slice(0, 200)}`);
+      const data = await response.json();
+      text = data.choices?.[0]?.message?.content || '';
+    }
+
+    return parseAutoScoreResponse(text);
+  } catch (err) {
+    return { ok: false, reason: err.message };
+  }
+}
+
+/**
+ * Overwrite a prefilter template with the LLM-scored content. Leaves status
+ * as `pending` if rec === UNCLEAR so Matt sees it in the manual-review queue.
+ */
+function applyAutoScore(filePath, entry, scored) {
+  if (!scored.ok) return false;
+  const status = scored.recommendation === 'UNCLEAR' ? 'pending' : scored.recommendation.toLowerCase();
+  const autoScoredFlag = scored.recommendation === 'UNCLEAR' ? 'attempted' : 'true';
+  const today = new Date().toISOString().slice(0, 10);
+
+  const matchesBlock = scored.matches.map((m) => `- ${m}`).join('\n');
+  const gapsBlock = scored.gaps.map((g) => `- ${g}`).join('\n');
+
+  const intel = loadCompanyIntel(entry.company, { intelDir: INTEL_DIR });
+  const intelBlock = formatIntelBlock(intel);
+  const intelSlug = toSlug(entry.company);
+  const intelPath = resolve(INTEL_DIR, `${intelSlug}.md`);
+  const intelLink = existsSync(intelPath)
+    ? `[../company-intel/${intelSlug}.md](../company-intel/${intelSlug}.md)`
+    : `_not yet generated — run: node scripts/company-intel.mjs --company="${entry.company}"_`;
+
+  const content = `# Prefilter: ${entry.company} — ${entry.title}
+
+**status:** ${status}
+**auto_scored:** ${autoScoredFlag}
+**date:** ${today}
+**url:** ${entry.url}
+**company:** ${entry.company}
+**title:** ${entry.title}
+
+---
+
+## Prefilter Result
+
+**Archetype:** ${scored.archetype}
+**Quick Score:** ${scored.score}/5 — auto-scored at scan time${scored.recommendation === 'UNCLEAR' ? ' (signal too thin; leaving pending for manual review)' : ''}
+**Top 3 Matches:**
+${matchesBlock}
+**Top 3 Gaps:**
+${gapsBlock}
+**Recommendation:** ${scored.recommendation}
+
+---
+
+## Company Intel
+
+${intelLink}
+
+${intelBlock ? '\n---\n\n' + intelBlock : ''}
+---
+
+## Notes
+
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->
+`;
+
+  writeFileSync(filePath, content, 'utf8');
+  return true;
+}
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+// ---------------------------------------------------------------------------
 // List mode — display all prefilter results with their statuses
 // ---------------------------------------------------------------------------
 function listPrefilterResults() {
@@ -346,6 +540,20 @@ async function generateTemplates() {
   let created  = 0;
   let skipped  = 0;
   let withSem  = 0;
+  let autoScoreOk = 0;
+  let autoScoreUnclear = 0;
+  let autoScoreFailed = 0;
+  let autoScoreAttempts = 0;
+
+  if (AUTO_SCORE) {
+    const hasKey = process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY;
+    if (!hasKey) {
+      console.warn('  [auto-score] no ANTHROPIC_API_KEY or OPENAI_API_KEY — flag ignored');
+    } else {
+      const keyType = process.env.ANTHROPIC_API_KEY ? 'Anthropic (haiku)' : 'OpenAI (gpt-4o-mini)';
+      console.log(`  Auto-score: enabled via ${keyType}, max ${MAX_AUTO_SCORE} cards, ${AUTO_SCORE_RATE_MS}ms between calls`);
+    }
+  }
 
   for (const entry of entries) {
     const filename = buildFilename(entry.company, entry.title);
@@ -387,7 +595,34 @@ async function generateTemplates() {
     }
 
     const semLabel = semanticScore ? ` [sem: ${semanticScore}]` : '';
-    console.log(`  + ${entry.company} | ${entry.title}${semLabel}`);
+
+    // Optional LLM auto-score pass — overwrites the just-written template
+    // with the scored version. Rate-limited, capped, best-effort.
+    let autoLabel = '';
+    if (AUTO_SCORE && !DRY_RUN && autoScoreAttempts < MAX_AUTO_SCORE) {
+      const hasKey = process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY;
+      if (hasKey) {
+        autoScoreAttempts++;
+        const scored = await autoScoreEntry(entry);
+        if (scored.ok) {
+          applyAutoScore(outPath, entry, scored);
+          if (scored.recommendation === 'UNCLEAR') {
+            autoScoreUnclear++;
+            autoLabel = ` [auto: UNCLEAR]`;
+          } else {
+            autoScoreOk++;
+            autoLabel = ` [auto: ${scored.score}/5 ${scored.recommendation}]`;
+          }
+        } else {
+          autoScoreFailed++;
+          autoLabel = ` [auto: failed — ${scored.reason}]`;
+        }
+        // Rate limit between API calls
+        if (autoScoreAttempts < MAX_AUTO_SCORE) await sleep(AUTO_SCORE_RATE_MS);
+      }
+    }
+
+    console.log(`  + ${entry.company} | ${entry.title}${semLabel}${autoLabel}`);
     console.log(`    → data/prefilter-results/${filename}`);
     created++;
   }
@@ -397,6 +632,9 @@ async function generateTemplates() {
   console.log(`Created:  ${created}`);
   console.log(`Skipped:  ${skipped} (already exist)`);
   if (SEMANTIC) console.log(`With semantic score: ${withSem}`);
+  if (AUTO_SCORE) {
+    console.log(`Auto-scored: ${autoScoreOk} scored | ${autoScoreUnclear} unclear (pending) | ${autoScoreFailed} failed`);
+  }
   console.log('');
 
   if (!DRY_RUN) {
@@ -424,11 +662,13 @@ async function generateTemplates() {
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
-if (LIST_MODE) {
-  listPrefilterResults();
-} else {
-  generateTemplates().catch(err => {
-    console.error('[FATAL]', err);
-    process.exit(1);
-  });
+if (isMainEntry(import.meta.url)) {
+  if (LIST_MODE) {
+    listPrefilterResults();
+  } else {
+    generateTemplates().catch(err => {
+      console.error('[FATAL]', err);
+      process.exit(1);
+    });
+  }
 }
