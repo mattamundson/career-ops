@@ -281,12 +281,55 @@ async function autoScoreEntry(entry) {
   const intel = loadCompanyIntel(entry.company, { intelDir: INTEL_DIR });
   const intelBlock = formatIntelBlock(intel);
 
-  const prompt = `You are Matt Amundson's AI pre-filter. Score a job listing on a 1-5 scale using only the listing metadata + his CV. You are NOT fetching the URL. You are triaging quickly.
+  const prompt = `You are Matt Amundson's AI pre-filter. Score a job listing on a 1-5 scale using ONLY the listing TITLE + company + his CV. You are NOT fetching the URL. You are triaging quickly. Your default bias is to SKIP -- a quality miss is worse than a missed opportunity here, because false-positive EVALUATEs pollute Matt's review queue.
 
-Matt's profile:
-- Operational data architect + AI automation leader
-- Minneapolis-based, on-site MSP > hybrid MSP > remote (strict preference)
-- Target archetypes: Operational Data Architect, AI Automation / Workflow Engineer, BI & Analytics Lead, Business Systems / ERP Specialist, Applied AI / Solutions Architect, Operations Technology Leader
+Matt's archetypes (the ONLY 6 acceptable fits):
+1. Operational Data Architect -- ERP, data pipeline, semantic layer, data modeling
+2. AI Automation / Workflow Engineer -- n8n, LLM workflow, agents, automation, zero-handoff
+3. BI & Analytics Lead -- Power BI, DAX, SQL, dashboards, reporting
+4. Business Systems / ERP Specialist -- ERP, CRM, integrations, barcode, ops-to-tech
+5. Applied AI / Solutions Architect -- system design, LLM, enterprise AI, solutions architecture
+6. Operations Technology Leader -- COO, VP Ops, change management, cross-functional, transformation
+
+SCORING DISCIPLINE (read carefully, failure to follow these = wrong output):
+
+Step 1 — Parse the TITLE (not the company, not the intel). Does the title map to one of the 6 archetypes above?
+  - If title is security/identity (PAM, IAM, SIEM, SOC), SKIP regardless of company.
+  - If title is electrical/mechanical/chemical engineering, SKIP regardless of company.
+  - If title is finance/accounting specialist (Controller, Principal Financial Reporting, FP&A IC), SKIP -- Matt is NOT a finance specialist.
+  - If title is pure ML research / ML Research Engineer / Research Scientist / Data Scientist IC, SKIP.
+    IMPORTANT EXCEPTION: "Data Engineer" wins over the ML keyword. "Machine Learning Data Engineer",
+    "AI/ML Data Engineer", "AI Platform Engineer", or "MLOps Engineer" are DATA ENGINEERING roles (pipelines,
+    infra, orchestration) -- these are archetype matches, NOT exclusions. Score as Operational Data Architect or Applied AI / Solutions Architect.
+  - If title is engineering management of teams outside the 6 archetypes (e.g. Engineering Manager of pure ML research, App Frameworks), SKIP.
+    EXCEPTION: "Director/Manager of Data", "Head of Analytics", "VP Engineering - Data Platform" ARE archetype matches.
+  - If title is a narrow product eng role (Platform Engineer for non-data product, Backend Engineer, Full Stack), SKIP unless archetype signal is crystal clear.
+  - If title is clearly aligned (Data Architect, BI Manager, ERP Analyst, Solutions Architect, Automation Engineer,
+    Data Engineering Manager, Director of Data/BI/Analytics, AI Automation Architect, GenAI Solutions Architect,
+    Principal Data Engineer, Staff Data Engineer), CONTINUE to step 2.
+  - If ambiguous (e.g. "Senior Consultant", "Principal Engineer" with no specialization), return UNCLEAR.
+
+Step 2 — Seniority check. Matt targets senior/lead/manager/director/principal/staff. Junior / Associate / Entry → SKIP.
+
+Step 3 — If both steps above pass, score 2.5-4.5 based on how tightly the title matches the archetype:
+  - Exact archetype title match (e.g. "Data Architect", "AI Automation Architect"): 4.0-4.5 baseline
+  - Strong archetype adjacency (e.g. "Senior BI Developer", "Analytics Engineering Lead", "Principal Data Engineer"): 3.5-4.0
+  - Weak adjacency (e.g. mid-level "Data Engineer" without senior/principal/lead): 2.5-3.0
+
+Step 4 — Apply work-mode bias by scanning the TITLE AND URL for location hints:
+  - Explicit Minneapolis/MSP/MN signals in title (e.g. "from MN", "Minneapolis", "Minnesota"): +0.5 if on-site, +0.25 if hybrid.
+  - If title says "Remote - US" or "Fully Remote": no boost.
+  - If title is silent on location: no boost, default is remote-inferred.
+  - Cap at 5.0.
+
+Step 5 — Recommendation consistency check (REQUIRED before outputting):
+  - If final score >= 3.5 → recommendation MUST be "EVALUATE"
+  - If final score 2.5-3.49 → recommendation MUST be "MAYBE"
+  - If final score < 2.5 → recommendation MUST be "SKIP"
+  If your intended recommendation does not match your score, ADJUST THE SCORE rather than the recommendation.
+  (e.g. if you're certain it's MAYBE, the score must be 2.5-3.4 -- not 3.5+.)
+
+Step 6 — Never let company intel override the TITLE. If intel describes a DIFFERENT role at the same company, IGNORE it. Score THIS title, not a sibling role.
 
 CV (canonical):
 ${cvText.slice(0, 8000)}
@@ -295,18 +338,17 @@ Listing:
 - Company: ${entry.company}
 - Title: ${entry.title}
 - URL: ${entry.url}
-${intelBlock ? '\nCompany intel (already researched):\n' + intelBlock.slice(0, 2000) : ''}
-
-Work-mode bias: if listing signals on-site MSP, add +0.5 to score; hybrid MSP +0.25; remote-only no boost. Cap at 5.0.
+${intelBlock ? '\nCompany intel (FYI only — may describe a different role; do not let it pull the score):\n' + intelBlock.slice(0, 1500) : ''}
 
 Output ONLY a JSON object (no markdown, no prose):
 {"score": 3.5, "archetype": "Operational Data Architect", "matches": ["..","..",".."], "gaps": ["..","..",".."], "recommendation": "EVALUATE"}
 
 Rules:
 - score in [1.0, 5.0], half-points allowed
-- archetype is one of the 6 listed
+- archetype is one of the 6 listed (or "none" if you're returning SKIP)
 - matches/gaps each exactly 3 short phrases (max 80 chars each)
-- recommendation is one of: EVALUATE (score>=3.5), MAYBE (2.5-3.4), SKIP (<2.5), UNCLEAR (signal too thin)`;
+- recommendation is one of: EVALUATE (score>=3.5), MAYBE (2.5-3.4), SKIP (<2.5), UNCLEAR (signal genuinely ambiguous)
+- When SKIP-ping an off-archetype title, set archetype to "none", score to 1.5-2.0, and make gap #1 name the specific mismatch (e.g. "Title is PAM platform eng, not data/BI/automation")`;
 
   try {
     let text;
@@ -558,14 +600,31 @@ async function generateTemplates() {
   for (const entry of entries) {
     const filename = buildFilename(entry.company, entry.title);
     const outPath  = resolve(PREFILTER_DIR, filename);
+    const alreadyExists = existsSync(outPath);
 
-    // Skip if already exists — do not overwrite scored results
-    if (existsSync(outPath)) {
-      skipped++;
-      continue;
+    // For existing cards: skip unless AUTO_SCORE is on AND status is pending.
+    // This lets --auto-score process a backlog of already-generated pending
+    // cards without double-writing templates or clobbering scored results.
+    if (alreadyExists) {
+      if (!AUTO_SCORE) {
+        skipped++;
+        continue;
+      }
+      try {
+        const existingText = readFileSync(outPath, 'utf8');
+        const statusMatch = existingText.match(/\*\*status:\*\*\s*(\w+)/);
+        const existingStatus = statusMatch ? statusMatch[1].trim().toLowerCase() : 'pending';
+        if (existingStatus !== 'pending') {
+          skipped++;
+          continue;
+        }
+      } catch {
+        skipped++;
+        continue;
+      }
     }
 
-    let semanticScore = SEMANTIC ? loadSemanticScore(entry.company, entry.title) : null;
+    let semanticScore = SEMANTIC && !alreadyExists ? loadSemanticScore(entry.company, entry.title) : null;
     if (semanticScore) withSem++;
 
     // AI-powered semantic scoring via OpenAI embeddings (requires OPENAI_API_KEY in .env)
@@ -588,10 +647,13 @@ async function generateTemplates() {
       }
     }
 
-    const template = buildTemplate(entry, semanticScore);
-
-    if (!DRY_RUN) {
-      writeFileSync(outPath, template, 'utf8');
+    // Write template only for newly-created cards. Existing pending cards
+    // fall through to auto-score without touching the existing template.
+    if (!alreadyExists) {
+      const template = buildTemplate(entry, semanticScore);
+      if (!DRY_RUN) {
+        writeFileSync(outPath, template, 'utf8');
+      }
     }
 
     const semLabel = semanticScore ? ` [sem: ${semanticScore}]` : '';
@@ -622,9 +684,10 @@ async function generateTemplates() {
       }
     }
 
-    console.log(`  + ${entry.company} | ${entry.title}${semLabel}${autoLabel}`);
+    const prefix = alreadyExists ? '↻' : '+';
+    console.log(`  ${prefix} ${entry.company} | ${entry.title}${semLabel}${autoLabel}`);
     console.log(`    → data/prefilter-results/${filename}`);
-    created++;
+    if (!alreadyExists) created++;
   }
 
   console.log('');
