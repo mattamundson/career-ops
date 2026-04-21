@@ -235,10 +235,16 @@ const liveness = parseLivenessReports();
 
 // Response tracker (v14 — added 2026-04-10)
 const responses = parseResponses();
-const DAILY_TARGET = 50;
+const DAILY_TARGET = 5;
 const today = new Date().toISOString().slice(0, 10);
 const submittedToday = responses.filter(r => r.submitted_at === today).length;
 const TERMINAL_STATUSES = new Set(['rejected', 'offer', 'withdrew', 'ghosted']);
+// App IDs that are Discarded/Rejected/Offer in applications.md — exclude from
+// follow-up and pending-response queues regardless of their responses.md status.
+const DISCARDED_APP_IDS = new Set(
+  apps.filter(a => ['Discarded', 'Rejected', 'Offer', 'SKIP'].includes(a.status))
+      .map(a => String(a.num).padStart(3, '0'))
+);
 const IN_FLIGHT = responses.filter(r => !TERMINAL_STATUSES.has(r.status) && r.status !== 'in_progress');
 const FUNNEL_STAGES = [
   { key: 'submitted',        label: 'Submitted',        match: (r) => true },
@@ -404,7 +410,7 @@ const statusColors = {
 
 function scoreBar(score) {
   if (score === null) return '<span class="no-score">—</span>';
-  const pct = (score / 5) * 100;
+  const pct = ((score / 5) * 100).toFixed(1);
   const color = score >= 4 ? '#a6e3a1' : score >= 3 ? '#f9e2af' : '#f38ba8';
   return `<div class="score-wrap">
     <span class="score-num">${score.toFixed(1)}</span>
@@ -1242,21 +1248,29 @@ function generateGmailSyncTile() {
   </div>`;
   }
   const latest = syncEvents
-    .map((e) => ({ ...e, ts: new Date(e.timestamp || e.ts || e.at || 0).getTime() }))
-    .sort((a, b) => b.ts - a.ts)[0];
-  const ageMs = latest.ts ? (Date.now() - latest.ts) : Infinity;
-  const ageMin = Math.floor(ageMs / 60000);
-  const ageStr = ageMin < 60
-    ? `${ageMin} min ago`
-    : ageMin < 1440
-      ? `${Math.floor(ageMin / 60)} hr ago`
-      : `${Math.floor(ageMin / 1440)} d ago`;
+    .map((e) => {
+      const raw = e.recorded_at || e.timestamp || e.ts || e.at;
+      const parsed = raw ? new Date(raw).getTime() : NaN;
+      return { ...e, ts: Number.isFinite(parsed) && parsed > 0 ? parsed : null };
+    })
+    .sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0))[0];
+  const ageMs = latest.ts ? (Date.now() - latest.ts) : null;
+  const ageMin = ageMs != null ? Math.floor(ageMs / 60000) : null;
+  const ageStr = ageMin == null
+    ? 'timestamp missing'
+    : ageMin < 60
+      ? `${ageMin} min ago`
+      : ageMin < 1440
+        ? `${Math.floor(ageMin / 60)} hr ago`
+        : `${Math.floor(ageMin / 1440)} d ago`;
   const isFailure = latest.type === 'gmail-sync.run.failed' || latest.status === 'failure';
   // Task runs every 30 min; green <60m, yellow <4h, red >4h or last was failure.
   let color = '#a6e3a1';
   let label = 'healthy';
   if (isFailure) {
     color = '#f38ba8'; label = 'last run failed';
+  } else if (ageMs == null) {
+    color = '#f9e2af'; label = 'unknown age';
   } else if (ageMs > 4 * 60 * 60 * 1000) {
     color = '#f38ba8'; label = 'stale';
   } else if (ageMs > 60 * 60 * 1000) {
@@ -1399,7 +1413,7 @@ function generateDailyGoal() {
         <span style="font-size:13px;color:#a6adc8;min-width:80px;text-align:right">${remaining} to go</span>
       </div>
       <div style="font-size:12px;color:#6c7086">
-        At 50 apps/day: 250/week · 1,000/month · ~2% reply = 20 replies/week · ~10% of replies → interview = 2 interviews/week
+        Quality-first cadence: 5 well-targeted apps/day · 25/week · focus on ≥3.5 fit with recruiter-confirmed comp + location
       </div>
     </div>
   </div>`;
@@ -1445,6 +1459,7 @@ function generateResponseFunnel() {
 function generateFollowupQueue() {
   const stale = responses.filter(r => {
     if (TERMINAL_STATUSES.has(r.status)) return false;
+    if (DISCARDED_APP_IDS.has(String(r.app_id).padStart(3, '0'))) return false;
     if (r.status !== 'submitted' && r.status !== 'acknowledged') return false;
     const days = r.response_days === '—' ? 0 : parseInt(r.response_days, 10) || 0;
     const daysSinceSubmit = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
@@ -1592,6 +1607,7 @@ function generatePendingResponse() {
     .toISOString().slice(0, 10);
   const pending = responses.filter(r => {
     if (r.status !== 'submitted') return false;
+    if (DISCARDED_APP_IDS.has(String(r.app_id).padStart(3, '0'))) return false;
     const daysSince = Math.round((new Date() - new Date(r.submitted_at)) / (1000 * 60 * 60 * 24));
     return daysSince > 7;
   }).sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
@@ -1850,6 +1866,46 @@ const html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Career-Ops Dashboard</title>
 <meta http-equiv="refresh" content="300">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ctp: {
+          base: '#1e1e2e', mantle: '#181825', crust: '#11111b',
+          surface0: '#313244', surface1: '#45475a', surface2: '#585b70',
+          text: '#cdd6f4', subtext: '#a6adc8',
+          mauve: '#cba6f7', blue: '#89b4fa', sapphire: '#74c7ec',
+          sky: '#89dceb', teal: '#94e2d5', green: '#a6e3a1',
+          yellow: '#f9e2af', peach: '#fab387', red: '#f38ba8', pink: '#f5c2e7',
+        }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      boxShadow: {
+        'glow-mauve': '0 0 24px rgba(203,166,247,0.35)',
+        'glow-blue':  '0 0 24px rgba(137,180,250,0.35)',
+        'glow-green': '0 0 24px rgba(166,227,161,0.35)',
+      },
+      animation: {
+        'fade-in':    'fadeIn 0.6s ease-out',
+        'slide-up':   'slideUp 0.5s ease-out',
+        'pulse-slow': 'pulse 4s ease-in-out infinite',
+      },
+      keyframes: {
+        fadeIn:  { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+        slideUp: { '0%': { transform: 'translateY(12px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+      }
+    }
+  }
+};
+</script>
 <style>
   :root {
     --base:    #1e1e2e;
@@ -1874,14 +1930,81 @@ const html = `<!DOCTYPE html>
     --pink:    #f5c2e7;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--base); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
-  a { color: var(--blue); text-decoration: none; }
+  html { scroll-behavior: smooth; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 15% -10%,  rgba(203,166,247,0.12), transparent 60%),
+      radial-gradient(900px 500px at 90% 10%,   rgba(137,180,250,0.10), transparent 55%),
+      radial-gradient(1000px 700px at 50% 110%, rgba(148,226,213,0.08), transparent 60%),
+      var(--base);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-feature-settings: "cv11","ss01";
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  a { color: var(--blue); text-decoration: none; transition: color 0.15s; }
   a:hover { text-decoration: underline; }
 
+  /* Full-page ambient 3D canvas — sits behind everything */
+  #ambient3d {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.65;
+  }
+
+  /* Glassmorphic card surface */
+  .glass {
+    background: linear-gradient(180deg, rgba(24,24,37,0.72) 0%, rgba(17,17,27,0.78) 100%);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(69,71,90,0.45);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .glass-hover:hover {
+    border-color: rgba(203,166,247,0.35);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 24px rgba(203,166,247,0.12);
+    transform: translateY(-1px);
+  }
+  .gradient-text {
+    background: linear-gradient(90deg, #cba6f7 0%, #89b4fa 60%, #94e2d5 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Elevate section containers over ambient canvas */
+  .main, .header { position: relative; z-index: 1; }
+
   /* Layout */
-  .header { background: var(--crust); border-bottom: 1px solid var(--surface0); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
-  .header h1 { font-size: 18px; font-weight: 700; color: var(--mauve); letter-spacing: 0.5px; }
-  .header .subtitle { color: var(--subtext); font-size: 12px; }
+  .header {
+    background: linear-gradient(180deg, rgba(17,17,27,0.92) 0%, rgba(24,24,37,0.85) 60%, rgba(30,30,46,0.4) 100%);
+    border-bottom: 1px solid rgba(69,71,90,0.4);
+    padding: 0;
+    display: block;
+    position: relative;
+    overflow: hidden;
+    min-height: 150px;
+    backdrop-filter: blur(6px);
+  }
+  .header-3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.95; pointer-events: none; }
+  .header-inner { position: relative; z-index: 1; padding: 34px 32px; display: flex; align-items: center; gap: 20px; min-height: 150px; }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #cba6f7 0%, #89b4fa 60%, #94e2d5 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(203,166,247,0.45));
+  }
+  .header .subtitle { color: var(--subtext); font-size: 13px; margin-top: 5px; letter-spacing: 0.2px; }
   .header .gen-time { margin-left: auto; color: var(--overlay0); font-size: 11px; }
   .header .refresh-btn { background: var(--surface0); border: 1px solid var(--surface1); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
   .header .refresh-btn:hover { background: var(--surface1); }
@@ -1890,12 +2013,41 @@ const html = `<!DOCTYPE html>
 
   /* Stats row */
   .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-  .stat-card { background: var(--mantle); border: 1px solid var(--surface0); border-radius: 8px; padding: 12px 16px; min-width: 120px; }
-  .stat-card .label { font-size: 11px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-card .value { font-size: 24px; font-weight: 700; margin-top: 2px; }
+  .stat-card {
+    background: linear-gradient(180deg, rgba(24,24,37,0.72) 0%, rgba(17,17,27,0.78) 100%);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid rgba(69,71,90,0.45);
+    border-radius: 12px;
+    padding: 14px 18px;
+    min-width: 130px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(203,166,247,0.45);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 20px rgba(203,166,247,0.15);
+  }
+  .stat-card .label { font-size: 10px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+  .stat-card .value { font-size: 28px; font-weight: 800; margin-top: 4px; letter-spacing: -0.5px; }
 
   /* Section */
-  .section { background: var(--mantle); border: 1px solid var(--surface0); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+  .section {
+    background: linear-gradient(180deg, rgba(24,24,37,0.72) 0%, rgba(17,17,27,0.78) 100%);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(69,71,90,0.45);
+    border-radius: 14px;
+    margin-bottom: 22px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .section:hover {
+    border-color: rgba(137,180,250,0.25);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 28px rgba(137,180,250,0.08);
+  }
   .section-header { padding: 14px 20px; border-bottom: 1px solid var(--surface0); display: flex; align-items: center; gap: 10px; }
   .section-header h2 { font-size: 14px; font-weight: 600; color: var(--text); }
   .section-header .count { background: var(--surface0); color: var(--subtext); font-size: 11px; padding: 2px 7px; border-radius: 10px; }
@@ -1959,13 +2111,18 @@ const html = `<!DOCTYPE html>
 </head>
 <body>
 
+<canvas id="ambient3d"></canvas>
+
 <div class="header">
-  <div>
-    <h1>⚡ Career-Ops</h1>
-    <div class="subtitle">Job Search Command Center</div>
+  <canvas id="header3d" class="header-3d-canvas"></canvas>
+  <div class="header-inner">
+    <div>
+      <h1>⚡ Career-Ops</h1>
+      <div class="subtitle">Job Search Command Center · ${apps.length} apps · ${apps.filter(a => a.status === 'Applied').length} submitted</div>
+    </div>
+    <div class="gen-time">Generated ${generatedAt} <span id="countdown" style="color:var(--mauve);margin-left:4px"></span></div>
+    <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
   </div>
-  <div class="gen-time">Generated ${generatedAt} <span id="countdown" style="color:var(--mauve);margin-left:4px"></span></div>
-  <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
 </div>
 
 <div class="main">
@@ -1983,8 +2140,8 @@ const html = `<!DOCTYPE html>
       <div class="value" style="color:var(--mauve)">${apps.length}</div>
     </div>
     <div class="stat-card">
-      <div class="label">Evaluated</div>
-      <div class="value" style="color:var(--mauve)">${apps.filter(a => a.status === 'Evaluated').length}</div>
+      <div class="label">Active GO</div>
+      <div class="value" style="color:var(--mauve)">${apps.filter(a => a.status === 'GO' || a.status === 'Conditional GO').length}</div>
     </div>
     <div class="stat-card">
       <div class="label">Applied</div>
@@ -2019,38 +2176,80 @@ const html = `<!DOCTYPE html>
 
   ${generateStaleAlertPanel()}
 
+  <!-- ░░░░░░░░░░░░░░ ACTIONABLE (promoted 2026-04-20) ░░░░░░░░░░░░░░ -->
+  ${generateNextActions(apps)}
+
+  ${generateDailyGoal()}
+
+  ${generateFollowupQueue()}
+
+  ${generatePendingResponse()}
+
+  ${generateActiveConversations()}
+
+  ${generateApplyQueue(apps)}
+
+  ${generateResponseFunnel()}
+
+  ${generateResponseMetrics()}
+
+  ${generateChannelPerformance()}
+
+  ${generateApplied30Days()}
+
+  ${generateGmailSyncTile()}
+
+  ${generateBrainTile()}
+
+  <!-- ░░░░░░░░░░░░░░ ANALYTICS / SCAN OPS (demoted to bottom) ░░░░░░░░░░░░░░ -->
+
   <!-- Scan Sources -->
+  ${(() => {
+    const breakdown = computeSourceBreakdown(scanHistory);
+    const renderRow = ([, s]) => {
+      const rate = s.total > 0 ? ((s.added / s.total) * 100).toFixed(1) : '0.0';
+      const barPct = (s.total > 0 ? Math.max(2, (s.added / s.total) * 100) : 0).toFixed(1);
+      const op = boardOperationalBadge(s.opStatus);
+      return `<tr>
+        <td><strong>${s.label}</strong> <span class="muted" style="font-size:11px">${op}</span></td>
+        <td>${s.total.toLocaleString()}</td>
+        <td style="color:#a6e3a1">${s.added}</td>
+        <td>
+          <div class="score-wrap">
+            <span class="score-num">${rate}%</span>
+            <div class="score-bar"><div class="score-fill" style="width:${barPct}%;background:#a6e3a1"></div></div>
+          </div>
+        </td>
+      </tr>`;
+    };
+    // Active sources: anything not labeled stub, OR stub with hits
+    const isStub = ([, s]) => s.opStatus === 'stub' || /Stub/i.test(operationalStatusLabel(s.opStatus) || '');
+    const active = breakdown.filter(e => !isStub(e) || e[1].added > 0);
+    const stubs  = breakdown.filter(e =>  isStub(e) && e[1].added === 0);
+    return `
   <div class="section">
     <div class="section-header">
       <h2>Scan Sources</h2>
-      <span class="count">${scanHistory.length.toLocaleString()} total scanned</span>
+      <span class="count">${scanHistory.length.toLocaleString()} scanned · ${active.length} active · ${stubs.length} stub hidden</span>
     </div>
     <div style="padding:16px 20px">
       <table>
-        <thead>
-          <tr><th>Source</th><th>Scanned</th><th>Added</th><th>Hit Rate</th></tr>
-        </thead>
-        <tbody>
-          ${computeSourceBreakdown(scanHistory).map(([, s]) => {
-            const rate = s.total > 0 ? ((s.added / s.total) * 100).toFixed(1) : '0.0';
-            const barPct = s.total > 0 ? Math.max(2, (s.added / s.total) * 100) : 0;
-            const op = boardOperationalBadge(s.opStatus);
-            return `<tr>
-              <td><strong>${s.label}</strong> <span class="muted" style="font-size:11px">${op}</span></td>
-              <td>${s.total.toLocaleString()}</td>
-              <td style="color:#a6e3a1">${s.added}</td>
-              <td>
-                <div class="score-wrap">
-                  <span class="score-num">${rate}%</span>
-                  <div class="score-bar"><div class="score-fill" style="width:${barPct}%;background:#a6e3a1"></div></div>
-                </div>
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
+        <thead><tr><th>Source</th><th>Scanned</th><th>Added</th><th>Hit Rate</th></tr></thead>
+        <tbody>${active.map(renderRow).join('')}</tbody>
       </table>
+      ${stubs.length > 0 ? `
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer;color:var(--subtext);font-size:12px;padding:6px 0">
+          Show ${stubs.length} stub / zero-hit sources
+        </summary>
+        <table style="margin-top:8px">
+          <thead><tr><th>Source</th><th>Scanned</th><th>Added</th><th>Hit Rate</th></tr></thead>
+          <tbody>${stubs.map(renderRow).join('')}</tbody>
+        </table>
+      </details>` : ''}
     </div>
-  </div>
+  </div>`;
+  })()}
 
   <!-- Prefilter Queue -->
   <div class="section">
@@ -2171,30 +2370,6 @@ const html = `<!DOCTYPE html>
         </div>` : ''}
     </div>
   </div>` : ''}
-
-  ${generateGmailSyncTile()}
-
-  ${generateBrainTile()}
-
-  ${generateNextActions(apps)}
-
-  ${generateDailyGoal()}
-
-  ${generateResponseFunnel()}
-
-  ${generateFollowupQueue()}
-
-  ${generateChannelPerformance()}
-
-  ${generateResponseMetrics()}
-
-  ${generateApplied30Days()}
-
-  ${generatePendingResponse()}
-
-  ${generateActiveConversations()}
-
-  ${generateApplyQueue(apps)}
 
   <!-- Application Analytics -->
   ${generateAnalytics()}
@@ -2514,6 +2689,474 @@ function render() {
     </tr>\${notesRow}\`;
   }).join('');
 }
+</script>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.164.1/build/three.module.js" } }
+</script>
+<script type="module">
+// ╔═══════════════════════════════════════════════════════════════════════╗
+// ║  Career-Ops 3D system — full-page ambient nebula + shader hero scene  ║
+// ║  Uses Catppuccin Mocha palette; geometry reacts to live pipeline data ║
+// ╚═══════════════════════════════════════════════════════════════════════╝
+import * as THREE from 'three';
+
+const APP_COUNTS = ${JSON.stringify({
+    applied:    apps.filter(a => a.status === 'Applied').length,
+    go:         apps.filter(a => a.status === 'GO' || a.status === 'Conditional GO').length,
+    inProgress: apps.filter(a => a.status === 'In Progress').length,
+    discarded:  apps.filter(a => a.status === 'Discarded' || a.status === 'Rejected').length,
+    total:      apps.length,
+  })};
+
+// Soft circular sprite for point rendering (reused across scenes)
+function makeSoftSprite() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0,    'rgba(255,255,255,1)');
+  g.addColorStop(0.25, 'rgba(255,255,255,0.75)');
+  g.addColorStop(0.6,  'rgba(255,255,255,0.25)');
+  g.addColorStop(1,    'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.anisotropy = 4;
+  return t;
+}
+
+// Global scroll tracker — parallax responds to page scroll
+const scrollState = { y: 0, target: 0 };
+window.addEventListener('scroll', () => {
+  scrollState.target = Math.min(1, window.scrollY / (document.documentElement.scrollHeight - window.innerHeight || 1));
+}, { passive: true });
+
+// ─── Scene A: full-page ambient nebula (fixed canvas behind everything) ──
+(async () => {
+  const canvas = document.getElementById('ambient3d');
+  if (!canvas) return;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.setClearColor(0x000000, 0);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 2000);
+  camera.position.set(0, 0, 120);
+
+  function resize() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const sprite = makeSoftSprite();
+  const container = new THREE.Group();
+  scene.add(container);
+
+  // Deep starfield (static, far background)
+  {
+    const n = 1800;
+    const positions = new Float32Array(n * 3);
+    const colors = new Float32Array(n * 3);
+    const palette = [
+      [0.8, 0.65, 0.97],  // mauve
+      [0.54, 0.70, 0.98], // blue
+      [0.58, 0.78, 0.84], // teal
+      [1.0, 1.0, 1.0],    // white
+    ];
+    for (let i = 0; i < n; i++) {
+      const r = 300 + Math.random() * 600;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = -200 - Math.random() * 400;
+      const col = palette[Math.floor(Math.random() * palette.length)];
+      colors[i * 3] = col[0]; colors[i * 3 + 1] = col[1]; colors[i * 3 + 2] = col[2];
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const mat = new THREE.PointsMaterial({
+      size: 1.2, map: sprite, vertexColors: true,
+      transparent: true, opacity: 0.85,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    container.add(new THREE.Points(geo, mat));
+  }
+
+  // Nebula clouds (custom shader — fBm-based volumetric look)
+  const nebulaMat = new THREE.ShaderMaterial({
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    uniforms: {
+      uTime:  { value: 0 },
+      uColorA:{ value: new THREE.Color(0xcba6f7) },
+      uColorB:{ value: new THREE.Color(0x89b4fa) },
+      uColorC:{ value: new THREE.Color(0x94e2d5) },
+    },
+    vertexShader: \`
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    \`,
+    fragmentShader: \`
+      uniform float uTime;
+      uniform vec3 uColorA;
+      uniform vec3 uColorB;
+      uniform vec3 uColorC;
+      varying vec2 vUv;
+
+      // Classic 2D value noise + fBm
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
+      float noise(vec2 p) {
+        vec2 i = floor(p), f = fract(p);
+        float a = hash(i), b = hash(i + vec2(1.0,0.0));
+        float c = hash(i + vec2(0.0,1.0)), d = hash(i + vec2(1.0,1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(a,b,u.x) + (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
+      }
+      float fbm(vec2 p) {
+        float v = 0.0, a = 0.5;
+        for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.02; a *= 0.55; }
+        return v;
+      }
+
+      void main() {
+        vec2 p = vUv * 3.0 + vec2(uTime * 0.04, uTime * 0.02);
+        float n1 = fbm(p);
+        float n2 = fbm(p + n1 * 1.8 + uTime * 0.05);
+        float n3 = fbm(p * 0.7 - uTime * 0.03);
+
+        vec3 col = mix(uColorA, uColorB, n1);
+        col = mix(col, uColorC, n2 * 0.65);
+
+        float dist = distance(vUv, vec2(0.5));
+        float fade = smoothstep(0.55, 0.0, dist);
+        float alpha = n3 * fade * 0.55;
+
+        gl_FragColor = vec4(col * (0.7 + n2 * 0.6), alpha);
+      }
+    \`,
+  });
+  const nebula = new THREE.Mesh(new THREE.PlaneGeometry(900, 900, 1, 1), nebulaMat);
+  nebula.position.z = -260;
+  container.add(nebula);
+
+  // Drifting foreground particles (closer layer — moves with scroll)
+  const driftCount = 600;
+  const driftGeo = new THREE.BufferGeometry();
+  const driftPos = new Float32Array(driftCount * 3);
+  const driftVel = new Float32Array(driftCount * 3);
+  const driftCol = new Float32Array(driftCount * 3);
+  const stateColors = [
+    [0.54, 0.70, 0.98], // blue
+    [0.65, 0.89, 0.63], // green
+    [0.98, 0.89, 0.69], // yellow
+    [0.8, 0.65, 0.97],  // mauve
+    [0.58, 0.88, 0.84], // teal
+  ];
+  for (let i = 0; i < driftCount; i++) {
+    driftPos[i * 3]     = (Math.random() - 0.5) * 280;
+    driftPos[i * 3 + 1] = (Math.random() - 0.5) * 220;
+    driftPos[i * 3 + 2] = -20 - Math.random() * 160;
+    driftVel[i * 3]     = (Math.random() - 0.5) * 0.04;
+    driftVel[i * 3 + 1] = (Math.random() - 0.5) * 0.03;
+    driftVel[i * 3 + 2] = (Math.random() - 0.5) * 0.05;
+    const col = stateColors[Math.floor(Math.random() * stateColors.length)];
+    driftCol[i * 3] = col[0]; driftCol[i * 3 + 1] = col[1]; driftCol[i * 3 + 2] = col[2];
+  }
+  driftGeo.setAttribute('position', new THREE.BufferAttribute(driftPos, 3));
+  driftGeo.setAttribute('color',    new THREE.BufferAttribute(driftCol, 3));
+  const driftMat = new THREE.PointsMaterial({
+    size: 2.0, map: sprite, vertexColors: true,
+    transparent: true, opacity: 0.75,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const drift = new THREE.Points(driftGeo, driftMat);
+  container.add(drift);
+
+  // Orbiting rings (three concentric, tilted — subtle HUD vibe)
+  const ringColors = [0xcba6f7, 0x89b4fa, 0x94e2d5];
+  const rings = [];
+  ringColors.forEach((color, idx) => {
+    const ringGeo = new THREE.TorusGeometry(60 + idx * 28, 0.25, 6, 180);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color, transparent: true, opacity: 0.28,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2.4 + idx * 0.15;
+    ring.rotation.y = idx * 0.3;
+    ring.position.z = -80 - idx * 10;
+    container.add(ring);
+    rings.push(ring);
+  });
+
+  const clock = new THREE.Clock();
+  (function animate() {
+    const t = clock.getElapsedTime();
+    nebulaMat.uniforms.uTime.value = t;
+
+    // Smooth scroll interpolation
+    scrollState.y += (scrollState.target - scrollState.y) * 0.05;
+    const s = scrollState.y;
+
+    // Drift particles
+    const arr = drift.geometry.attributes.position.array;
+    for (let i = 0; i < driftCount; i++) {
+      arr[i * 3]     += driftVel[i * 3];
+      arr[i * 3 + 1] += driftVel[i * 3 + 1];
+      arr[i * 3 + 2] += driftVel[i * 3 + 2];
+      if (arr[i * 3]     >  140) arr[i * 3]     = -140;
+      if (arr[i * 3]     < -140) arr[i * 3]     =  140;
+      if (arr[i * 3 + 1] >  110) arr[i * 3 + 1] = -110;
+      if (arr[i * 3 + 1] < -110) arr[i * 3 + 1] =  110;
+    }
+    drift.geometry.attributes.position.needsUpdate = true;
+
+    // Parallax — camera drifts on scroll
+    camera.position.y = -s * 40;
+    camera.position.x = Math.sin(t * 0.1) * 6;
+    camera.lookAt(0, -s * 20, 0);
+
+    // Rings rotate at different speeds
+    rings[0].rotation.z = t * 0.07;
+    rings[1].rotation.z = -t * 0.05;
+    rings[2].rotation.z = t * 0.03;
+    rings.forEach((r, i) => {
+      r.position.y = Math.sin(t * (0.15 + i * 0.05)) * 4;
+    });
+
+    // Nebula slow drift
+    nebula.rotation.z = t * 0.015;
+
+    container.rotation.y = Math.sin(t * 0.04) * 0.08;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  })();
+})().catch(err => console.warn('[ambient3d]', err));
+
+// ─── Scene B: Hero — shader nebula + priority orbs + pipeline ribbon ──
+(async () => {
+  const canvas = document.getElementById('header3d');
+  if (!canvas) return;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 500);
+  camera.position.set(0, 0, 45);
+
+  function resize() {
+    const w = canvas.clientWidth || canvas.parentElement.clientWidth;
+    const h = canvas.clientHeight || canvas.parentElement.clientHeight || 150;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / Math.max(h, 1);
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  new ResizeObserver(resize).observe(canvas.parentElement);
+
+  const sprite = makeSoftSprite();
+
+  // Shader-based background plane for the header (animated color field)
+  const bgMat = new THREE.ShaderMaterial({
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    uniforms: {
+      uTime: { value: 0 },
+      uResolution: { value: new THREE.Vector2(1,1) },
+    },
+    vertexShader: \`
+      varying vec2 vUv;
+      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+    \`,
+    fragmentShader: \`
+      uniform float uTime;
+      varying vec2 vUv;
+      float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1.,0.)),c=hash(i+vec2(0.,1.)),d=hash(i+vec2(1.,1.));vec2 u=f*f*(3.-2.*f);return mix(a,b,u.x)+(c-a)*u.y*(1.-u.x)+(d-b)*u.x*u.y;}
+      float fbm(vec2 p){float v=0.,a=0.5;for(int i=0;i<4;i++){v+=a*noise(p);p*=2.03;a*=0.55;}return v;}
+      void main(){
+        vec2 p = vUv * vec2(4.0, 1.8) + vec2(uTime*0.06, uTime*0.02);
+        float n = fbm(p);
+        float n2 = fbm(p + n*1.5);
+        vec3 c1 = vec3(0.80, 0.65, 0.97); // mauve
+        vec3 c2 = vec3(0.54, 0.70, 0.98); // blue
+        vec3 c3 = vec3(0.58, 0.88, 0.84); // teal
+        vec3 col = mix(c1, c2, n);
+        col = mix(col, c3, n2 * 0.6);
+        float edge = smoothstep(0.0, 0.4, vUv.y) * smoothstep(1.0, 0.6, vUv.y);
+        float alpha = n2 * 0.7 * edge;
+        gl_FragColor = vec4(col, alpha);
+      }
+    \`
+  });
+  const bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(200, 60), bgMat);
+  bgPlane.position.z = -15;
+  scene.add(bgPlane);
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  const pointClouds = [];
+
+  // State clouds (live pipeline mix)
+  const STATES = [
+    { count: Math.max(APP_COUNTS.applied   * 70, 140), color: 0x89b4fa, size: 1.0 },
+    { count: Math.max(APP_COUNTS.go        * 45, 160), color: 0xa6e3a1, size: 0.9 },
+    { count: Math.max(APP_COUNTS.inProgress* 70, 50),  color: 0xf9e2af, size: 0.9 },
+    { count: Math.max(APP_COUNTS.discarded * 20, 70),  color: 0xf38ba8, size: 0.7 },
+    { count: 500,                                      color: 0xcba6f7, size: 0.55 },
+    { count: 300,                                      color: 0x94e2d5, size: 0.6 },
+  ];
+  STATES.forEach(state => {
+    const positions = new Float32Array(state.count * 3);
+    const phases    = new Float32Array(state.count);
+    for (let i = 0; i < state.count; i++) {
+      const r = 6 + Math.random() * 45;
+      const theta = Math.random() * Math.PI * 2;
+      const spread = (Math.random() - 0.5);
+      positions[i * 3]     = Math.cos(theta) * r * 1.5;
+      positions[i * 3 + 1] = spread * 13;
+      positions[i * 3 + 2] = Math.sin(theta) * r * 0.3 - 8;
+      phases[i] = Math.random() * Math.PI * 2;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.PointsMaterial({
+      color: state.color, size: state.size, map: sprite,
+      transparent: true, opacity: 0.9,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const pts = new THREE.Points(geo, mat);
+    group.add(pts);
+    pointClouds.push({ pts, basePositions: positions.slice(), phases });
+  });
+
+  // Data-linked priority orbs — one per top application (up to 8)
+  const TOP_PRIORITY = ${JSON.stringify(
+      [...apps]
+        .filter(a => a.score !== null && (a.status === 'GO' || a.status === 'Conditional GO' || a.status === 'Applied'))
+        .sort((a, b) => (b.priority?.priorityScore ?? 0) - (a.priority?.priorityScore ?? 0))
+        .slice(0, 8)
+        .map(a => ({
+          score: a.score ?? 3,
+          priority: Math.max(0, Math.min(100, a.priority?.priorityScore ?? 50)),
+          status: a.status,
+        }))
+    )};
+  const orbs = [];
+  TOP_PRIORITY.forEach((row, i) => {
+    const colorMap = { 'Applied': 0x89b4fa, 'GO': 0xa6e3a1, 'Conditional GO': 0xf9e2af };
+    const col = colorMap[row.status] || 0xcba6f7;
+    const size = 1.4 + (row.score / 5) * 1.8;
+    const orbGeo = new THREE.IcosahedronGeometry(size, 1);
+    const orbMat = new THREE.MeshBasicMaterial({
+      color: col, transparent: true, opacity: 0.7, wireframe: true,
+    });
+    const orb = new THREE.Mesh(orbGeo, orbMat);
+    const angle = (i / Math.max(TOP_PRIORITY.length,1)) * Math.PI * 2;
+    orb.userData = { angle, radius: 32 + i * 1.5, speed: 0.15 + i * 0.02, y: (Math.random()-0.5)*5, glow: col };
+    group.add(orb);
+
+    // Inner halo
+    const haloGeo = new THREE.SphereGeometry(size * 0.55, 16, 16);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: col, transparent: true, opacity: 0.35,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const halo = new THREE.Mesh(haloGeo, haloMat);
+    orb.add(halo);
+    orbs.push(orb);
+  });
+
+  // Pipeline ribbon
+  const curvePts = [];
+  for (let i = 0; i <= 140; i++) {
+    const t = i / 140;
+    curvePts.push(new THREE.Vector3(
+      -65 + t * 130,
+      Math.sin(t * Math.PI * 4.5) * 3.5,
+      Math.cos(t * Math.PI * 2.2) * 5 - 6,
+    ));
+  }
+  const curve = new THREE.CatmullRomCurve3(curvePts);
+  const tubeGeo = new THREE.TubeGeometry(curve, 260, 0.11, 10, false);
+  const tubeMat = new THREE.MeshBasicMaterial({
+    color: 0xcba6f7, transparent: true, opacity: 0.6,
+    blending: THREE.AdditiveBlending,
+  });
+  scene.add(new THREE.Mesh(tubeGeo, tubeMat));
+
+  // Streaming particles that flow along the pipeline curve
+  const streamCount = 80;
+  const streamGeo = new THREE.BufferGeometry();
+  const streamPos = new Float32Array(streamCount * 3);
+  const streamT   = new Float32Array(streamCount);
+  for (let i = 0; i < streamCount; i++) {
+    streamT[i] = i / streamCount;
+  }
+  streamGeo.setAttribute('position', new THREE.BufferAttribute(streamPos, 3));
+  const streamMat = new THREE.PointsMaterial({
+    color: 0xffffff, size: 0.9, map: sprite,
+    transparent: true, opacity: 0.95,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const stream = new THREE.Points(streamGeo, streamMat);
+  scene.add(stream);
+
+  const clock = new THREE.Clock();
+  (function animate() {
+    const t = clock.getElapsedTime();
+    bgMat.uniforms.uTime.value = t;
+
+    group.rotation.y = t * 0.04;
+    group.rotation.x = Math.sin(t * 0.3) * 0.03;
+
+    // Breathing point clouds
+    for (const cloud of pointClouds) {
+      const arr = cloud.pts.geometry.attributes.position.array;
+      for (let i = 0; i < cloud.phases.length; i++) {
+        arr[i * 3 + 1] = cloud.basePositions[i * 3 + 1] + Math.sin(t * 0.6 + cloud.phases[i]) * 0.6;
+      }
+      cloud.pts.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // Orbit the priority orbs
+    orbs.forEach((orb) => {
+      orb.userData.angle += 0.004 * orb.userData.speed;
+      orb.position.x = Math.cos(orb.userData.angle) * orb.userData.radius * 1.4;
+      orb.position.y = Math.sin(orb.userData.angle) * 3 + orb.userData.y;
+      orb.position.z = Math.sin(orb.userData.angle) * orb.userData.radius * 0.35 - 8;
+      orb.rotation.x += 0.008;
+      orb.rotation.y += 0.01;
+    });
+
+    // Stream particles along the curve
+    const arr = stream.geometry.attributes.position.array;
+    for (let i = 0; i < streamCount; i++) {
+      streamT[i] = (streamT[i] + 0.0025) % 1;
+      const pt = curve.getPoint(streamT[i]);
+      arr[i * 3]     = pt.x;
+      arr[i * 3 + 1] = pt.y;
+      arr[i * 3 + 2] = pt.z;
+    }
+    stream.geometry.attributes.position.needsUpdate = true;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  })();
+})().catch(err => console.warn('[hero3d]', err));
 </script>
 </body>
 </html>`;
