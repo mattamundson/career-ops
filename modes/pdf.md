@@ -46,7 +46,11 @@ Those live at `config/archetype-variants.yml`; see step 6 below.
    - Use `generate-pdf.mjs --variant={slug}` instead of the generic CV template
    - Fallback to generic CV if: (a) `archetype-variants.yml` does not exist, (b) confidence is low / JD spans multiple archetypes equally, or (c) variant HTML generation fails
    - Known slugs: `operational-data-architect` | `ai-automation-workflow-engineer` | `bi-analytics-lead` | `business-systems-erp-specialist` | `applied-ai-solutions-architect` | `operations-technology-leader`
-6b. **ATS pre-flight check:** Run `node scripts/ats-score.mjs --cv=cv.md --jd=<jd_file>`. If the score is **below 60%**, pause and warn before generating the PDF. List the specific missing keywords and suggest where to inject each one (Professional Summary or Core Competencies grid). Do not proceed to PDF generation until the user confirms or the CV has been updated to bring the score above 60%.
+6b. **ATS pre-flight GATE (hard block):** Run `node scripts/ats-gate.mjs --cv=cv.md --jd=<jd_file> [--company=X --role=Y]`. Exit code is authoritative:
+   - **exit 0 (PASSED)** — proceed to PDF generation.
+   - **exit 1 (BLOCKED)** — score below threshold (default 60%). STOP. The gate prints the top 3 missing keywords. Either (a) revise the CV to cover them and re-run, or (b) re-run with `--force` if the user has explicitly accepted the low score. Never proceed silently.
+
+   Every invocation emits an `automation.ats_gate.*` event to `data/events/`. The advisory `ats-score.mjs` script remains available for detailed scoring reports, but `ats-gate.mjs` is the required gate for pipeline flows.
 7. Rewrite Professional Summary injecting JD keywords + exit narrative bridge ("Built the entire operational tech stack as COO. Now applying that systems thinking to [JD domain] at scale.")
 8. Select top 3-4 most relevant projects for the offer
 9. Reorder experience bullets by relevance to JD

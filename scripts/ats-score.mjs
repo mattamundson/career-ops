@@ -2,32 +2,19 @@
 /**
  * ATS Keyword Scorer
  * Usage: node scripts/ats-score.mjs --jd=jds/job.txt [--cv=cv.md]
+ *
+ * Also importable as a library:
+ *   import { scoreAtsMatch } from './ats-score.mjs';
+ *   const { pct, matched, missing } = scoreAtsMatch(jdText, cvText);
  */
 
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { isMainEntry } from './lib/main-entry.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-
-// ── CLI args ──────────────────────────────────────────────────────────────────
-const args = Object.fromEntries(
-  process.argv.slice(2)
-    .filter(a => a.startsWith('--'))
-    .map(a => {
-      const [k, ...v] = a.slice(2).split('=');
-      return [k, v.join('=')];
-    })
-);
-
-const cvPath  = resolve(ROOT, args.cv  ?? 'cv.md');
-const jdPath  = resolve(ROOT, args.jd  ?? '');
-
-if (!args.jd) {
-  console.error('Error: --jd=<path> is required');
-  process.exit(1);
-}
 
 // ── Stop words ────────────────────────────────────────────────────────────────
 const STOP_WORDS = new Set([
@@ -236,57 +223,100 @@ function addSuggestion(term) {
   return 'add to competency grid or summary';
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-let jdText, cvText;
-try {
-  jdText = readFileSync(jdPath, 'utf8');
-} catch {
-  console.error(`Error: Cannot read JD file: ${jdPath}`);
-  process.exit(1);
-}
-try {
-  cvText = readFileSync(cvPath, 'utf8');
-} catch {
-  console.error(`Error: Cannot read CV file: ${cvPath}`);
-  process.exit(1);
-}
+// ── Library export ────────────────────────────────────────────────────────────
 
-const termScores = extractTerms(jdText);
-const keywords   = topTerms(termScores, 20);
-const cvLower    = cvText.toLowerCase();
-
-const matched  = keywords.filter(k => matchesInCV(k, cvLower));
-const missing  = keywords.filter(k => !matchesInCV(k, cvLower));
-
-const pct  = Math.round((matched.length / keywords.length) * 100);
-const line = '─'.repeat(60);
-
-console.log('');
-console.log(line);
-console.log(`ATS Keyword Match: ${pct}% (${matched.length}/${keywords.length})`);
-console.log(line);
-
-if (matched.length > 0) {
-  console.log(`\nMATCHED (${matched.length}):`);
-  console.log('  ' + matched.join(', '));
+/**
+ * Score a CV against a JD's extracted top-20 keywords.
+ *
+ * @param {string} jdText - full job-description text
+ * @param {string} cvText - full CV text (markdown, plain, etc.)
+ * @param {object} [opts]
+ * @param {number} [opts.topN=20] - how many JD keywords to score against
+ * @returns {{ pct: number, matched: string[], missing: string[], keywords: string[] }}
+ */
+export function scoreAtsMatch(jdText, cvText, opts = {}) {
+  const topN = opts.topN ?? 20;
+  const termScores = extractTerms(jdText);
+  const keywords = topTerms(termScores, topN);
+  const cvLower = String(cvText || '').toLowerCase();
+  const matched = keywords.filter((k) => matchesInCV(k, cvLower));
+  const missing = keywords.filter((k) => !matchesInCV(k, cvLower));
+  const pct = keywords.length > 0
+    ? Math.round((matched.length / keywords.length) * 100)
+    : 0;
+  return { pct, matched, missing, keywords };
 }
 
-if (missing.length > 0) {
-  console.log(`\nMISSING (${missing.length}):`);
-  missing.forEach((term, i) => {
-    console.log(`  ${i + 1}. ${term} — ${addSuggestion(term)}`);
-  });
+export { addSuggestion };
+
+// ── Main (CLI) ────────────────────────────────────────────────────────────────
+
+function main() {
+  const args = Object.fromEntries(
+    process.argv.slice(2)
+      .filter((a) => a.startsWith('--'))
+      .map((a) => {
+        const [k, ...v] = a.slice(2).split('=');
+        return [k, v.join('=')];
+      })
+  );
+
+  const cvPath = resolve(ROOT, args.cv ?? 'cv.md');
+  const jdPath = resolve(ROOT, args.jd ?? '');
+
+  if (!args.jd) {
+    console.error('Error: --jd=<path> is required');
+    process.exit(1);
+  }
+
+  let jdText, cvText;
+  try {
+    jdText = readFileSync(jdPath, 'utf8');
+  } catch {
+    console.error(`Error: Cannot read JD file: ${jdPath}`);
+    process.exit(1);
+  }
+  try {
+    cvText = readFileSync(cvPath, 'utf8');
+  } catch {
+    console.error(`Error: Cannot read CV file: ${cvPath}`);
+    process.exit(1);
+  }
+
+  const { pct, matched, missing } = scoreAtsMatch(jdText, cvText);
+  const line = '─'.repeat(60);
+
+  console.log('');
+  console.log(line);
+  console.log(`ATS Keyword Match: ${pct}% (${matched.length}/${matched.length + missing.length})`);
+  console.log(line);
+
+  if (matched.length > 0) {
+    console.log(`\nMATCHED (${matched.length}):`);
+    console.log('  ' + matched.join(', '));
+  }
+
+  if (missing.length > 0) {
+    console.log(`\nMISSING (${missing.length}):`);
+    missing.forEach((term, i) => {
+      console.log(`  ${i + 1}. ${term} — ${addSuggestion(term)}`);
+    });
+  }
+
+  console.log('');
+  if (pct >= 70) {
+    console.log(`RECOMMENDATION: Good coverage at ${pct}%. Review missing terms for quick wins.`);
+  } else if (pct >= 50) {
+    const top3 = missing.slice(0, 3).map((t) => `"${t}"`).join(', ');
+    console.log(`RECOMMENDATION: Score below 70%. Add top 3 missing keywords: ${top3}`);
+  } else {
+    const top5 = missing.slice(0, 5).map((t) => `"${t}"`).join(', ');
+    console.log(`RECOMMENDATION: Score below 50% — significant gaps. Prioritize: ${top5}`);
+  }
+  console.log(line);
+  console.log('');
 }
 
-console.log('');
-if (pct >= 70) {
-  console.log(`RECOMMENDATION: Good coverage at ${pct}%. Review missing terms for quick wins.`);
-} else if (pct >= 50) {
-  const top3 = missing.slice(0, 3).map(t => `"${t}"`).join(', ');
-  console.log(`RECOMMENDATION: Score below 70%. Add top 3 missing keywords: ${top3}`);
-} else {
-  const top5 = missing.slice(0, 5).map(t => `"${t}"`).join(', ');
-  console.log(`RECOMMENDATION: Score below 50% — significant gaps. Prioritize: ${top5}`);
+if (isMainEntry(import.meta.url)) {
+  main();
 }
-console.log(line);
-console.log('');
