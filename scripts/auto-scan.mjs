@@ -29,6 +29,10 @@ import { runChromePreflight } from './lib/chrome-preflight.mjs';
 import { expandDirectJobBoardScans } from './lib/direct-board-config.mjs';
 import { installExitTrap } from './lib/exit-event-trap.mjs';
 import { isMainEntry } from './lib/main-entry.mjs';
+import { linkedinPreflight } from './lib/linkedin-preflight.mjs';
+import { registerPreflight, runPreflight } from './lib/preflight-registry.mjs';
+
+registerPreflight('linkedin-mcp', linkedinPreflight);
 
 installExitTrap('scan');
 
@@ -1265,6 +1269,11 @@ async function runDirectBoardScans(cfg) {
     if (scan.query) args.push('--query', String(scan.query));
     if (scan.location) args.push('--location', String(scan.location));
     if (scan.limit) args.push('--limit', String(scan.limit));
+
+    const preflightResult = await runPreflight(scan.name);
+    if (preflightResult.ran && preflightResult.error) {
+      console.warn(`[direct:${directLabel}] preflight error (non-fatal): ${preflightResult.error}`);
+    }
 
     const jobs = await new Promise(resolve_ => {
       let proc;
