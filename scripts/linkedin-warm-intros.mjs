@@ -84,6 +84,33 @@ export function pickPeopleSearchTool(toolsList) {
 }
 
 /**
+ * Build tool-specific call arguments. Different LinkedIn MCP servers expose
+ * search tools with varying argument shapes. We match on tool name + schema
+ * (when available) and fall back to a safe default.
+ *
+ * Known servers:
+ * - linkedin-scraper-mcp (stickerdaniel): search_people takes { keywords, location? }
+ *   with no company or limit params — we client-side truncate after the call.
+ * - Other servers may expose { company, limit } directly.
+ */
+export function buildSearchArgs(toolName, toolSchema, { company, max }) {
+  const props = toolSchema?.properties || {};
+  const args = {};
+  if ('keywords' in props) {
+    args.keywords = company;
+  } else if ('company' in props) {
+    args.company = company;
+  } else if ('query' in props) {
+    args.query = company;
+  } else {
+    args.keywords = company;
+  }
+  if ('limit' in props && Number.isFinite(max)) args.limit = max;
+  if ('max_results' in props && Number.isFinite(max)) args.max_results = max;
+  return args;
+}
+
+/**
  * Render the warm-intros markdown block. Exported for testability.
  */
 export function renderWarmIntrosSection(intros, { company, source = 'linkedin-mcp', note = null }) {
@@ -123,12 +150,14 @@ export function renderWarmIntrosSection(intros, { company, source = 'linkedin-mc
  * Replaces an existing section if present to keep runs idempotent.
  */
 export function upsertWarmIntrosSection(reportText, section) {
-  const headerRe = /^## Warm intros[\s\S]*?(?=^## |\z)/m;
+  // Match an existing "## Warm intros" section up to the next "## " heading or EOF.
+  // JS regex has no \z — use a negative lookahead for any remaining char to terminate at EOF.
+  const headerRe = /^## Warm intros\b[\s\S]*?(?=^## |(?![\s\S]))/m;
   if (headerRe.test(reportText)) {
     return reportText.replace(headerRe, section.endsWith('\n') ? section : section + '\n');
   }
-  // Insert before a trailing fence if the report ends with "---\nInspired by..."
-  const trailingMatch = reportText.match(/\n---\s*\nInspired by[\s\S]*$/);
+  // Insert before a trailing fence if the report ends with "---\n*Inspired by..." or "---\nInspired by..."
+  const trailingMatch = reportText.match(/\n---\s*\n\*?Inspired by[\s\S]*$/);
   if (trailingMatch) {
     const trailing = trailingMatch[0];
     const head = reportText.slice(0, reportText.length - trailing.length);
@@ -176,7 +205,9 @@ async function fetchWarmIntros({ company, max }) {
         toolsAvailable: (tools?.tools || []).map((t) => t.name).slice(0, 10),
       };
     }
-    const result = await client.callTool(toolName, { company, limit: max }, 60000);
+    const toolSchema = (tools?.tools || []).find((t) => t.name === toolName)?.inputSchema;
+    const callArgs = buildSearchArgs(toolName, toolSchema, { company, max });
+    const result = await client.callTool(toolName, callArgs, 60000);
     const intros = normalizeIntros(result, { max });
     return { ok: true, intros, toolName };
   } catch (err) {

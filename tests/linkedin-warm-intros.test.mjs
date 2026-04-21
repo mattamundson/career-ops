@@ -5,6 +5,7 @@ import {
   renderWarmIntrosSection,
   upsertWarmIntrosSection,
   normalizeIntros,
+  buildSearchArgs,
 } from '../scripts/linkedin-warm-intros.mjs';
 
 test('pickPeopleSearchTool: returns null for empty tool list', () => {
@@ -38,6 +39,65 @@ test('pickPeopleSearchTool: falls back to generic people search', () => {
 test('pickPeopleSearchTool: no match returns null', () => {
   const tools = { tools: [{ name: 'search_jobs' }, { name: 'send_message' }] };
   assert.equal(pickPeopleSearchTool(tools), null);
+});
+
+test('buildSearchArgs: maps to keywords for linkedin-scraper-mcp shape', () => {
+  const schema = { properties: { keywords: { type: 'string' }, location: {} }, required: ['keywords'] };
+  const args = buildSearchArgs('search_people', schema, { company: 'Mortenson', max: 5 });
+  assert.deepEqual(args, { keywords: 'Mortenson' });
+});
+
+test('buildSearchArgs: maps to company+limit when schema supports them', () => {
+  const schema = { properties: { company: {}, limit: {} } };
+  const args = buildSearchArgs('search_people_in_network', schema, { company: 'Acme', max: 10 });
+  assert.deepEqual(args, { company: 'Acme', limit: 10 });
+});
+
+test('buildSearchArgs: falls back to keywords when schema missing', () => {
+  const args = buildSearchArgs('find_people', undefined, { company: 'Xyz', max: 3 });
+  assert.deepEqual(args, { keywords: 'Xyz' });
+});
+
+test('buildSearchArgs: prefers query over keywords when both unsupported', () => {
+  const schema = { properties: { query: {}, max_results: {} } };
+  const args = buildSearchArgs('network_search', schema, { company: 'Foo', max: 7 });
+  assert.deepEqual(args, { query: 'Foo', max_results: 7 });
+});
+
+test('upsertWarmIntrosSection: replaces existing section at end-of-file (no \\z bug)', () => {
+  const report = [
+    '# Report',
+    '',
+    'body text',
+    '',
+    '## Warm intros',
+    '',
+    '_No matches at Acme._',
+    '',
+  ].join('\n');
+  const newSection = '## Warm intros\n\n_Updated: 1 match at Acme._\n';
+  const out = upsertWarmIntrosSection(report, newSection);
+  const occurrences = (out.match(/## Warm intros/g) || []).length;
+  assert.equal(occurrences, 1, 'section should be replaced, not duplicated');
+  assert.match(out, /_Updated: 1 match at Acme\._/);
+  assert.doesNotMatch(out, /_No matches at Acme\._/);
+});
+
+test('upsertWarmIntrosSection: inserts before asterisk-wrapped Inspired-by fence', () => {
+  const report = [
+    '# Report',
+    '',
+    'body text',
+    '',
+    '---',
+    '*Inspired by the upstream repository: https://github.com/santifer/career-ops*',
+    '',
+  ].join('\n');
+  const section = '## Warm intros\n\n_test_\n';
+  const out = upsertWarmIntrosSection(report, section);
+  const warmIdx = out.indexOf('## Warm intros');
+  const fenceIdx = out.indexOf('*Inspired by');
+  assert.ok(warmIdx > 0 && fenceIdx > warmIdx, 'warm intros should appear before the Inspired-by fence');
 });
 
 test('renderWarmIntrosSection: empty intros renders "no matches" with manual fallback', () => {
