@@ -1111,5 +1111,321 @@ Tracking this in §7 TODOs.
 
 ---
 
-**End of expanded handoff. 20 sections, ~1,400 lines. Read §10 first, §13–18 when you need depth.**
-— Claude Opus 4.7 (session 2026-04-20 night, expanded 20:50 CT)
+## 19. Historical Context — Prior Commits This Work Builds On
+
+Tonight's LinkedIn MCP fix did not land in a vacuum. Four prior initiatives set up the infrastructure, made the failure visible, and established the patterns this session followed:
+
+### 19.1 LinkedIn MCP integration (the origin)
+
+- `9a31254 feat(scan-linkedin-mcp): real MCP stdio JSON-RPC client` — first real wiring of LinkedIn as an MCP source. Before this, LinkedIn was only reachable via Playwright (high-friction, auth-prompt-heavy). This commit swapped in the `linkedin-scraper-mcp` uvx package via stdio JSON-RPC — the architecture we still use tonight.
+- `a260e7d feat(scan): integrate LinkedIn MCP + Indeed Playwright scanners + aggregator-URL resolver` — same era, bundled LinkedIn MCP into `auto-scan.mjs`'s `runDirectBoardScans()`. This is the code path at lines 1249-1313 that tonight's partial-success propagation will extend.
+- `85cae1e refactor(mcp): extract shared stdio JSON-RPC client to scripts/lib/mcp-client.mjs` — shared the client across multiple MCP integrations. The `McpClient` class used at line 173 of `scan-linkedin-mcp.mjs` lives here.
+
+**Implication:** The LinkedIn MCP is a ~4-week-old dependency. Matt has lived through the growing-pains phase; tonight's fix is the second wave of hardening (first wave: auth-wall rejection at `9ec1438`).
+
+### 19.2 Chrome preflight lineage
+
+- `b51eef1 feat(ops): chrome-preflight lib + gitignore Playwright artifact dirs` — original `scripts/lib/chrome-preflight.mjs`, introduced to kill zombie Chromium processes left by crashed Playwright runs.
+- `409e0df feat(ops): runChromePreflight wrapper + wire into 9 browser entry points` — wrapper fan-out across all Playwright-using scripts. Precedent for the preflight-registry pattern in Phase 3.2 of this plan.
+- `5440452 fix(chrome-preflight): restore missing runChromePreflight wrapper` — a regression fix; the wrapper was accidentally removed. Small lesson: preflight code is load-bearing and easy to accidentally break.
+- `9dcbf92 fix(chrome-preflight): route wrapper cleanup logs to stderr` — stdout hygiene. Tonight's `killStaleLinkedInChrome` follows the same stderr convention (lines 116-120).
+- `bb0451e feat(apply): wire chrome preflight into browser entrypoints` — extended preflight to the apply-flow scripts. Matt knows this pattern; the LinkedIn-specific preflight (`pruneInvalidStateSnapshots`) tonight is a natural extension.
+
+**Implication:** Extracting the LinkedIn-specific preflight into `scripts/lib/linkedin-preflight.mjs` (Phase 3.2) follows a well-worn path. The team has already paid the "where does this live" tax; there's a clear convention.
+
+### 19.3 Reliability + cron-wrap evolution
+
+- `7a33663 feat(automation): apply orchestration, preflight, hygiene, run-summary, verify-all` — the big bang. Introduced run-summary writing, preflight hooks, and `verify:all` CI gate. The `createRunSummaryContext` + `markPartialSuccess` we're using tonight landed here.
+- `87baec8 feat(reliability): exit-trap one-liner closes silent-failure gap` — a subtle prior fix. Scripts were silently swallowing errors in exit handlers; this one-liner forced surfacing. Tonight's graceful-degrade exit path (D7) is consistent with this philosophy — fail visibly, don't fail silently.
+- `99e82f6 feat(cron-wrap): also recognize legacy status:'failure' events` — dealt with the exact ambiguity tonight's `partial_success` propagation TODO addresses: what counts as a failure for the cron wrapper's reporting? The legacy `failure` vs. new `error`/`partial`/`success` tri-state distinction means we can't just bolt on new statuses — we need to verify the cron-wrap reader handles them.
+
+**Implication:** When wiring `partial_success` in Phase 3.3, check that `scripts/cron-wrap.mjs` (or equivalent) recognizes the state. There's a precedent for backward-compatible status reading here.
+
+### 19.4 Scan-source priority + health evolution
+
+- `6701144 feat(priority): on-site MSP > hybrid MSP > remote across scoring + scanners` — SSOT work from 2026-04-16. Gave each scanner a location-priority awareness.
+- `fe6dd7c feat(scan-history): 7th location column + MSP bucket split in scan-report` — scan-history.tsv got richer columns.
+- `62cfe04 refactor(portals): expand locations[] variants in direct-board scans` — direct-scan portals got multi-location support.
+- `0452cd9 feat(dashboard): morning briefing + freshness badges + stale-alert panel (W2)` — dashboard got freshness surfaces, including per-source staleness. The source-health registry in Phase 3.4 is a natural next step on this axis.
+
+**Implication:** Matt's dashboard already surfaces freshness (last-run timestamp per source) but NOT reliability (success rate over N runs). Phase 3.4 closes this loop.
+
+### 19.5 Session handoff cadence
+
+- `083837a docs: session handoff — 2026-04-20 overnight push (9 commits)` — the overnight session that preceded this one. Tonight's scan-linkedin-mcp.mjs was last touched in that window.
+- `a312013 docs: session handoff — 2026-04-20 late-night (LinkedIn ATS URL loop complete)` — immediately prior. LinkedIn *ATS URL* work (resolving redirected URLs from LinkedIn listings to direct ATS URLs) is distinct from tonight's *LinkedIn MCP* scanning — don't confuse them.
+- `e5cb96d docs: refresh DAILY-USAGE + session continuity for 2026-04-19 night push` — two nights ago.
+- `fe28b2c docs: session continuity handoff 2026-04-17 early morning` — four days ago.
+
+**Implication:** Matt is running nightly sessions. The handoff cadence is tight. Any "will pick up tomorrow" plan is real — not a future-TBD.
+
+---
+
+## 20. Operational Runbook — Scenario Playbooks
+
+Extract-and-act procedures. If you're in the middle of an incident, skip the narrative sections and jump to the scenario that matches the symptom.
+
+### 20.1 Scenario A — 6am cron fired, scan emitted `status: error`
+
+**Symptom:** `data/run-summaries/scanner-2026-04-21T11-00-*.md` shows `status: error` in frontmatter. Daily digest email flags the run. Or: no 6am summary file at all (cron didn't fire / cron failed before summary write).
+
+**First 5 minutes:**
+1. `cat data/run-summaries/scanner-2026-04-21T*.md` — read the full summary including warnings.
+2. `grep -l "scanner.linkedin_mcp" data/events/2026-04-21.jsonl` — confirm LinkedIn MCP was invoked.
+3. `tail -n 200 data/scan-scheduler.log` (ignored by git but exists locally) — kernel-level cron status.
+4. If LinkedIn is the culprit, proceed to **Scenario B**. If another source, triage per §15.3 diagnostic tree.
+
+**Escalation criterion:** If two consecutive 6am crons error out with the same source → this stops being a one-off. Drop everything and diagnose.
+
+**Verification command after fix:** `node scripts/scan-linkedin-mcp.mjs --live` (runs the script standalone with full stderr visible; finishes in ~30s for a healthy profile).
+
+### 20.2 Scenario B — LinkedIn MCP specifically is failing
+
+**Symptom:** `scanner.linkedin_mcp.completed` event with `status: error` OR missing entirely from the day's JSONL. stderr excerpt includes `AuthenticationError`, `WinError 32`, `PermissionError`, or `Stored runtime profile is invalid`.
+
+**First 5 minutes:**
+1. **Read the error type** (matters for branching):
+   - `PermissionError: [WinError 32]` → profile lock. Go to §15.2 (non-Chrome lock holder triage).
+   - `Stored runtime profile is invalid` → wrapper of file-system error. Try preflight + retry (which tonight's fix does automatically).
+   - `captcha`, `Access Denied` without `PermissionError` → anti-bot. Go to §15.3 (re-auth path).
+   - `HTTP 429` → rate limit. Wait 10 minutes, re-run. If recurs, reduce query count.
+2. Manually run preflight: `node -e "import('./scripts/scan-linkedin-mcp.mjs').then(m => m.preflight?.())"` (requires Phase 3.1 main-guard + export).
+3. Manually run scan: `node scripts/scan-linkedin-mcp.mjs --live` (note: `--live` flag currently shows jobs; add `--json` flag if you want programmatic output).
+4. Inspect `~/.linkedin-mcp/` size: `du -sh ~/.linkedin-mcp/` (or `Get-ChildItem -Path "$env:USERPROFILE\.linkedin-mcp" -Recurse | Measure-Object -Property Length -Sum`). Expect ~225MB profile + ~225MB most-recent invalid-state snapshot. If >1GB, preflight's prune failed silently.
+
+**Escalation criterion:** If 3 consecutive retries fail with PermissionError and preflight kills no Chrome processes → culprit is not Chrome. Add Defender exclusion: `Add-MpPreference -ExclusionPath "$env:USERPROFILE\.linkedin-mcp"` (requires admin PowerShell).
+
+**Verification command after fix:** `node scripts/scan-linkedin-mcp.mjs --json | tail -1 | jq '.status'` should output `"success"` (not `"partial"` or `"error"`).
+
+### 20.3 Scenario C — `.linkedin-mcp/` disk blowout
+
+**Symptom:** `du -sh ~/.linkedin-mcp` shows >2GB. OR: manual observation of storage pressure.
+
+**First 5 minutes:**
+1. List snapshots by age + size: `Get-ChildItem "$env:USERPROFILE\.linkedin-mcp" -Directory | Where-Object { $_.Name -like "invalid-state-*" } | Sort-Object LastWriteTime -Descending | ForEach-Object { "{0}  {1}MB  {2}" -f $_.LastWriteTime.ToString("yyyy-MM-dd HH:mm"), [math]::Round((Get-ChildItem $_ -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB), $_.Name }`
+2. Keep the single newest; remove all others: `node -e "import('./scripts/scan-linkedin-mcp.mjs').then(m => m.pruneInvalidStateSnapshots?.())"` (requires Phase 3.1 main-guard + export).
+3. If snapshots are actively being created (more than 1/day), something is forcing the MCP into repeated invalid-state events. Escalate to Scenario B.
+
+**Root cause discovery:** Count how many snapshots existed on day N vs day N-7. Exponential growth = systemic issue; linear = one-off. Check `git log --since="14 days ago" --oneline scripts/scan-linkedin-mcp.mjs` to see if recent code changes correlate.
+
+**Verification command after fix:** `du -sh ~/.linkedin-mcp` returns <500MB. Run a scan and confirm it does NOT create a new invalid-state-* snapshot on success.
+
+### 20.4 Scenario D — Partial scan result interpretation
+
+**Symptom:** Run summary shows `status: partial_success`, `warnings: [...]`, and total job count seems lower than usual.
+
+**First 5 minutes:**
+1. `cat data/run-summaries/scanner-*.json | tail -1 | jq '.warnings, .stats'` — identify which source(s) degraded.
+2. Compare to prior 7 days: `for f in data/run-summaries/scanner-2026-04-*.json; do jq -r '[.finishedAt, .status, .stats.total_found] | @tsv' "$f"; done` — baseline yield.
+3. **If yield delta is <10% and one source is flagged** — non-critical, monitor.
+4. **If yield delta is >30%** — likely primary source (Greenhouse or LinkedIn) is down. Check its specific event log.
+
+**Escalation criterion:** Three consecutive partial_success runs flagging the same source → the source has a sustained issue. If it's LinkedIn, see Scenario B. If Greenhouse API, check their status page.
+
+**Verification command after fix:** Subsequent run shows `status: success` with yield within ±10% of baseline.
+
+### 20.5 Scenario E — Dashboard stale / missing tiles
+
+**Symptom:** `dashboard.html` open in browser shows yesterday's data. Or a tile renders `undefined` / blank.
+
+**First 5 minutes:**
+1. `ls -la dashboard.html` — check mtime. If older than most recent scan, the post-scan regen hook didn't fire.
+2. `node scripts/generate-dashboard.mjs` — force regen manually. Watch for errors.
+3. `grep -c recorded_at data/events/2026-04-21.jsonl` — confirm today's events exist.
+4. If a specific tile renders blank, grep the generator for the tile's data source: e.g., source-health tile → `grep "source-health" scripts/generate-dashboard.mjs`.
+
+**Escalation criterion:** If manual regen produces stale output, the event pipeline is broken upstream. Check `scripts/log-automation-event.mjs` (if exists) or wherever emitters write JSONL.
+
+**Verification command after fix:** Refresh dashboard, confirm all tiles render current data, confirm "Last updated" timestamp is within 5 minutes.
+
+---
+
+## 21. Annotated Code Walkthroughs
+
+Inline walkthrough of the three code paths most relevant to next steps. Read this when you need to modify these areas; skip when you're in a different part of the codebase.
+
+### 21.1 `scripts/scan-linkedin-mcp.mjs:103-168` — preflight block (this session's work)
+
+```js
+// L103-105: Error detector. Broad by design — catches all known
+// manifestations of "profile directory is locked."
+function isProfileLockError(msg) {
+  return /WinError 32|WinError 5|PermissionError|being used by another process|Stored runtime profile is invalid/i.test(msg);
+}
+```
+*Notes:* The alternation matches both deepest-layer (WinError 32) and highest-layer (AuthenticationError wrapper's "Stored runtime profile is invalid") errors. Don't narrow without regression-testing against the stderr patterns seen in §13.1.
+
+```js
+// L109-123: Kill stale Chromes — Windows only, WMI filter on CommandLine
+function killStaleLinkedInChrome() {
+  if (process.platform !== 'win32') return { killed: 0, skipped: true };
+  // ... WMI CIM query with Where-Object pipeline-filter for 'linkedin-mcp' in CommandLine
+```
+*Notes:* See §13.3 for why the filter is applied in PowerShell (not WQL `-Filter`). Timeout is 15s — generous for typical machines; if Matt's box has 200+ Chrome tabs this could borderline. `SilentlyContinue` on Stop-Process prevents errors when processes die mid-query.
+
+```js
+// L125-151: Prune invalid-state snapshots, keep KEEP_SNAPSHOTS (1) newest
+function pruneInvalidStateSnapshots() {
+  // ... sort by mtimeMs desc, slice off the newest 1, rmSync the rest
+  rmSync(e.path, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+```
+*Notes:* `maxRetries: 3` handles `EBUSY`/`ENOTEMPTY`/`EPERM` but NOT `EACCES` (see §13.4). For stale snapshots this is almost never triggered; it's defense-in-depth for AV-scanner races. KEEP_SNAPSHOTS=1 is the current constant; bump via `KEEP_SNAPSHOTS` env var if recovery fails with N=0 (see §14 D3).
+
+```js
+// L165-168: Preflight entry point — called at main() line ~215
+function preflight() {
+  killStaleLinkedInChrome();
+  pruneInvalidStateSnapshots();
+}
+```
+*Notes:* Synchronous, both helpers tolerate their own errors. Don't async this without ensuring both helpers still run on one failure (currently if the first throws, the second still runs; would break with `await` chain).
+
+### 21.2 `scripts/auto-scan.mjs:1249-1313` — LinkedIn MCP spawn in orchestrator
+
+```js
+// L1249-1290: runDirectBoardScans spawns child Node process
+const proc = spawn(process.execPath, args, { ... });
+proc.stderr.on('data', (buf) => { /* collect stderr */ });
+```
+*Notes:* Stdin not used; child communicates via stdout (JSON mode with `--json` flag) and stderr (human-readable). Parent captures both but only consumes stdout for the job list.
+
+```js
+// L1297: Exit-code handling (the GAP for Phase 3.3)
+proc.on('exit', (code) => {
+  if (code !== 0 && code !== null) {
+    console.warn(`[${SOURCE}] exit code ${code} — dropping results`);
+    resolve_([]);
+  }
+```
+*Notes:* **Current behavior:** any non-zero exit → treat as zero jobs, don't fail scan. **Phase 3.3 target:** add explicit branch for `code === 2` → `markPartialSuccess('LinkedIn MCP retried successfully — investigate recurrence')`. The child script must be updated in parallel to return exit code 2 on retry-success, which means §21.3's retry block needs a parallel edit.
+
+```js
+// L1308: JSON parse handling
+try { jobs = JSON.parse(stdoutStr); } catch { ... }
+```
+*Notes:* If stdout is malformed (e.g., stderr leaks into stdout stream), this catches silently. For Phase 3.3 consider: after successful parse, inspect `jobs.status` field too — if `status: 'partial'`, also call `markPartialSuccess`. Two signal channels (exit code 2 OR stdout status) are robust-by-redundancy.
+
+### 21.3 `scripts/scan-linkedin-mcp.mjs:220-231` — retry-after-preflight loop
+
+Based on the current code shape (verify exact lines when editing):
+
+```js
+// In runQueries or main(): retry once if profile-lock on first attempt
+if (profileLockHit && !retried) {
+  console.error(`[${SOURCE}] profile-lock detected, re-running preflight + retrying once...`);
+  await new Promise(r => setTimeout(r, 5000)); // kernel handle cleanup time
+  preflight();
+  retried = true;
+  // ... retry queries
+}
+```
+*Notes:* The `5000` is deliberate — §13.2 explains the kernel-handle-release latency. Don't shorten below 2000ms without testing.
+
+**Phase 3.3 edit:** When retry succeeds, set a `retriedSuccessfully` flag that:
+1. Writes `retried: true` into the `scanner.linkedin_mcp.completed` event payload
+2. Causes `process.exit(2)` instead of `process.exit(0)` on clean-exit path
+3. Optionally sets `status: 'partial'` in the event payload for orchestrator visibility
+
+### 21.4 `scripts/generate-dashboard.mjs:1156` — event timestamp fallback
+
+```js
+const eventTs = (e) => new Date(e.recorded_at || e.timestamp || e.ts || e.at || 0).getTime();
+```
+*Notes:* Chain is load-bearing (§13.6). The `|| 0` at the end gives epoch-0 for events with no timestamp — these sort to the beginning of any chronological rendering and are visually obvious as "broken." Don't replace with `|| Date.now()` — that would silently hide malformed events.
+
+For Phase 3.4 source-health aggregator: reuse this exact helper. If centralizing, extract to `scripts/lib/event-utils.mjs`.
+
+---
+
+## 22. Environment Specifics — Matt's Windows 11 Machine
+
+Idioms and constraints specific to the machine this code runs on. Skip if you're working on another machine; critical if you're debugging Windows-specific behavior.
+
+### 22.1 Chrome profile hive location
+
+- `%USERPROFILE%\.linkedin-mcp\` — LinkedIn MCP profile root. ~225MB when healthy.
+- `%USERPROFILE%\.linkedin-mcp\profile\Default\Network\Cookies` — the SQLite file that gets locked (§13.1).
+- `%USERPROFILE%\.linkedin-mcp\profile\Default\Login Data` — Chrome Password-Manager DB; also SQLite; also lockable.
+- `%USERPROFILE%\.linkedin-mcp\invalid-state-YYYY-MM-DDTHH-MM-SS*\` — snapshot directories created when the MCP detects a corrupt session. Tonight's prune keeps the 1 newest.
+
+### 22.2 Windows Defender real-time protection interactions
+
+Defender's real-time scanner touches new files for <500ms after write. When the LinkedIn MCP moves a profile directory (recursive copy-then-delete internally), Defender can grab `Cookies` for an AV scan during the window and hold an exclusive handle. This looks identical to a Chrome-held lock but is actually Defender.
+
+**Diagnose:** During a lock event, run `handle.exe "C:\Users\mattm\.linkedin-mcp\profile\Default\Network\Cookies"` (Sysinternals). If the holder is `MsMpEng.exe`, it's Defender.
+
+**Fix:** Exclusion requires admin PowerShell:
+```powershell
+Add-MpPreference -ExclusionPath "$env:USERPROFILE\.linkedin-mcp"
+```
+This excludes the directory from both real-time and scheduled scans. Document if applied — it's a security-posture change.
+
+**Warning:** Do NOT blanket-exclude `%USERPROFILE%` or large Chrome profile roots. Narrow to `.linkedin-mcp` only.
+
+### 22.3 OneDrive sync interactions
+
+If OneDrive backs up `%USERPROFILE%`, it watches for changes and uploads. During MCP profile moves, OneDrive can grab handles on individual files. This is rare (OneDrive de-prioritizes transient files) but possible.
+
+**Diagnose:** `Get-Process onedrive` — if running, check OneDrive's "Files restoring" panel for ongoing sync on `.linkedin-mcp`.
+
+**Fix:** Exclude folder: OneDrive → Settings → Backup → Manage → uncheck `.linkedin-mcp`. Or: `%USERPROFILE%\.OneDrive\settings\Personal\exclude.txt` add the path.
+
+### 22.4 Sysinternals install + usage
+
+For deep file-lock / handle diagnosis, Sysinternals Suite is the tool:
+- Download: https://learn.microsoft.com/sysinternals/downloads/sysinternals-suite
+- Install: extract to `%USERPROFILE%\Tools\Sysinternals\`, add to PATH.
+- Key binaries:
+  - `handle.exe` — enumerate file handles (needs `-a` for all processes)
+  - `procmon.exe` — real-time file/registry activity monitor
+  - `tcpview.exe` — open network connections
+
+First-run accepts EULA: `handle.exe -accepteula` once per machine.
+
+### 22.5 Port reservations (from CLAUDE.md)
+
+- IB Gateway live: port 4001 (PERMANENTLY BLOCKED — JARVIS trader only)
+- IB Gateway paper: port 4002
+- Engine API: 8010
+- Dashboard: 3010
+- Redis: 6379
+
+career-ops should never bind these. The scan pipeline uses no ports (pure subprocess + HTTP client).
+
+### 22.6 Node / Python versions
+
+- Node: managed by `pnpm env`; current active is verifiable via `pnpm -v` and `node -v`. The `.mjs` scripts require Node ≥ 16 (for `fs.rmSync`).
+- Python: career-ops Python is via `uvx` (ephemeral) or system. JARVIS has `engine/.venv/` but career-ops doesn't. The LinkedIn MCP is pulled via `uvx linkedin-scraper-mcp@latest` — see §18.3 for the version-pinning concern.
+- PowerShell: 7.x (pwsh) preferred; scripts use `-NoProfile` to avoid user-profile module loading and `-Command` for single-line invocation.
+
+### 22.7 Line-ending convention
+
+Git on this machine normalizes LF → CRLF on checkout. Editing .mjs files locally produces CRLF; git normalizes back on commit. Warnings like `"LF will be replaced by CRLF the next time Git touches it"` are cosmetic — the tracked content is LF.
+
+**Do not** set `autocrlf=false` globally; it breaks cross-platform collaboration. The current setup is correct.
+
+### 22.8 Scheduled task registration
+
+- `scripts/scan-task.xml` — Windows Task Scheduler definition for daily scans.
+- `scripts/register-scan-task.ps1` — one-shot script that imports the XML into Task Scheduler (requires admin).
+- Tasks register under `\Matt\career-ops\` hive.
+- View status: `Get-ScheduledTask -TaskPath "\Matt\career-ops\*" | Format-Table TaskName, State, LastRunTime, LastTaskResult`
+
+A `LastTaskResult` of `0x0` is clean; `0x1` is generic failure; `0x41301` is still-running. If tasks are missing entirely, re-run the register script.
+
+---
+
+## 23. Companion Documents (forward reference)
+
+The following docs extract and focus the lookup-style material from §13-§18 + §20-§21 above. Handoffs rot; these living docs don't:
+
+- **`docs/RUNBOOK-linkedin-mcp.md`** — Operational response for LinkedIn MCP failures. Extracts §15 diagnostic trees + §20.2-20.3 scenarios + §12.10 outcome interpretation. If you're firefighting, read this first.
+- **`docs/ARCHITECTURE-scan-pipeline.md`** — Architecture of the scan pipeline: sources, orchestration, event flow, partial_success propagation. Extracts §12.4, §13.8, §18.1-18.2. If you're modifying the orchestrator or adding a source, read this.
+- **`docs/POLICY-mcp-dependencies.md`** — Version-pinning and auth-state backup policy for MCP integrations. Extracts §18.3. If you're adding a new MCP, read this.
+
+These docs are canonical lookup material. This handoff remains the chronological session record.
+
+---
+
+**End of expanded handoff. 23 sections, ~1,700+ lines. Read §10 first for quick-start, §20-§22 for operational depth, §23 for follow-on docs.**
+— Claude Opus 4.7 (session 2026-04-20 night, final expansion 21:30 CT)
