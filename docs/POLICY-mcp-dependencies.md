@@ -178,10 +178,10 @@ When integrating a new MCP source:
 
 | Package | Pinned? | Version | Pin date | Owner script | Auth state? |
 |---------|---------|---------|----------|--------------|-------------|
-| `linkedin-scraper-mcp` | ❌ `@latest` | (floating) | — | `scripts/scan-linkedin-mcp.mjs` | Yes — `~/.linkedin-mcp/profile/` |
+| `linkedin-scraper-mcp` | ✅ | `4.9.3` | 2026-04-20 | `scripts/scan-linkedin-mcp.mjs:119` | Yes — `~/.linkedin-mcp/profile/` |
 | (future Indeed MCP?) | — | — | — | `scripts/scan-indeed.mjs` (currently Playwright, not MCP) | — |
 
-**Action item:** pin `linkedin-scraper-mcp` per §2.2. Open TODO from the 2026-04-20 night handoff §18.3.
+**Next weekly check:** 2026-04-27. Compare upstream `pip index versions linkedin-scraper-mcp` against pinned 4.9.3; upgrade per §2.3 if a new version is available and released notes look clean.
 
 ---
 

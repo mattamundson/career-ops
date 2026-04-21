@@ -116,7 +116,10 @@ function preflight() {
 // --- Main ------------------------------------------------------------------
 
 async function runQueries(seen, allJobs, errors) {
-  const client = new McpClient('uvx', ['linkedin-scraper-mcp@latest'], { stderrPrefix: 'mcp:linkedin' });
+  // Pinned 2026-04-20 per docs/POLICY-mcp-dependencies.md §2.
+  // Current latest at pin time: 4.9.3 (verified via `pip index versions linkedin-scraper-mcp`).
+  // To unpin/upgrade, see policy §2.3.
+  const client = new McpClient('uvx', ['linkedin-scraper-mcp@4.9.3'], { stderrPrefix: 'mcp:linkedin' });
   let profileLockHit = false;
   try {
     for (const query of queries) {
