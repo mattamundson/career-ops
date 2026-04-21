@@ -399,6 +399,33 @@ const interviewApps = (() => {
   }
 })();
 
+// LinkedIn outreach — count sent / drafted in the last 7 days.
+const linkedinOutreach = (() => {
+  const dir = join(ROOT, 'data', 'outreach');
+  if (!existsSync(dir)) return { sent: 0, draft: 0, recent: [] };
+  try {
+    const files = readdirSync(dir).filter((n) => n.startsWith('linkedin-') && n.endsWith('.md'));
+    let sent = 0;
+    let draft = 0;
+    const recent = [];
+    for (const name of files) {
+      const m = name.match(/^linkedin-(\d{4}-\d{2}-\d{2})-(\d{3})-(.+)\.md$/);
+      if (!m) continue;
+      const [, dateStr, , slug] = m;
+      if (daysSinceIsoDate(dateStr) > 7) continue;
+      const content = readFileSync(join(dir, name), 'utf-8');
+      const isSent = /^status:\s*"?sent"?/m.test(content);
+      if (isSent) sent++;
+      else draft++;
+      recent.push({ dateStr, slug, sent: isSent });
+    }
+    recent.sort((a, b) => b.dateStr.localeCompare(a.dateStr));
+    return { sent, draft, recent };
+  } catch {
+    return { sent: 0, draft: 0, recent: [] };
+  }
+})();
+
 // Ghosted applications — Applied + silent ≥ ghost_threshold_days (default 14)
 // Separate from staleTouchApps because this is the subset that auto-flips
 // into the follow-up-drafts queue via check-cadence-alert.mjs.
@@ -512,6 +539,20 @@ const operatorSnapshotSection = `
             ${interviewApps.slice(0, 5).map((a) => `<li><strong>${escHtml(a.company)}</strong> — ${escHtml(a.role)}<br><span class="muted" style="font-size:11px">Top stories: ${a.matches.length === 0 ? '<em>no match — run <code>match-stories.mjs</code></em>' : a.matches.map((m) => `<span title="${escHtml(m.bestFor)}">${escHtml(m.title)}</span>`).join(' · ')}</span></li>`).join('')}
           </ul>
           <div class="muted" style="margin-top:8px;font-size:11px">Run <code>node scripts/match-stories.mjs --application-id=NNN</code> for full match report.</div>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+          LinkedIn outreach (7d)
+          ${(linkedinOutreach.sent + linkedinOutreach.draft) > 0 ? ` <span style="background:#89b4fa;color:#1e1e2e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600">${linkedinOutreach.sent}/${linkedinOutreach.sent + linkedinOutreach.draft}</span>` : ''}
+        </div>
+        ${linkedinOutreach.sent + linkedinOutreach.draft === 0
+    ? '<div class="muted" style="font-size:13px">No LinkedIn outreach drafted or sent in the last 7 days. Run <code>node scripts/send-linkedin-outreach.mjs</code> to draft.</div>'
+    : `<div style="font-size:12px;line-height:1.6">
+            <div><strong>${linkedinOutreach.sent}</strong> sent · <strong>${linkedinOutreach.draft}</strong> draft${linkedinOutreach.draft === 1 ? '' : 's'}</div>
+            ${linkedinOutreach.recent.slice(0, 5).length > 0 ? `<ul style="margin:8px 0 0;padding-left:18px;font-size:11px;line-height:1.5">
+              ${linkedinOutreach.recent.slice(0, 5).map((r) => `<li>${r.sent ? '✓' : '·'} ${escHtml(r.slug)} <span class="muted">${escHtml(r.dateStr)}</span></li>`).join('')}
+            </ul>` : ''}
+          </div>`}
       </div>
       <div>
         <div style="font-size:11px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
