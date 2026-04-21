@@ -25,6 +25,9 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `cv-sync-check.mjs` | CV/profile synchronization check — run to verify consistency |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/WHICH-DASHBOARD-WHEN.md` | HTML `dashboard.html` vs Go TUI: when to use each, refresh cadence, explicit non-goals |
+| `docs/RUNBOOK-linkedin-mcp.md` | Operational response for LinkedIn MCP scan failures (symptom triage, fix recipes) |
+| `docs/ARCHITECTURE-scan-pipeline.md` | Scan pipeline architecture: sources, orchestration, event flow, partial_success propagation |
+| `docs/POLICY-mcp-dependencies.md` | Version pinning and auth-state backup policy for MCP integrations |
 | `interview-prep/story-bank.md` | Accumulated STAR+R stories across evaluations |
 | `reports/` | Evaluation reports (format: `{###}-{company-slug}-{YYYY-MM-DD}.md`) |
 
