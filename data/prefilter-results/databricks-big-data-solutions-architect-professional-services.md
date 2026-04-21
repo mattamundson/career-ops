@@ -1,40 +1,27 @@
 # Prefilter: Databricks — Big Data Solutions Architect (Professional Services)
 
-**status:** pending
-**date:** 2026-04-10
+**status:** evaluate
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8482697002
 **company:** Databricks
 **title:** Big Data Solutions Architect (Professional Services)
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect
+**Quick Score:** 3.5/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Solutions Architect closely aligned with Matt's skills
+- Big Data Solutions implies data pipeline expertise
+- Professional Services indicates senior-level position
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Role focuses on big data, not explicitly on AI
+- Not a precise title match with current archetypes
+- Limited information about team or project specifics
+**Recommendation:** EVALUATE
 
 ---
 
@@ -42,8 +29,15 @@ Thresholds:
 
 [../company-intel/databricks.md](../company-intel/databricks.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\databricks.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->

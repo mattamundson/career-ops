@@ -1,40 +1,27 @@
 # Prefilter: West Monroe Partners — Senior Partner, Data and Analytics Leader
 
-**status:** pending
-**date:** 2026-04-10
+**status:** evaluate
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://westmonroe.com/careers/job-details-experienced-professionals?gh_jid=5741872004
 **company:** West Monroe Partners
 **title:** Senior Partner, Data and Analytics Leader
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect
+**Quick Score:** 3.5/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Senior role aligns with data engineering
+- Experience in analytics leadership
+- Focus on operational data architecture
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Title is not explicitly data architecture
+- Ambiguous responsibilities in title
+- No specific mention of ERP or automation
+**Recommendation:** EVALUATE
 
 ---
 
@@ -42,8 +29,15 @@ Thresholds:
 
 [../company-intel/west-monroe-partners.md](../company-intel/west-monroe-partners.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\west-monroe-partners.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->

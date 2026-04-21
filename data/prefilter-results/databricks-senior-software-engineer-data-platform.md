@@ -1,40 +1,25 @@
 # Prefilter: Databricks — Senior Software Engineer - Data Platform
 
-**status:** pending
-**date:** 2026-04-10
+**status:** skip
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=7601580002
 **company:** Databricks
 **title:** Senior Software Engineer - Data Platform
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** none
+**Quick Score:** 1.5/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Title is Senior Software Engineer, not data/BI/automation
+- Role may focus on software engineering, not architecture
+- No clear alignment with Matt's skill set
+**Recommendation:** SKIP
 
 ---
 
@@ -42,8 +27,15 @@ Thresholds:
 
 [../company-intel/databricks.md](../company-intel/databricks.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\databricks.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->

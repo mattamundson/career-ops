@@ -1,40 +1,27 @@
 # Prefilter: Databricks — Sr. Solutions Architect - Games
 
-**status:** pending
-**date:** 2026-04-10
+**status:** skip
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8353049002
 **company:** Databricks
 **title:** Sr. Solutions Architect - Games
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** none
+**Quick Score:** 2.5/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Title suggests solutions architect role
+- Games focus may limit applicability
+- No strong alignment with archetypes
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Title is not aligned with operational data roles
+- Gaming industry may introduce niche requirements
+- Not clearly rooted in core data/AI specialties
+**Recommendation:** SKIP
 
 ---
 
@@ -42,8 +29,15 @@ Thresholds:
 
 [../company-intel/databricks.md](../company-intel/databricks.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\databricks.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->

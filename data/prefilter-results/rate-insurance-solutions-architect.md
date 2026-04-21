@@ -1,40 +1,27 @@
 # Prefilter: Rate Insurance — Solutions Architect
 
-**status:** pending
-**date:** 2026-04-10
+**status:** evaluate
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://www.linkedin.com/jobs/view/4397628544
 **company:** Rate Insurance
 **title:** Solutions Architect
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect
+**Quick Score:** 4/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Solutions Architect aligns with AI Solutions
+- Relevant to AI-driven workflow design
+- Experience with system integrations
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- No direct mention of operational data architecture
+- Specific technologies not disclosed
+- No seniority level indication in title
+**Recommendation:** EVALUATE
 
 ---
 
@@ -42,8 +29,15 @@ Thresholds:
 
 [../company-intel/rate-insurance.md](../company-intel/rate-insurance.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\rate-insurance.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->

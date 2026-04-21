@@ -1,40 +1,27 @@
 # Prefilter: Unknown — Senior Data Analytics Engineer @ Perchwell - Jobs
 
-**status:** pending
-**date:** 2026-04-10
+**status:** evaluate
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://jobs.ashbyhq.com/perchwell/bd6c5e37-6638-4837-8f66-ac23f72a39b7/application
 **company:** Unknown
 **title:** Senior Data Analytics Engineer @ Perchwell - Jobs
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect
+**Quick Score:** 3.5/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Senior role in data analytics
+- Strong data engineering skills
+- Relevant data pipeline experience
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Ambiguous alignment with operational data architecture
+- No direct mention of ERP or AI automation
+- Title may imply focus on analytics over architecture
+**Recommendation:** EVALUATE
 
 ---
 
@@ -42,8 +29,15 @@ Thresholds:
 
 [../company-intel/unknown.md](../company-intel/unknown.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\unknown.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->

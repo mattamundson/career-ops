@@ -1,40 +1,27 @@
 # Prefilter: Unknown — Solutions Architect - Unstructured - Lever
 
-**status:** pending
-**date:** 2026-04-10
+**status:** evaluate
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://jobs.lever.co/unstructuredtechnologies/6f8c8a43-eaba-454e-867f-f04c136f702d
 **company:** Unknown
 **title:** Solutions Architect - Unstructured - Lever
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Applied AI / Solutions Architect
+**Quick Score:** 3.5/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Solutions Architect title aligns well
+- Experience with system design
+- Strong AI and automation focus
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Unclear if unstructured focus aligns
+- Company not researched
+- No explicit ERP/data modeling mention
+**Recommendation:** EVALUATE
 
 ---
 
@@ -42,8 +29,15 @@ Thresholds:
 
 [../company-intel/unknown.md](../company-intel/unknown.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\unknown.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->

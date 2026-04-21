@@ -1,40 +1,27 @@
 # Prefilter: Unknown — Sysdig - Senior Data Analytics Engineer - Lever
 
-**status:** pending
-**date:** 2026-04-10
+**status:** evaluate
+**auto_scored:** true
+**date:** 2026-04-21
 **url:** https://jobs.lever.co/sysdig/fb2dde23-3ea8-4408-a06d-d528cf72e7f8?lever-source%5B%5D=jobs.baincapitalventures.com
 **company:** Unknown
 **title:** Sysdig - Senior Data Analytics Engineer - Lever
 
 ---
 
-## Instructions
-
-Run the `prefilter` mode against this JD to fill in the scored output below.
-Command: paste URL or JD text into career-ops with `/prefilter` prefix.
-
-Thresholds:
-- >= 3.5 → EVALUATE (proceed to full A-F)
-- 2.5 – 3.4 → MAYBE (manual review)
-- < 2.5 → SKIP
-
----
-
 ## Prefilter Result
 
-<!-- Fill in after running /prefilter mode -->
-
-**Archetype:** _pending_
-**Quick Score:** _/5 — _
+**Archetype:** Operational Data Architect
+**Quick Score:** 3.5/5 — auto-scored at scan time
 **Top 3 Matches:**
-- _pending_
-- _pending_
-- _pending_
+- Data Analytics role aligns with data modeling
+- Focus on analytics supports operational data architecture
+- Senior level indicates strong fit
 **Top 3 Gaps:**
-- _pending_
-- _pending_
-- _pending_
-**Recommendation:** _EVALUATE | MAYBE | SKIP_
+- Absence of explicit ERP or pipeline work
+- No mention of automation or workflow engineering
+- Lacks AI-related responsibilities
+**Recommendation:** EVALUATE
 
 ---
 
@@ -42,8 +29,15 @@ Thresholds:
 
 [../company-intel/unknown.md](../company-intel/unknown.md)
 
+
+---
+
+## Company Intel (cached)
+
+_Dossier file exists at `C:\Users\mattm\career-ops\data\company-intel\unknown.md` but is mostly unpopulated — treat company as unresearched._
+
 ---
 
 ## Notes
 
-<!-- Optional: manual notes, context, referrals, etc. -->
+<!-- auto-scored at scan time via modes/prefilter-auto-score.md -->
