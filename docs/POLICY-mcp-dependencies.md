@@ -84,6 +84,26 @@ For any MCP with local auth state:
 
 ### 3.3 How to back up (Windows)
 
+Use the backup script:
+
+```powershell
+powershell -NoProfile -File scripts/backup-mcp-profile.ps1           # keep 4 (default)
+powershell -NoProfile -File scripts/backup-mcp-profile.ps1 -Keep 8   # keep 8
+powershell -NoProfile -File scripts/backup-mcp-profile.ps1 -DryRun   # preview only
+```
+
+The script:
+- Writes to `$env:USERPROFILE\.linkedin-mcp-backups\profile-YYYYMMDD-HHMM\`
+- Excludes `invalid-state-*/` snapshots (per §3.1)
+- Uses robocopy with `/R:1 /W:1` so it won't hang on a locked `Cookies` DB
+- Prunes old backups beyond `-Keep` N (default 4)
+
+Exit codes: 0 success, 1 source missing, 2 destination write failed, 3 prune warning (backup still succeeded).
+
+If robocopy is unavailable, the script falls back to `Copy-Item`.
+
+Equivalent raw PowerShell (no retention):
+
 ```powershell
 $ts = Get-Date -Format "yyyyMMdd-HHmm"
 $src = "$env:USERPROFILE\.linkedin-mcp\profile"
@@ -91,8 +111,6 @@ $dst = "$env:USERPROFILE\.linkedin-mcp-backups\profile-$ts"
 New-Item -ItemType Directory -Path $dst -Force | Out-Null
 Copy-Item -Path $src -Destination $dst -Recurse -Force
 ```
-
-Future work: wrap this in `scripts/backup-mcp-profile.ps1` with retention (keep 4, prune older).
 
 ### 3.4 How to restore
 
@@ -162,7 +180,7 @@ When integrating a new MCP source:
 
 1. ☐ Pin the version from day one (never ship with `@latest` in cron).
 2. ☐ Document auth-state location in this policy's §3 + in the source's scanner script.
-3. ☐ Create a backup script (or wire into `scripts/backup-mcp-profile.ps1` when that exists).
+3. ☐ Create a backup script (or wire into `scripts/backup-mcp-profile.ps1`).
 4. ☐ Add a section to `docs/RUNBOOK-<source>.md` — or to the shared runbook — covering:
    - How to re-auth
    - Where state lives
