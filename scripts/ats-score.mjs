@@ -8,7 +8,7 @@
  *   const { pct, matched, missing } = scoreAtsMatch(jdText, cvText);
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { isMainEntry } from './lib/main-entry.mjs';
@@ -283,8 +283,21 @@ function main() {
     process.exit(1);
   }
 
-  const { pct, matched, missing } = scoreAtsMatch(jdText, cvText);
+  const { pct, matched, missing, keywords } = scoreAtsMatch(jdText, cvText);
   const line = '─'.repeat(60);
+
+  // --write-json=<path>: persist the score so ats-gate.mjs can --score-file it
+  // without redoing trigram extraction. Block B of modes/offer.md writes this
+  // during eval; step 6 of modes/pdf.md consumes it.
+  if (args['write-json']) {
+    const outPath = resolve(ROOT, args['write-json']);
+    try {
+      mkdirSync(dirname(outPath), { recursive: true });
+      writeFileSync(outPath, JSON.stringify({ pct, matched, missing, keywords }, null, 2));
+    } catch (err) {
+      console.error(`[ats-score] --write-json failed: ${err.message}`);
+    }
+  }
 
   console.log('');
   console.log(line);

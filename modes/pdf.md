@@ -50,6 +50,8 @@ Those live at `config/archetype-variants.yml`; see step 6 below.
    - **exit 0 (PASSED)** — proceed to PDF generation.
    - **exit 1 (BLOCKED)** — score below threshold (default 60%). STOP. The gate prints the top 3 missing keywords. Either (a) revise the CV to cover them and re-run, or (b) re-run with `--force` if the user has explicitly accepted the low score. Never proceed silently.
 
+   **Fast path — `--score-file`:** If Block B of the eval already ran `scoreAtsMatch()` and wrote the result to `output/ats-score-{slug}.json` (shape: `{pct, matched, missing, keywords}`), pass `--score-file=output/ats-score-{slug}.json` to the gate. It will skip trigram extraction and return in sub-100ms. The gate logs `source: "cached"` vs `"computed"` so redundant work is visible in `data/events/`.
+
    Every invocation emits an `automation.ats_gate.*` event to `data/events/`. The advisory `ats-score.mjs` script remains available for detailed scoring reports, but `ats-gate.mjs` is the required gate for pipeline flows.
 7. Rewrite Professional Summary injecting JD keywords + exit narrative bridge ("Built the entire operational tech stack as COO. Now applying that systems thinking to [JD domain] at scale.")
 8. Select top 3-4 most relevant projects for the offer

@@ -33,7 +33,7 @@ Read `cv.md`. Create a table mapping each JD requirement to exact lines from the
 - If Applied AI / Solutions Architect → prioritize system design, Jarvis Trader architecture, enterprise-ready integrations
 - If Operations Technology Leader → prioritize COO build story, cross-functional delivery, change management at scale
 
-**ATS Match:** Run `node scripts/ats-score.mjs --cv=cv.md --jd=<jd_file>` and include the percentage score. List the top 5 missing keywords with a one-line suggestion for each (which CV section to inject it into, or a reformulation of existing language).
+**ATS Match:** Run `node scripts/ats-score.mjs --cv=cv.md --jd=<jd_file> --write-json=output/ats-score-{slug}.json` and include the percentage score. List the top 5 missing keywords with a one-line suggestion for each (which CV section to inject it into, or a reformulation of existing language). The `--write-json` output lets step 6 of modes/pdf.md use `--score-file=output/ats-score-{slug}.json` to skip redundant scoring — same result, sub-100ms gate.
 
 **Gaps section** with mitigation strategy for each gap. For each gap:
 1. Is it a hard blocker or a nice-to-have?

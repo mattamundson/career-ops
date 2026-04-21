@@ -44,6 +44,10 @@ export function parseGateArgs(argv) {
     json: Boolean(args.json),
     company: args.company ?? null,
     role: args.role ?? null,
+    // --score-file: skip re-running scoreAtsMatch by reusing a precomputed
+    // result (JSON with {pct, matched, missing, keywords}). Block B writes
+    // this during scoring; gate reads it to avoid redundant trigram work.
+    scoreFile: typeof args['score-file'] === 'string' ? args['score-file'] : null,
   };
 }
 
@@ -69,26 +73,60 @@ export function evaluateGate(jdText, cvText, { threshold = DEFAULT_THRESHOLD, fo
 
 function main() {
   const opts = parseGateArgs(process.argv.slice(2));
-  if (!opts.jd) {
-    console.error('Error: --jd=<path> is required');
-    process.exit(2);
+
+  // Fast path: --score-file skips JD/CV reads and trigram extraction.
+  // Block B writes this during evaluation so the gate is a JSON parse.
+  let result;
+  let source = 'computed';
+  if (opts.scoreFile) {
+    try {
+      const raw = readFileSync(resolve(ROOT, opts.scoreFile), 'utf8');
+      const cached = JSON.parse(raw);
+      if (typeof cached.pct !== 'number' || !Array.isArray(cached.missing)) {
+        throw new Error('score-file missing required fields (pct, missing)');
+      }
+      const meetsBar = cached.pct >= opts.threshold;
+      result = {
+        passed: meetsBar || opts.force,
+        meetsBar,
+        forced: opts.force && !meetsBar,
+        pct: cached.pct,
+        matched: cached.matched ?? [],
+        missing: cached.missing ?? [],
+        keywords: cached.keywords ?? [...(cached.matched ?? []), ...(cached.missing ?? [])],
+        threshold: opts.threshold,
+      };
+      source = 'cached';
+    } catch (err) {
+      console.error(`[ats-gate] --score-file read failed (${err.message}); falling back to live computation.`);
+      // fall through to live computation below
+    }
   }
 
-  const jdPath = resolve(ROOT, opts.jd);
-  const cvPath = resolve(ROOT, opts.cv);
+  if (!result) {
+    if (!opts.jd) {
+      console.error('Error: --jd=<path> is required (or provide --score-file)');
+      process.exit(2);
+    }
 
-  let jdText, cvText;
-  try { jdText = readFileSync(jdPath, 'utf8'); }
-  catch { console.error(`Error: Cannot read JD file: ${jdPath}`); process.exit(2); }
-  try { cvText = readFileSync(cvPath, 'utf8'); }
-  catch { console.error(`Error: Cannot read CV file: ${cvPath}`); process.exit(2); }
+    const jdPath = resolve(ROOT, opts.jd);
+    const cvPath = resolve(ROOT, opts.cv);
 
-  const result = evaluateGate(jdText, cvText, { threshold: opts.threshold, force: opts.force });
+    let jdText, cvText;
+    try { jdText = readFileSync(jdPath, 'utf8'); }
+    catch { console.error(`Error: Cannot read JD file: ${jdPath}`); process.exit(2); }
+    try { cvText = readFileSync(cvPath, 'utf8'); }
+    catch { console.error(`Error: Cannot read CV file: ${cvPath}`); process.exit(2); }
+
+    result = evaluateGate(jdText, cvText, { threshold: opts.threshold, force: opts.force });
+  }
   const top3Missing = result.missing.slice(0, 3);
 
   const eventDetails = {
     jd_path: opts.jd,
     cv_path: opts.cv,
+    score_file: opts.scoreFile,
+    source, // 'cached' or 'computed'
     threshold: result.threshold,
     pct: result.pct,
     matched_count: result.matched.length,

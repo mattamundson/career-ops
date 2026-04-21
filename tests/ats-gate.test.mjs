@@ -4,6 +4,10 @@
 
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { parseGateArgs, evaluateGate } from '../scripts/ats-gate.mjs';
 import { scoreAtsMatch } from '../scripts/ats-score.mjs';
 
@@ -26,6 +30,17 @@ test('parseGateArgs: company + role pass-through', () => {
   const a = parseGateArgs(['--jd=a', '--company=Acme Corp', '--role=Data Architect']);
   assert.equal(a.company, 'Acme Corp');
   assert.equal(a.role, 'Data Architect');
+});
+
+test('parseGateArgs: score-file captured', () => {
+  const a = parseGateArgs(['--score-file=output/ats-score-acme.json', '--threshold=55']);
+  assert.equal(a.scoreFile, 'output/ats-score-acme.json');
+  assert.equal(a.threshold, 55);
+});
+
+test('parseGateArgs: score-file absent → null', () => {
+  const a = parseGateArgs(['--jd=jds/x.txt']);
+  assert.equal(a.scoreFile, null);
 });
 
 test('scoreAtsMatch: strong overlap → high pct', () => {
@@ -95,4 +110,43 @@ test('evaluateGate: top missing keywords surface in missing[]', () => {
   const firstThree = g.missing.slice(0, 3).join(' ').toLowerCase();
   // At least one of the keyword clusters should show up
   assert.match(firstThree, /(kafka|kubernetes|graphql|streaming|federation)/);
+});
+
+test('score-file fast path: ats-score --write-json → ats-gate --score-file round-trip', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ats-score-'));
+  try {
+    const jdPath = join(dir, 'jd.txt');
+    const cvPath = join(dir, 'cv.md');
+    const scorePath = join(dir, 'score.json');
+    writeFileSync(jdPath, '## Requirements\n- Snowflake, dbt, Airflow, Python, Power BI, DAX experience required.');
+    writeFileSync(cvPath, 'Matt — Snowflake, dbt, Airflow, Python, Power BI, DAX practitioner for 10 years.');
+
+    const produce = spawnSync(process.execPath, [
+      'scripts/ats-score.mjs',
+      `--jd=${jdPath}`,
+      `--cv=${cvPath}`,
+      `--write-json=${scorePath}`,
+    ], { cwd: process.cwd(), encoding: 'utf8' });
+    assert.equal(produce.status, 0, `ats-score failed: ${produce.stderr}`);
+
+    const cached = JSON.parse(readFileSync(scorePath, 'utf8'));
+    assert.equal(typeof cached.pct, 'number');
+    assert.ok(Array.isArray(cached.matched));
+    assert.ok(Array.isArray(cached.missing));
+    assert.ok(Array.isArray(cached.keywords));
+    assert.ok(cached.pct >= 60, `expected strong overlap, got ${cached.pct}%`);
+
+    const consume = spawnSync(process.execPath, [
+      'scripts/ats-gate.mjs',
+      `--score-file=${scorePath}`,
+      '--threshold=60',
+      '--json',
+    ], { cwd: process.cwd(), encoding: 'utf8' });
+    assert.equal(consume.status, 0, `ats-gate failed: ${consume.stderr}`);
+    const out = JSON.parse(consume.stdout);
+    assert.equal(out.passed, true);
+    assert.equal(out.pct, cached.pct);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
