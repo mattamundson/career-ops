@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/sandboxaq/0c2c8cb2-a214-40a5-91f5-b42c40f2726c
 **company:** Unknown
 **title:** Senior Staff Solutions Architect, AI Sim @ SandboxAQ - Jobs
+**promoted:** 2026-04-21
 
 ---
 

@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8136954002
 **company:** Databricks
 **title:** Sr. Solutions Architect - Emerging
+**promoted:** 2026-04-21
 
 ---
 

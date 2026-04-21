@@ -6,6 +6,7 @@
 **url:** https://boards.greenhouse.io/celonis/jobs/7683570003
 **company:** Unknown
 **title:** Senior Applied AI Solutions Architect - Process Intelligence (Public ...
+**promoted:** 2026-04-21
 
 ---
 

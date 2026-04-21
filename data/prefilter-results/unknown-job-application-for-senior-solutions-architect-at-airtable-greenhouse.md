@@ -6,6 +6,7 @@
 **url:** https://boards.greenhouse.io/airtable/jobs/8487502002
 **company:** Unknown
 **title:** Job Application for Senior Solutions Architect at Airtable - Greenhouse
+**promoted:** 2026-04-21
 
 ---
 

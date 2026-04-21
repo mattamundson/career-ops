@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/optimussbr/83791cf8-e177-490f-b65f-a766e5a126c7
 **company:** Unknown
 **title:** Optimus SBR - Data Engineering Solutions Architect - Lever
+**promoted:** 2026-04-21
 
 ---
 

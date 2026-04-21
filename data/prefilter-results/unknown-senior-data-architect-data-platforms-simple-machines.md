@@ -6,6 +6,7 @@
 **url:** https://apply.workable.com/simple-machines-3/j/C6B5A1F954/
 **company:** Unknown
 **title:** Senior Data Architect - Data Platforms - Simple Machines
+**promoted:** 2026-04-21
 
 ---
 

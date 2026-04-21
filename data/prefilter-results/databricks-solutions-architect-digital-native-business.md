@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=6117719002
 **company:** Databricks
 **title:** Solutions Architect - Digital Native Business
+**promoted:** 2026-04-21
 
 ---
 

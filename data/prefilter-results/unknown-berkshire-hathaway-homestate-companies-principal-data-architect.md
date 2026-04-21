@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/bhhc/8dcb74b1-8cc6-4ff1-90a4-f44d444218cc
 **company:** Unknown
 **title:** Berkshire Hathaway Homestate Companies - Principal Data Architect
+**promoted:** 2026-04-21
 
 ---
 

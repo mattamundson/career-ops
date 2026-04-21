@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/wavicledata/f39e107a-a9f8-4c9f-8c17-dfc60ac810ec
 **company:** Unknown
 **title:** Wavicle Data Solutions - Databricks Solutions Architect - Lever
+**promoted:** 2026-04-21
 
 ---
 

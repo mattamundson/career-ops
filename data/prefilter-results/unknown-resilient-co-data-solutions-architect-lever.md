@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/resilientco/f0773695-7cd7-4e7c-ad7f-2ff4adbbad72
 **company:** Unknown
 **title:** Resilient Co - Data Solutions Architect - Lever
+**promoted:** 2026-04-21
 
 ---
 

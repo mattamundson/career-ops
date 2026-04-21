@@ -6,6 +6,7 @@
 **url:** https://apply.workable.com/ssc-hr/j/707E111369
 **company:** Unknown
 **title:** Senior Data Architect - SSC HR Solutions - Jobs By Workable
+**promoted:** 2026-04-21
 
 ---
 

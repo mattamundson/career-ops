@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=6328388002
 **company:** Databricks
 **title:** Solutions Architect - Emerging Enterprise (Startups)
+**promoted:** 2026-04-21
 
 ---
 

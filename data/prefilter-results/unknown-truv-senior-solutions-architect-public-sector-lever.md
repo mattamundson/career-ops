@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/truv/9bf2373d-f5f8-47ea-80a3-b5feeffbdad1
 **company:** Unknown
 **title:** Truv - Senior Solutions Architect, Public Sector - Lever
+**promoted:** 2026-04-21
 
 ---
 

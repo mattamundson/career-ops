@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8403943002
 **company:** Databricks
 **title:** Lead Solutions Architect (Digital Natives Business)
+**promoted:** 2026-04-21
 
 ---
 

@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8401173002
 **company:** Databricks
 **title:** Sr. Solutions Architect - Public Sector (SLED)
+**promoted:** 2026-04-21
 
 ---
 

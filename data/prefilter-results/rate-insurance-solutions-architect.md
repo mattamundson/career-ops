@@ -6,6 +6,7 @@
 **url:** https://www.linkedin.com/jobs/view/4397628544
 **company:** Rate Insurance
 **title:** Solutions Architect
+**promoted:** 2026-04-21
 
 ---
 

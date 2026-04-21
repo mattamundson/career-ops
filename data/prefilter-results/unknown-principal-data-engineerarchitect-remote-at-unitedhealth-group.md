@@ -6,6 +6,7 @@
 **url:** https://careers.unitedhealthgroup.com/job/minnetonka/principal-data-engineer-architect-remote/34088/93496622736
 **company:** Unknown
 **title:** Principal Data Engineer/Architect - Remote at UnitedHealth Group
+**promoted:** 2026-04-21
 
 ---
 

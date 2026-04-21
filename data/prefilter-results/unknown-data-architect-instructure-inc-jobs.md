@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/instructure/08e0b60f-0fd2-435c-9d26-2a1c034c1c35
 **company:** Unknown
 **title:** Data Architect @ Instructure, Inc. - Jobs
+**promoted:** 2026-04-21
 
 ---
 

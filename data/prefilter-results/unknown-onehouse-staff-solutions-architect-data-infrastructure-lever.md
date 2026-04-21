@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/Onehouse/db43445a-2208-403b-9c95-bff6febee5e6
 **company:** Unknown
 **title:** Onehouse - Staff Solutions Architect - Data Infrastructure - Lever
+**promoted:** 2026-04-21
 
 ---
 

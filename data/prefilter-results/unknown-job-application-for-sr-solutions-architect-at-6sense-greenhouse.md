@@ -6,6 +6,7 @@
 **url:** https://boards.greenhouse.io/6sense/jobs/7763860
 **company:** Unknown
 **title:** Job Application for Sr. Solutions Architect at 6sense - Greenhouse
+**promoted:** 2026-04-21
 
 ---
 

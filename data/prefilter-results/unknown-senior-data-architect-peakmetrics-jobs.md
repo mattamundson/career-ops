@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/peakmetrics/141c873f-cbde-4750-9e8b-c9b500bc486c
 **company:** Unknown
 **title:** Senior Data Architect @ PeakMetrics - Jobs
+**promoted:** 2026-04-21
 
 ---
 

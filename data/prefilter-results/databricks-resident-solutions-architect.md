@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8476500002
 **company:** Databricks
 **title:** Resident Solutions Architect
+**promoted:** 2026-04-21
 
 ---
 

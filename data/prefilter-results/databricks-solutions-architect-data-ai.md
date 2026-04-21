@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8346277002
 **company:** Databricks
 **title:** Solutions Architect : Data & AI
+**promoted:** 2026-04-21
 
 ---
 

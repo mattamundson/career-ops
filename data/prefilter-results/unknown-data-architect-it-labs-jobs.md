@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/it%20labs/0644d410-b847-412d-aae2-b26d0e39bf68
 **company:** Unknown
 **title:** Data Architect @ IT Labs - Jobs
+**promoted:** 2026-04-21
 
 ---
 

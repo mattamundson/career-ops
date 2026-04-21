@@ -6,6 +6,7 @@
 **url:** https://careers.unitedhealthgroup.com/job/minnetonka/data-architect-minneapolis-mn/34088/92652836528
 **company:** Unknown
 **title:** Data Architect - Minneapolis, MN at UnitedHealth Group
+**promoted:** 2026-04-21
 
 ---
 

@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8472733002
 **company:** Databricks
 **title:** Solutions Architect (Thailand)
+**promoted:** 2026-04-21
 
 ---
 

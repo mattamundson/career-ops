@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8472732002
 **company:** Databricks
 **title:** Solutions Architect (Vietnam)
+**promoted:** 2026-04-21
 
 ---
 

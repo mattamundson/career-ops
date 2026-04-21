@@ -6,6 +6,7 @@
 **url:** https://job-boards.greenhouse.io/scaleai/jobs/4683689005
 **company:** Scale AI
 **title:** Staff Applied AI Engineer, Enterprise GenAI
+**promoted:** 2026-04-21
 
 ---
 

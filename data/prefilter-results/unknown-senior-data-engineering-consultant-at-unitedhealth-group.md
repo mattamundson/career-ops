@@ -6,6 +6,7 @@
 **url:** https://careers.unitedhealthgroup.com/job/chennai/senior-data-engineering-consultant/34088/93403460656
 **company:** Unknown
 **title:** Senior Data Engineering Consultant at UnitedHealth Group
+**promoted:** 2026-04-21
 
 ---
 

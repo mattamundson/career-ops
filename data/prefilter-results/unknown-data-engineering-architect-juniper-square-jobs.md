@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/junipersquare/b68689b9-e8c8-457b-9764-1573be334ccc
 **company:** Unknown
 **title:** Data Engineering Architect @ Juniper Square - Jobs
+**promoted:** 2026-04-21
 
 ---
 

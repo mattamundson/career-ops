@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/psi/c9c07b81-df5e-4f29-a3f2-28cb0257a522
 **company:** Unknown
 **title:** Solutions Architect @ Physical Superintelligence - Jobs
+**promoted:** 2026-04-21
 
 ---
 

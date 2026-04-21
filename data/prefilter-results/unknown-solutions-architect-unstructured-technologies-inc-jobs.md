@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/unstructured/28129352-74d7-45cf-8e4b-562914120ef1
 **company:** Unknown
 **title:** Solutions Architect @ Unstructured Technologies Inc. - Jobs
+**promoted:** 2026-04-21
 
 ---
 

@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8481717002
 **company:** Databricks
 **title:** Solutions Architect - FSI
+**promoted:** 2026-04-21
 
 ---
 

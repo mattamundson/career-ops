@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/sunnydata/b2e1883c-1134-42c4-ac8f-5f8fc43683d4
 **company:** Unknown
 **title:** Solutions Architect @ SunnyData - Jobs
+**promoted:** 2026-04-21
 
 ---
 

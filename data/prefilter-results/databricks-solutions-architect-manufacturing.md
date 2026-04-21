@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=6545547002
 **company:** Databricks
 **title:** Solutions Architect - Manufacturing
+**promoted:** 2026-04-21
 
 ---
 

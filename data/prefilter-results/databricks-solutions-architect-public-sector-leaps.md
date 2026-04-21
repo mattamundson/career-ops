@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8320126002
 **company:** Databricks
 **title:** Solutions Architect - Public Sector (LEAPS)
+**promoted:** 2026-04-21
 
 ---
 

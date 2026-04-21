@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8476506002
 **company:** Databricks
 **title:** Lead Specialist Solutions Architect
+**promoted:** 2026-04-21
 
 ---
 

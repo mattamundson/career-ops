@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/sfeir/c6420e02-e32b-44f9-b115-e97ba6a5dfda
 **company:** Unknown
 **title:** SFEIR - Data Architect GCP - Lever
+**promoted:** 2026-04-21
 
 ---
 

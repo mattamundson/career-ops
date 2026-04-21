@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/crusoe/f5a5f987-43e5-42d7-b607-27dbfe07c5eb
 **company:** Unknown
 **title:** Staff Enterprise AI Automation Engineer @ Crusoe - Jobs
+**promoted:** 2026-04-21
 
 ---
 

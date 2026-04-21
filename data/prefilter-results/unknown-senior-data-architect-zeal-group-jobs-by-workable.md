@@ -6,6 +6,7 @@
 **url:** https://apply.workable.com/zealgroup/j/3F9F2C3588
 **company:** Unknown
 **title:** Senior Data Architect - Zeal Group - Jobs By Workable
+**promoted:** 2026-04-21
 
 ---
 

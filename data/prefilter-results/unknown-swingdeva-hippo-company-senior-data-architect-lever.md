@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/swingdev/a2548593-0887-457f-864b-2d35b8748ebd/apply
 **company:** Unknown
 **title:** SwingDev–a hippo company - Senior Data Architect - Lever
+**promoted:** 2026-04-21
 
 ---
 

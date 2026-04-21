@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/thewfsgroup/f1e25567-93b2-48ff-a507-b4c61a5e8920
 **company:** Unknown
 **title:** AI Automation Engineer @ The WFS Group - Jobs
+**promoted:** 2026-04-21
 
 ---
 

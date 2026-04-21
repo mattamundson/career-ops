@@ -6,6 +6,7 @@
 **url:** https://jobs.ashbyhq.com/techtorch/0158674c-89d1-4da6-a41c-21cf8faff4b2
 **company:** Unknown
 **title:** Senior Data / Solution Architect (AI + Data Architecture) @ Techtorch
+**promoted:** 2026-04-21
 
 ---
 

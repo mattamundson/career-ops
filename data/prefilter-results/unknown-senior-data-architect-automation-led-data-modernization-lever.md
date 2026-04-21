@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/doranjones/c46c532e-6ba0-4880-ae08-117d4c20e7db
 **company:** Unknown
 **title:** Senior Data Architect - Automation-Led Data Modernization - Lever
+**promoted:** 2026-04-21
 
 ---
 

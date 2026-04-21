@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8091041002
 **company:** Databricks
 **title:** Senior Applied AI Engineer
+**promoted:** 2026-04-21
 
 ---
 

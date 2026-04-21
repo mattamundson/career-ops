@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=8200376002
 **company:** Databricks
 **title:** Sr. Solutions Architect - GSI's and FinTech Data
+**promoted:** 2026-04-21
 
 ---
 

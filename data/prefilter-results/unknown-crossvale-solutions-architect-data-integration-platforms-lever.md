@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/crossvale/346d4bc6-d24f-4fef-bf4a-18038d62aea0
 **company:** Unknown
 **title:** Crossvale - Solutions Architect: Data Integration & Platforms - Lever
+**promoted:** 2026-04-21
 
 ---
 

@@ -6,6 +6,7 @@
 **url:** https://databricks.com/company/careers/open-positions/job?gh_jid=7803166002
 **company:** Databricks
 **title:** Lead Solutions Architect  (CTO level-CPG/Retail, DS/DE background)
+**promoted:** 2026-04-21
 
 ---
 

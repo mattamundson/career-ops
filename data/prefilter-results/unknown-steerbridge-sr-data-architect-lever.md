@@ -6,6 +6,7 @@
 **url:** https://jobs.lever.co/steerbridge/8b1a4028-7798-42c4-960e-42045d2b3d66
 **company:** Unknown
 **title:** SteerBridge - Sr. Data Architect - Lever
+**promoted:** 2026-04-21
 
 ---
 
