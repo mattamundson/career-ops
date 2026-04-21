@@ -1224,6 +1224,12 @@ async function runJobSpyScan() {
       // Parse "Total new: N" from the summary output
       const match = stdout.match(/Total new:\s*(\d+)/);
       const newCount = match ? parseInt(match[1], 10) : 0;
+      appendAutomationEvent(ROOT, {
+        type: 'scanner.jobspy.completed',
+        status: code === 0 || code === null ? 'success' : 'partial',
+        summary: `JobSpy scan: ${newCount} new matches (exit=${code ?? 0})`,
+        details: { newCount, exitCode: code ?? 0, dry_run: DRY_RUN },
+      });
       console.log('');
       resolve_(newCount);
     });
@@ -1849,6 +1855,38 @@ async function main() {
       toAdd.push(job);
       historyRows.push({ url: job.url, portal: job.portal, title: job.title, company: job.company, status: 'added' });
       totalNew++;
+    }
+  }
+
+  // --- Per-source completion events (derived from historyRows) ---
+  // Groups by portal prefix (greenhouse/ashby/lever/etc.), emits one event
+  // per source. Skips `direct/*` prefixes since those scripts emit their own
+  // events via their child processes (see scan-linkedin-mcp.mjs, scan-indeed.mjs).
+  // Feeds the Source Health registry (scripts/aggregate-source-health.mjs).
+  {
+    const bySource = new Map();
+    for (const row of historyRows) {
+      const prefix = String(row.portal || '').split('/')[0];
+      if (!prefix || prefix === 'direct') continue;
+      const b = bySource.get(prefix) || { added: 0, skipped_title: 0, skipped_dup: 0, total: 0, companies: new Set() };
+      b.total += 1;
+      b[row.status] = (b[row.status] || 0) + 1;
+      if (row.company) b.companies.add(row.company);
+      bySource.set(prefix, b);
+    }
+    for (const [source, stats] of bySource) {
+      appendAutomationEvent(ROOT, {
+        type: `scanner.${source}.completed`,
+        status: 'success',
+        summary: `${source} scan: ${stats.added || 0} new from ${stats.companies.size} target(s) (${stats.total} matched)`,
+        details: {
+          newCount: stats.added || 0,
+          totalFound: stats.total,
+          titleSkipped: stats.skipped_title || 0,
+          dupSkipped: stats.skipped_dup || 0,
+          companies: stats.companies.size,
+        },
+      });
     }
   }
 
