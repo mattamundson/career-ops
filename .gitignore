@@ -35,6 +35,8 @@ node_modules/
 # Claude Code local
 .claude/settings.local.json
 .claude/memory/
+.claude/scheduled_tasks.lock
+.claude/plans/
 
 # Built binaries
 career-dashboard
@@ -125,3 +127,11 @@ data/notifications/
 data/gmail-sync-state.json
 data/outreach/gmail-sync-review-*.md
 data/prefilter-scheduler.log
+data/scan-run-*.log
+
+# Ad-hoc application-flow screenshots + dashboard previews (debug artifacts,
+# regenerable; store under output/ if they need to persist)
+kindercare-*.png
+modine-*.png
+dashboard-hero-*.png
+dashboard-v3-*.png
