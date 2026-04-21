@@ -22,6 +22,7 @@ import { fileURLToPath } from 'url';
 import { execSync, execFileSync } from 'child_process';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { loadProjectEnv } from './load-env.mjs';
+import { isMainEntry } from './lib/main-entry.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -398,7 +399,11 @@ async function main() {
   });
 }
 
-main().catch(err => {
-  console.error('Fatal:', err.message);
-  process.exit(1);
-});
+export { main };
+
+if (isMainEntry(import.meta.url)) {
+  main().catch(err => {
+    console.error('Fatal:', err.message);
+    process.exit(1);
+  });
+}

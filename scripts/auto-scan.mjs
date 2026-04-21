@@ -28,6 +28,7 @@ import { resolveAutoScanSinceDays } from './lib/scan-window.mjs';
 import { runChromePreflight } from './lib/chrome-preflight.mjs';
 import { expandDirectJobBoardScans } from './lib/direct-board-config.mjs';
 import { installExitTrap } from './lib/exit-event-trap.mjs';
+import { isMainEntry } from './lib/main-entry.mjs';
 
 installExitTrap('scan');
 
@@ -1966,27 +1967,31 @@ async function main() {
   console.log(`[scan-summary] ${mdPath}`);
 }
 
-main().catch(err => {
-  try {
-    const { mdPath } = finalizeRunSummary(RUN_SUMMARY, 'failure', {
-      error: err.message || String(err),
-      stats: {
-        dry_run: DRY_RUN,
-        since_days: SINCE_DAYS,
-      },
-    });
-    appendAutomationEvent(ROOT, {
-      type: 'scanner.run.failed',
-      status: 'failure',
-      summary: err.message || String(err),
-      details: {
-        dry_run: DRY_RUN,
-        since_days: SINCE_DAYS,
-        summary_report: mdPath,
-      },
-    });
-    console.error(`[scan-summary] ${mdPath}`);
-  } catch {}
-  console.error('[FATAL]', err);
-  process.exit(1);
-});
+export { main };
+
+if (isMainEntry(import.meta.url)) {
+  main().catch(err => {
+    try {
+      const { mdPath } = finalizeRunSummary(RUN_SUMMARY, 'failure', {
+        error: err.message || String(err),
+        stats: {
+          dry_run: DRY_RUN,
+          since_days: SINCE_DAYS,
+        },
+      });
+      appendAutomationEvent(ROOT, {
+        type: 'scanner.run.failed',
+        status: 'failure',
+        summary: err.message || String(err),
+        details: {
+          dry_run: DRY_RUN,
+          since_days: SINCE_DAYS,
+          summary_report: mdPath,
+        },
+      });
+      console.error(`[scan-summary] ${mdPath}`);
+    } catch {}
+    console.error('[FATAL]', err);
+    process.exit(1);
+  });
+}

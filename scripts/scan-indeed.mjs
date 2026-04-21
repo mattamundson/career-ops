@@ -21,6 +21,7 @@ import { fileURLToPath } from 'url';
 import { appendScanResults, loadSeenUrls } from './lib/scan-output.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { runChromePreflight } from './lib/chrome-preflight.mjs';
+import { isMainEntry } from './lib/main-entry.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -139,7 +140,7 @@ async function scrapeIndeed(searchQuery) {
   return allJobs;
 }
 
-(async () => {
+async function main() {
   const seen = loadSeenUrls();
   const jobs = await scrapeIndeed(query);
   const fresh = jobs.filter(j => j.url && !seen.has(j.url)).slice(0, limit);
@@ -167,4 +168,13 @@ async function scrapeIndeed(searchQuery) {
     });
     console.log(`Written ${fresh.length} entries to pipeline.md`);
   }
-})();
+}
+
+export { main, scrapeIndeed };
+
+if (isMainEntry(import.meta.url)) {
+  main().catch(err => {
+    console.error(`[${SOURCE}] Fatal: ${err.message}`);
+    process.exit(1);
+  });
+}

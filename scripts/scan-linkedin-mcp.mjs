@@ -28,6 +28,7 @@ import { execSync } from 'child_process';
 import { appendScanResults, loadSeenUrls } from './lib/scan-output.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { McpClient, parseJsonTextContent } from './lib/mcp-client.mjs';
+import { isMainEntry } from './lib/main-entry.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -258,8 +259,12 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error(`[${SOURCE}] Fatal: ${err.message}`);
-  if (jsonMode) process.stdout.write('[]');
-  process.exit(1);
-});
+export { main, preflight, killStaleLinkedInChrome, pruneInvalidStateSnapshots, isProfileLockError };
+
+if (isMainEntry(import.meta.url)) {
+  main().catch(err => {
+    console.error(`[${SOURCE}] Fatal: ${err.message}`);
+    if (jsonMode) process.stdout.write('[]');
+    process.exit(1);
+  });
+}
