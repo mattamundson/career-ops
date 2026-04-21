@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { computeSemanticScore } from './lib/semantic-match.mjs';
+import { loadCompanyIntel, formatIntelBlock } from './lib/company-intel-loader.mjs';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -155,6 +156,11 @@ function buildTemplate(entry, semanticScore) {
       });
     } catch { /* non-fatal */ }
   }
+  // Load the intel dossier and embed substantive content into the template.
+  // Prior behavior just linked to the file; Claude never saw the intel at
+  // scoring time (scripts/lib/company-intel-loader.mjs extracted body here).
+  const intel = loadCompanyIntel(company, { intelDir: INTEL_DIR });
+  const intelBlock = formatIntelBlock(intel);
   const intelLink = existsSync(intelPath)
     ? `[../company-intel/${intelSlug}.md](../company-intel/${intelSlug}.md)`
     : `_not yet generated — run: node scripts/company-intel.mjs --company="${company}"_`;
@@ -203,6 +209,7 @@ Thresholds:
 
 ${intelLink}
 
+${intelBlock ? '\n---\n\n' + intelBlock : ''}
 ---
 
 ## Notes

@@ -18,9 +18,11 @@
 | cv.md | `cv.md` (project root) | ALWAYS |
 | article-digest.md | `article-digest.md` (if exists) | ALWAYS (detailed proof points) |
 | profile.yml | `config/profile.yml` | ALWAYS (candidate identity and targets) |
+| Company intel | `data/company-intel/{slug}.md` | WHEN evaluating a company we've researched before |
 
 **RULE: NEVER hardcode metrics from proof points.** Read them from cv.md + article-digest.md at evaluation time.
 **RULE: For article/project metrics, article-digest.md takes precedence over cv.md** (cv.md may have older numbers).
+**RULE: Prefilter templates now auto-embed cached company intel under `## Company Intel (cached)`.** When present, treat it as institutional knowledge — inform scoring, don't quote verbatim. If absent or marked as "mostly unpopulated", run `node scripts/company-intel.mjs --company="X"` to regenerate.
 
 ---
 
