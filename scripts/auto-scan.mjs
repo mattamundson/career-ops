@@ -1304,7 +1304,15 @@ async function runDirectBoardScans(cfg) {
             if (line.trim()) console.warn(`  [direct:${directLabel} stderr] ${line}`);
           }
         }
-        if (code !== 0 && code !== null) {
+        // Exit code 2 = partial_success (source retried and eventually succeeded).
+        // Source-specific convention, currently used by scan-linkedin-mcp.mjs to
+        // signal that preflight+retry fired. Surface via markPartialSuccess so the
+        // run-summary reflects the degradation.
+        if (code === 2) {
+          markPartialSuccess(`${directLabel} succeeded after retry (exit code 2) — investigate recurrence`);
+          console.warn(`[direct:${directLabel}] ${scan.script} exited 2 — retry-success, marking partial_success`);
+          // fall through to JSON parsing so we still consume the results
+        } else if (code !== 0 && code !== null) {
           console.warn(`[direct:${directLabel}] ${scan.script} exited with code ${code} — skipping.`);
           return resolve_([]);
         }

@@ -163,6 +163,7 @@ async function main() {
   const seen = loadSeenUrls();
   const allJobs = [];
   const errors = [];
+  let retried = false;
 
   let { profileLockHit } = await runQueries(seen, allJobs, errors);
 
@@ -170,6 +171,7 @@ async function main() {
     console.error(`[${SOURCE}] retry #1 after profile lock — cleaning up and waiting 5s`);
     preflight();
     await new Promise((r) => setTimeout(r, 5000));
+    retried = true;
     const retry = await runQueries(seen, allJobs, errors);
     profileLockHit = retry.profileLockHit;
     if (profileLockHit && allJobs.length === 0) {
@@ -179,16 +181,21 @@ async function main() {
 
   const fresh = allJobs.slice(0, limit);
 
+  const status = errors.length || retried ? 'partial' : 'success';
+  const partialSuccess = retried && allJobs.length > 0;
+
   if (jsonMode) {
     process.stdout.write(JSON.stringify(fresh));
+    if (partialSuccess) process.exitCode = 2;
     return;
   }
 
-  console.log(`[${SOURCE}] ${fresh.length} new jobs found (${allJobs.length} candidates across ${queries.length} queries, ${errors.length} query errors)`);
+  console.log(`[${SOURCE}] ${fresh.length} new jobs found (${allJobs.length} candidates across ${queries.length} queries, ${errors.length} query errors${retried ? ', retried once' : ''})`);
 
   if (dryRun) {
     console.log('DRY-RUN — not writing');
     fresh.slice(0, 5).forEach(j => console.log(JSON.stringify(j)));
+    if (partialSuccess) process.exitCode = 2;
     return;
   }
 
@@ -196,12 +203,14 @@ async function main() {
     appendScanResults(fresh, { portal: `direct/${SOURCE}`, status: 'added' });
     appendAutomationEvent(ROOT, {
       type: 'scanner.linkedin_mcp.completed',
-      status: errors.length ? 'partial' : 'success',
-      summary: `LinkedIn MCP scan: ${fresh.length} new jobs from ${queries.length} queries`,
-      details: { queries, newCount: fresh.length, totalFound: allJobs.length, errors },
+      status,
+      summary: `LinkedIn MCP scan: ${fresh.length} new jobs from ${queries.length} queries${retried ? ' (retried once)' : ''}`,
+      details: { queries, newCount: fresh.length, totalFound: allJobs.length, errors, retried },
     });
     console.log(`Written ${fresh.length} entries to pipeline.md`);
   }
+
+  if (partialSuccess) process.exitCode = 2;
 }
 
 export { main, preflight, killStaleLinkedInChrome, pruneInvalidStateSnapshots, isProfileLockError };
