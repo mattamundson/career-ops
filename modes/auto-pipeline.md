@@ -90,6 +90,22 @@ If the final score is >= 4.5, generate draft answers for the application form:
 ## Step 5 — Update Tracker
 Register in `data/applications.md` with all columns including Report and PDF as checkmarks.
 
+## Step 6 — Warm Intros (only if score >= 3.5)
+
+If the final score is >= 3.5, surface 1st/2nd-degree LinkedIn contacts at the target company. Warm intros convert 5-10× colder applications — skipping this step on strong-fit roles leaves the highest-ROI behavior on the table.
+
+Run:
+```bash
+node scripts/linkedin-warm-intros.mjs --report=reports/{###}-{company-slug}-{YYYY-MM-DD}.md --company="{Company}" --score={score}
+```
+
+Behavior:
+- The script queries the LinkedIn MCP for people at the target company and appends a `## Warm intros` section to the report (idempotent — re-runs replace the section).
+- If LinkedIn MCP isn't authed or the expected tool isn't exposed, the script writes an "MCP unavailable" note plus a manual fallback recipe — never blocks the pipeline.
+- Skips silently when score < 3.5.
+
+Then prompt the candidate: "Want me to draft outreach to any of them via `/contact`?" — do NOT send without explicit approval per the CLAUDE.md ethical-use rule.
+
 **If any step fails**, continue with the remaining steps and mark the failed step as pending in the tracker.
 
 ---
