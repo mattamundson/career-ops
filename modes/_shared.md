@@ -163,6 +163,7 @@ If the candidate has a live demo/dashboard (check profile.yml), offer access in 
 8b. **Case study URLs in PDF Professional Summary:** If the PDF mentions case studies or demos, URLs MUST appear in the first paragraph (Professional Summary). The recruiter may only read the summary. All URLs with `white-space: nowrap` in HTML.
 9. **Tracker additions as TSV** -- NEVER edit applications.md to add new entries. Write TSV in `batch/tracker-additions/` and `merge-tracker.mjs` handles the merge. Status column must be a value from `templates/states.yml` (e.g. `Evaluated`, `GO`, `Applied`). TSV column order: **status before score** (see `CLAUDE.md`). **Never** click employer Submit/Send on behalf of the candidate.
 10. **Include `**URL:**` in every report header** -- between Score and PDF.
+11. **Capture close date when visible.** If the JD page shows an explicit "apply by", "closing date", "expires", or "posting ends" date, include it in the report header as `**Close Date:** YYYY-MM-DD`. Dashboard reads this and lifts the row's priority when the deadline is near (≤7d → ×1.10, ≤2d → ×1.25, past → ×0.50). Omit the line entirely when no close date is visible -- do not guess.
 
 ### Tools
 

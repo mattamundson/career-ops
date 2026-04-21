@@ -186,6 +186,7 @@ function readReport(reportPath) {
     const tldrRow = text.match(/\|\s*\*\*TL;DR\*\*\s*\|\s*(.+?)\s*\|/);
     const remoteAlt = text.match(/\*\*Remote:\*\*\s*(.+)/);
     const tldrAlt = text.match(/\*\*TL;DR:\*\*\s*(.+)/);
+    const closeDateMatch = text.match(/\*\*Close Date:\*\*\s*(\d{4}-\d{2}-\d{2})/);
     return {
       archetype: archMatch ? archMatch[1].trim() : null,
       url: urlMatch ? urlMatch[1].trim() : null,
@@ -193,6 +194,7 @@ function readReport(reportPath) {
       why: whyMatch ? whyMatch[1].trim() : null,
       remote: (remoteRow?.[1] || remoteAlt?.[1] || '').trim() || null,
       tldr: (tldrRow?.[1] || tldrAlt?.[1] || '').trim() || null,
+      closeDate: closeDateMatch ? closeDateMatch[1] : null,
     };
   } catch { return null; }
 }
@@ -217,6 +219,7 @@ for (const app of apps) {
     notes: app.notes,
     tldr: app.reportMeta?.tldr ?? null,
     why: app.reportMeta?.why ?? null,
+    closeDate: app.reportMeta?.closeDate ?? null,
   }, LOCATION_CONFIG);
 }
 
