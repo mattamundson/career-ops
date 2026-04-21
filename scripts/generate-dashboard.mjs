@@ -287,6 +287,17 @@ let filterHealth = null;
   } catch { /* no scan history yet — panel hidden */ }
 }
 
+// Source Health — per-scanner reliability from data/source-health.json
+let sourceHealth = null;
+{
+  const shPath = join(ROOT, 'data', 'source-health.json');
+  if (existsSync(shPath)) {
+    try {
+      sourceHealth = JSON.parse(readFileSync(shPath, 'utf8'));
+    } catch { /* malformed — panel hidden */ }
+  }
+}
+
 function daysSinceIsoDate(iso) {
   if (!iso || typeof iso !== 'string') return 0;
   const d = new Date(iso.slice(0, 10));
@@ -2368,6 +2379,51 @@ tailwind.config = {
             </tbody>
           </table>
         </div>` : ''}
+    </div>
+  </div>` : ''}
+
+  <!-- Source Health (per-scanner reliability over 14d window) -->
+  ${sourceHealth && Object.keys(sourceHealth.sources || {}).length ? `
+  <div class="section">
+    <div class="section-header">
+      <h2>Source Health</h2>
+      <span class="count">${sourceHealth.window_days}d window · ${sourceHealth.total_events} events</span>
+    </div>
+    <div style="padding:16px 20px">
+      <table style="width:100%;font-size:12px;border-collapse:collapse">
+        <thead><tr style="color:var(--subtext);text-align:left;border-bottom:1px solid var(--surface0)">
+          <th style="padding:8px 10px">Source</th>
+          <th style="padding:8px 10px">Runs</th>
+          <th style="padding:8px 10px">Success</th>
+          <th style="padding:8px 10px">Partial</th>
+          <th style="padding:8px 10px">Error</th>
+          <th style="padding:8px 10px">Avg Yield</th>
+          <th style="padding:8px 10px">Recent (14)</th>
+          <th style="padding:8px 10px">Last Run</th>
+        </tr></thead>
+        <tbody>
+        ${Object.entries(sourceHealth.sources).map(([name, s]) => {
+          const pct = (r) => r == null ? '—' : `${Math.round(r * 100)}%`;
+          const sparkColor = (m) => m === 's' ? '#a6e3a1' : m === 'p' ? '#f9e2af' : m === 'e' ? '#f38ba8' : '#6c7086';
+          const spark = s.sparkline.map(m => `<span style="color:${sparkColor(m)};font-family:monospace">${m}</span>`).join('');
+          const ago = s.last_run ? daysSinceIsoDate(s.last_run) : null;
+          const agoLabel = ago == null ? '—' : ago === 0 ? 'today' : `${ago}d ago`;
+          return `<tr style="border-bottom:1px solid var(--surface0)">
+            <td style="padding:6px 10px;font-weight:600">${name}</td>
+            <td style="padding:6px 10px">${s.runs}</td>
+            <td style="padding:6px 10px;color:#a6e3a1">${pct(s.success_rate)}</td>
+            <td style="padding:6px 10px;color:#f9e2af">${pct(s.partial_rate)}</td>
+            <td style="padding:6px 10px;color:#f38ba8">${pct(s.failure_rate)}</td>
+            <td style="padding:6px 10px">${s.avg_yield ?? '—'}</td>
+            <td style="padding:6px 10px;font-family:monospace">${spark || '—'}</td>
+            <td style="padding:6px 10px;color:var(--subtext)">${agoLabel}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+      <div style="font-size:10px;color:var(--overlay0);margin-top:8px">
+        Sparkline (newest last): <span style="color:#a6e3a1">s</span>=success · <span style="color:#f9e2af">p</span>=partial · <span style="color:#f38ba8">e</span>=error
+      </div>
     </div>
   </div>` : ''}
 

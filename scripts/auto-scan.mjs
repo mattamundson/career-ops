@@ -31,6 +31,7 @@ import { installExitTrap } from './lib/exit-event-trap.mjs';
 import { isMainEntry } from './lib/main-entry.mjs';
 import { linkedinPreflight } from './lib/linkedin-preflight.mjs';
 import { registerPreflight, runPreflight } from './lib/preflight-registry.mjs';
+import { writeSourceHealth } from './aggregate-source-health.mjs';
 
 registerPreflight('linkedin-mcp', linkedinPreflight);
 
@@ -1982,6 +1983,13 @@ async function main() {
     },
   });
   console.log(`[scan-summary] ${mdPath}`);
+
+  try {
+    const { path: healthPath } = writeSourceHealth({ days: 14 });
+    console.log(`[source-health] ${healthPath}`);
+  } catch (err) {
+    console.warn(`[source-health] non-fatal: ${err.message}`);
+  }
 }
 
 export { main };
