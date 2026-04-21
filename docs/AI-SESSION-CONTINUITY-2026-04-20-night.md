@@ -10,6 +10,45 @@ This document is exhaustive by design. The next session should be able to pick u
 
 ---
 
+## Table of Contents
+
+**Primary reading order (chronological + decision trail):**
+- [§1 — Session Summary](#1-session-summary--chronological)
+- [§2 — Files Created or Modified](#2-files-created-or-modified)
+- [§3 — Current State](#3-current-state--whats-running-stopped-broken)
+- [§4 — In-Progress Work](#4-in-progress-work)
+- [§5 — Blockers Discovered](#5-blockers-discovered)
+- [§6 — Key Decisions Made](#6-key-decisions-made)
+- [§7 — TODO Items](#7-todo-items--planned-but-not-started)
+- [§8 — Full Task List](#8-full-task-list-current-state)
+- [§9 — Git State (verbatim)](#9-git-state-verbatim)
+
+**Quick-start and reference:**
+- [§10 — Quick-Start for Next Session](#10-quick-start-for-next-session) ← start here if in a hurry
+- [§11 — Appendix: Referenced Files & Watch Paths](#11-appendix--referenced-files--watch-paths)
+
+**Deep-dive analysis (skip if triaging):**
+- [§12 — Expanded Session Narrative](#12-expanded-session-narrative-reasoning-alternatives-observability)
+- [§13 — Deep Technical Insights](#13-deep-technical-insights)
+- [§14 — Decision Deep Dive (D1-D7)](#14-decision-deep-dive--expanded-d1d7)
+- [§15 — Blocker Diagnostic Trees](#15-blocker-diagnostic-trees)
+- [§16 — Anti-Patterns + Meta-Insights](#16-anti-patterns-observed--meta-insights)
+- [§17 — Performance / Cost Analysis](#17-performance--cost-analysis)
+- [§18 — Architectural Implications](#18-architectural-implications)
+
+**Lookup material (extracted to companion docs):**
+- [§19 — Historical Context](#19-historical-context--prior-commits-this-work-builds-on)
+- [§20 — Operational Runbook](#20-operational-runbook--scenario-playbooks) — also in `docs/RUNBOOK-linkedin-mcp.md`
+- [§21 — Annotated Code Walkthroughs](#21-annotated-code-walkthroughs)
+- [§22 — Environment Specifics](#22-environment-specifics--matts-windows-11-machine)
+- [§23 — Companion Documents](#23-companion-documents-forward-reference) — canonical ops refs
+
+**If you're triaging a scan failure:** skip this doc, read `docs/RUNBOOK-linkedin-mcp.md` first.
+**If you're modifying the orchestrator:** read `docs/ARCHITECTURE-scan-pipeline.md` first.
+**If you're upgrading an MCP:** read `docs/POLICY-mcp-dependencies.md` first.
+
+---
+
 ## 1. Session Summary — Chronological
 
 A tight, single-purpose session. Four phases:

@@ -2383,11 +2383,32 @@ tailwind.config = {
   </div>` : ''}
 
   <!-- Source Health (per-scanner reliability over 14d window) -->
-  ${sourceHealth && Object.keys(sourceHealth.sources || {}).length ? `
+  ${sourceHealth && Object.keys(sourceHealth.sources || {}).length ? (() => {
+    // Staleness thresholds (in days since last_run):
+    //   <2d     → fresh (no badge)
+    //   2-6d    → warn (yellow "stale")
+    //   >=7d    → critical (red "silent")
+    // A source with no last_run at all is shown as "never" (red).
+    const STALE_WARN_DAYS = 2;
+    const STALE_CRIT_DAYS = 7;
+    const ageOf = (s) => s.last_run ? daysSinceIsoDate(s.last_run) : null;
+    const staleCount = Object.values(sourceHealth.sources)
+      .filter((s) => {
+        const a = ageOf(s);
+        return a == null || a >= STALE_WARN_DAYS;
+      }).length;
+
+    return `
   <div class="section">
     <div class="section-header">
       <h2>Source Health</h2>
-      <span class="count">${sourceHealth.window_days}d window · ${sourceHealth.total_events} events</span>
+      <span class="count">
+        ${sourceHealth.window_days}d window · ${sourceHealth.total_events} events${
+          staleCount > 0
+            ? ` · <span style="background:#f9e2af;color:#1e1e2e;padding:2px 8px;border-radius:4px;font-weight:600">${staleCount} stale</span>`
+            : ''
+        }
+      </span>
     </div>
     <div style="padding:16px 20px">
       <table style="width:100%;font-size:12px;border-collapse:collapse">
@@ -2406,26 +2427,37 @@ tailwind.config = {
           const pct = (r) => r == null ? '—' : `${Math.round(r * 100)}%`;
           const sparkColor = (m) => m === 's' ? '#a6e3a1' : m === 'p' ? '#f9e2af' : m === 'e' ? '#f38ba8' : '#6c7086';
           const spark = s.sparkline.map(m => `<span style="color:${sparkColor(m)};font-family:monospace">${m}</span>`).join('');
-          const ago = s.last_run ? daysSinceIsoDate(s.last_run) : null;
-          const agoLabel = ago == null ? '—' : ago === 0 ? 'today' : `${ago}d ago`;
-          return `<tr style="border-bottom:1px solid var(--surface0)">
-            <td style="padding:6px 10px;font-weight:600">${name}</td>
+          const ago = ageOf(s);
+          const agoLabel = ago == null ? 'never' : ago === 0 ? 'today' : `${ago}d ago`;
+          const isCrit = ago == null || ago >= STALE_CRIT_DAYS;
+          const isWarn = ago != null && ago >= STALE_WARN_DAYS && ago < STALE_CRIT_DAYS;
+          const ageColor = isCrit ? '#f38ba8' : isWarn ? '#f9e2af' : 'var(--subtext)';
+          const rowBg = isCrit ? 'rgba(243,139,168,0.06)' : isWarn ? 'rgba(249,226,175,0.05)' : 'transparent';
+          const badge = isCrit
+            ? ' <span style="background:#f38ba8;color:#1e1e2e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600">silent</span>'
+            : isWarn
+              ? ' <span style="background:#f9e2af;color:#1e1e2e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600">stale</span>'
+              : '';
+          return `<tr style="border-bottom:1px solid var(--surface0);background:${rowBg}">
+            <td style="padding:6px 10px;font-weight:600">${name}${badge}</td>
             <td style="padding:6px 10px">${s.runs}</td>
             <td style="padding:6px 10px;color:#a6e3a1">${pct(s.success_rate)}</td>
             <td style="padding:6px 10px;color:#f9e2af">${pct(s.partial_rate)}</td>
             <td style="padding:6px 10px;color:#f38ba8">${pct(s.failure_rate)}</td>
             <td style="padding:6px 10px">${s.avg_yield ?? '—'}</td>
             <td style="padding:6px 10px;font-family:monospace">${spark || '—'}</td>
-            <td style="padding:6px 10px;color:var(--subtext)">${agoLabel}</td>
+            <td style="padding:6px 10px;color:${ageColor}">${agoLabel}</td>
           </tr>`;
         }).join('')}
         </tbody>
       </table>
       <div style="font-size:10px;color:var(--overlay0);margin-top:8px">
-        Sparkline (newest last): <span style="color:#a6e3a1">s</span>=success · <span style="color:#f9e2af">p</span>=partial · <span style="color:#f38ba8">e</span>=error
+        Sparkline (newest last): <span style="color:#a6e3a1">s</span>=success · <span style="color:#f9e2af">p</span>=partial · <span style="color:#f38ba8">e</span>=error ·
+        Staleness: <span style="color:#f9e2af">stale</span> ≥${STALE_WARN_DAYS}d · <span style="color:#f38ba8">silent</span> ≥${STALE_CRIT_DAYS}d
       </div>
     </div>
-  </div>` : ''}
+  </div>`;
+  })() : ''}
 
   <!-- Application Analytics -->
   ${generateAnalytics()}
