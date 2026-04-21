@@ -20,14 +20,19 @@
  * See docs/tos-risk-register.md.
  */
 
-import { resolve, dirname } from 'path';
+import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { readdirSync, statSync, rmSync, existsSync } from 'fs';
+import { homedir } from 'os';
+import { execSync } from 'child_process';
 import { appendScanResults, loadSeenUrls } from './lib/scan-output.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { McpClient, parseJsonTextContent } from './lib/mcp-client.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
+const MCP_HOME = join(homedir(), '.linkedin-mcp');
+const KEEP_SNAPSHOTS = 1;
 
 const args = process.argv.slice(2);
 const dryRun = !args.includes('--live');
@@ -95,15 +100,78 @@ function isSessionError(msg) {
   return /no valid LinkedIn session|login.*progress|setup is not complete|not authenticated/i.test(msg);
 }
 
+function isProfileLockError(msg) {
+  return /WinError 32|WinError 5|PermissionError|being used by another process|Stored runtime profile is invalid/i.test(msg);
+}
+
+// --- Preflight cleanup ----------------------------------------------------
+
+function killStaleLinkedInChrome() {
+  if (process.platform !== 'win32') return { killed: 0, skipped: true };
+  try {
+    const psCmd = `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -like '*linkedin-mcp*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue; $_.ProcessId } | Measure-Object | Select-Object -ExpandProperty Count`;
+    const out = execSync(`powershell.exe -NoProfile -Command "${psCmd}"`, { encoding: 'utf-8', timeout: 15000 });
+    const killed = parseInt(out.trim()) || 0;
+    if (killed > 0) {
+      console.error(`[${SOURCE}] preflight: killed ${killed} stale Chrome process(es) on linkedin-mcp profile`);
+    }
+    return { killed, skipped: false };
+  } catch (err) {
+    console.error(`[${SOURCE}] preflight: kill-stale-chrome failed (non-fatal): ${err.message}`);
+    return { killed: 0, skipped: false, error: err.message };
+  }
+}
+
+function pruneInvalidStateSnapshots() {
+  if (!existsSync(MCP_HOME)) return { pruned: 0, bytes: 0 };
+  try {
+    const entries = readdirSync(MCP_HOME)
+      .filter((n) => n.startsWith('invalid-state-'))
+      .map((n) => ({ name: n, path: join(MCP_HOME, n), mtime: statSync(join(MCP_HOME, n)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime);
+    const toDelete = entries.slice(KEEP_SNAPSHOTS);
+    let bytes = 0;
+    for (const e of toDelete) {
+      try {
+        const size = dirSizeBytes(e.path);
+        rmSync(e.path, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        bytes += size;
+      } catch (err) {
+        console.error(`[${SOURCE}] preflight: could not remove ${e.name}: ${err.message}`);
+      }
+    }
+    if (toDelete.length > 0) {
+      console.error(`[${SOURCE}] preflight: pruned ${toDelete.length} invalid-state snapshot(s) (${(bytes / 1e6).toFixed(0)}MB reclaimed, kept ${Math.min(KEEP_SNAPSHOTS, entries.length)})`);
+    }
+    return { pruned: toDelete.length, bytes };
+  } catch (err) {
+    console.error(`[${SOURCE}] preflight: snapshot prune failed (non-fatal): ${err.message}`);
+    return { pruned: 0, bytes: 0, error: err.message };
+  }
+}
+
+function dirSizeBytes(path) {
+  let total = 0;
+  try {
+    for (const name of readdirSync(path)) {
+      const p = join(path, name);
+      const st = statSync(p);
+      total += st.isDirectory() ? dirSizeBytes(p) : st.size;
+    }
+  } catch { /* swallow — size is advisory only */ }
+  return total;
+}
+
+function preflight() {
+  killStaleLinkedInChrome();
+  pruneInvalidStateSnapshots();
+}
+
 // --- Main ------------------------------------------------------------------
 
-async function main() {
-  const seen = loadSeenUrls();
-  const allJobs = [];
-  const errors = [];
-
+async function runQueries(seen, allJobs, errors) {
   const client = new McpClient('uvx', ['linkedin-scraper-mcp@latest'], { stderrPrefix: 'mcp:linkedin' });
-
+  let profileLockHit = false;
   try {
     for (const query of queries) {
       try {
@@ -125,6 +193,11 @@ async function main() {
         console.error(`[${SOURCE}] query="${query}" → ${jobs.length} results (${allJobs.length} new total)`);
       } catch (err) {
         errors.push({ query, error: err.message });
+        if (isProfileLockError(err.message)) {
+          console.error(`[${SOURCE}] profile lock detected on "${query}" — aborting batch for retry`);
+          profileLockHit = true;
+          break;
+        }
         if (isSessionError(err.message)) {
           console.error(`[${SOURCE}] session not ready — authenticate the uvx server first (it launches a login browser on first call). Aborting.`);
           break;
@@ -134,6 +207,28 @@ async function main() {
     }
   } finally {
     client.close();
+  }
+  return { profileLockHit };
+}
+
+async function main() {
+  preflight();
+
+  const seen = loadSeenUrls();
+  const allJobs = [];
+  const errors = [];
+
+  let { profileLockHit } = await runQueries(seen, allJobs, errors);
+
+  if (profileLockHit && allJobs.length === 0) {
+    console.error(`[${SOURCE}] retry #1 after profile lock — cleaning up and waiting 5s`);
+    preflight();
+    await new Promise((r) => setTimeout(r, 5000));
+    const retry = await runQueries(seen, allJobs, errors);
+    profileLockHit = retry.profileLockHit;
+    if (profileLockHit && allJobs.length === 0) {
+      console.error(`[${SOURCE}] retry failed — giving up. JobSpy + Firecrawl queries cover LinkedIn coverage for this run.`);
+    }
   }
 
   const fresh = allJobs.slice(0, limit);
