@@ -91,6 +91,20 @@ pnpm run pipeline:liveness
 
 Optional: `node scripts/check-liveness.mjs --prune` removes dead lines from `data/pipeline.md` (use with care).
 
+## Promoting high-score prefilter results (weekly)
+
+When prefilter runs produce a score ≥ 4.0 with `Recommendation: EVALUATE`, promote them into the tracker without hand-crafting TSVs:
+
+```bash
+node scripts/promote-prefilter.mjs --dry-run   # show what would promote
+node scripts/promote-prefilter.mjs             # write TSV additions + mark prefilter files
+node merge-tracker.mjs                         # merge into applications.md
+```
+
+The script skips prefilter files already marked `**promoted:** YYYY-MM-DD` and fuzzy-matches company+role against `applications.md` to avoid duplicating truncated entries. Emits `automation.promote_prefilter.completed` to `data/events/`.
+
+Recommended cadence: run weekly alongside `scripts/check-liveness.mjs` so the inbox stays fresh and promising prefilters don't sit on the shelf.
+
 ## Git hooks (local)
 
 - **pre-commit:** `pnpm run secrets:check` (blocks committing tracked `.env`).
