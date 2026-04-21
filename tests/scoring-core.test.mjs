@@ -267,6 +267,26 @@ test('urgencyMultiplier: bands map to 1.25 / 1.10 / 1.0 / 0.5', () => {
   assert.equal(urgencyMultiplier(dayOffset(-1), now), 0.5, 'past close → heavy deprioritize');
 });
 
+test('computeApplicationPriority applies outcomeSignal multiplier when passed', () => {
+  const base = {
+    score: '4.0/5',
+    status: 'Evaluating',
+    date: new Date().toISOString().slice(0, 10),
+    reportPath: 'reports/999-test.md',
+    remote: 'remote',
+  };
+  const neutral = computeApplicationPriority(base);
+  const upweighted = computeApplicationPriority({ ...base, outcomeSignal: 1.15 });
+  const downweighted = computeApplicationPriority({ ...base, outcomeSignal: 0.85 });
+  assert.equal(neutral.outcomeSignalMultiplier, 1.0);
+  assert.equal(upweighted.outcomeSignalMultiplier, 1.15);
+  assert.equal(downweighted.outcomeSignalMultiplier, 0.85);
+  assert.ok(upweighted.priorityScore > neutral.priorityScore,
+    `upweighted should outrank neutral (${upweighted.priorityScore} vs ${neutral.priorityScore})`);
+  assert.ok(downweighted.priorityScore < neutral.priorityScore,
+    `downweighted should rank below neutral (${downweighted.priorityScore} vs ${neutral.priorityScore})`);
+});
+
 test('computeApplicationPriority applies urgency multiplier when closeDate present', () => {
   const base = {
     score: '4.0/5',

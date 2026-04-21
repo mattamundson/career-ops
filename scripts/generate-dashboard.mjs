@@ -12,6 +12,7 @@ import { execSync } from 'child_process';
 import { computeApplicationPriority, focusSortKey } from './lib/scoring-core.mjs';
 import { loadLocationConfig } from './lib/profile-location-config.mjs';
 import { buildApplicationIndex, writeApplicationIndex } from './lib/career-data.mjs';
+import { computeOutcomeSignal, outcomeSignalFor } from './lib/outcome-signal.mjs';
 import {
   getSourceOperationalStatus,
   operationalStatusLabel,
@@ -203,11 +204,26 @@ function readReport(reportPath) {
 
 const apps = parseApplications();
 const pipeline = parsePipeline();
+const allResponses = parseResponses();
+
+// Outcome-signal map: per-company + per-portal multiplier derived from history.
+// Every outcome teaches the scorer — ghosts downweight, interviews/offers lift.
+// Capped at ±15% with a 3-sample confidence gate so early noise can't dominate.
+const outcomeSignalMap = computeOutcomeSignal(allResponses, apps);
+const portalByAppId = new Map(allResponses.map((r) => [String(r.app_id).padStart(3, '0'), r.ats]));
 
 // Enrich apps with report metadata
 for (const app of apps) {
   app.reportMeta = readReport(app.reportPath);
   if (app.reportMeta?.url) app.jobUrl = app.reportMeta.url;
+
+  const paddedId = String(app.num).padStart(3, '0');
+  const outcome = outcomeSignalFor(outcomeSignalMap, {
+    company: app.company,
+    portal: portalByAppId.get(paddedId) || null,
+  });
+  app.outcomeSignal = outcome;
+
   app.priority = computeApplicationPriority({
     score: app.scoreStr,
     status: app.status,
@@ -220,6 +236,7 @@ for (const app of apps) {
     tldr: app.reportMeta?.tldr ?? null,
     why: app.reportMeta?.why ?? null,
     closeDate: app.reportMeta?.closeDate ?? null,
+    outcomeSignal: outcome.multiplier,
   }, LOCATION_CONFIG);
 }
 
@@ -237,8 +254,8 @@ const prefilterSkip    = prefilterScored.filter(c => c.score < 2.5).length;
 
 const liveness = parseLivenessReports();
 
-// Response tracker (v14 — added 2026-04-10)
-const responses = parseResponses();
+// Response tracker (v14 — added 2026-04-10). Reuse the early parse used for outcome-signal.
+const responses = allResponses;
 const DAILY_TARGET = 5;
 const today = new Date().toISOString().slice(0, 10);
 const submittedToday = responses.filter(r => r.submitted_at === today).length;
@@ -619,6 +636,14 @@ function applicationProvenance(app) {
   ];
   if (priority.workArrangement) {
     parts.push(`Loc ${priority.workArrangement} ×${priority.locationMultiplier ?? 1}`);
+  }
+  if (priority.urgencyMultiplier && priority.urgencyMultiplier !== 1.0) {
+    parts.push(`Urgency ×${priority.urgencyMultiplier}`);
+  }
+  if (priority.outcomeSignalMultiplier && priority.outcomeSignalMultiplier !== 1.0) {
+    const outcome = app.outcomeSignal;
+    const conf = outcome?.confidence ? ` conf=${outcome.confidence}` : '';
+    parts.push(`Outcome ×${priority.outcomeSignalMultiplier}${conf}`);
   }
 
   if (app.queueDecision) parts.push(`Queue ${app.queueDecision}`);

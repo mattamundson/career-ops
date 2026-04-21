@@ -345,13 +345,18 @@ export function computeApplicationPriority(application = {}, config = LOCATION_P
   });
   const locationMultiplier = locationPriorityMultiplier(workArrangement, config);
   const urgency = urgencyMultiplier(application.closeDate);
+  // Optional: outcome-signal multiplier from responses history. Defaults to
+  // 1.0 so callers that don't pass it get identical behavior to before.
+  const outcomeSignal = Number.isFinite(application.outcomeSignal)
+    ? application.outcomeSignal
+    : 1.0;
 
   const priorityScore = Math.max(
     0,
     Math.min(
       100,
       Math.round(
-        fit * freshnessDecay * statusMultiplier * (0.7 + 0.3 * confidence) * locationMultiplier * urgency,
+        fit * freshnessDecay * statusMultiplier * (0.7 + 0.3 * confidence) * locationMultiplier * urgency * outcomeSignal,
       ),
     ),
   );
@@ -371,6 +376,7 @@ export function computeApplicationPriority(application = {}, config = LOCATION_P
     workArrangement,
     locationMultiplier,
     urgencyMultiplier: urgency,
+    outcomeSignalMultiplier: outcomeSignal,
     priorityScore,
     band,
   };
