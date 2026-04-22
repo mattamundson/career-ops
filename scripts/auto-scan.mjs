@@ -1098,7 +1098,7 @@ async function autoPromoteHighScores() {
     const num = String(maxNum + i + 1).padStart(3, '0');
     const role = c.title.length > 50 ? c.title.slice(0, 47) + '...' : c.title;
     console.log(`  → [${num}] ${c.company} | ${c.title} (${c.score}/5)`);
-    return `| ${num} | ${today} | ${c.company} | ${role} | ${c.score}/5 | Evaluating | — | — | Auto-promoted (score ${c.score}) |`;
+    return `| ${num} | ${today} | ${c.company} | ${role} | ${c.score}/5 | Evaluated | — | — | Auto-promoted (score ${c.score}) |`;
   });
 
   const appsLines = appsText.trimEnd().split('\n');
