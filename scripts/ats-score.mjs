@@ -8,7 +8,7 @@
  *   const { pct, matched, missing } = scoreAtsMatch(jdText, cvText);
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { isMainEntry } from './lib/main-entry.mjs';
@@ -85,14 +85,77 @@ function inRequirementsSection(pos, ranges) {
 }
 
 /**
+ * Build a set of "structural noise" tokens — company-name tokens,
+ * city/region tokens, and any JD-specific labels that aren't real skill
+ * keywords. When --exclude-structural is passed, these are stripped from
+ * trigram/bigram/unigram extraction so the ATS score reflects skill fit
+ * only, not company-name coincidence.
+ *
+ * Reasons we need this: a JD that mentions "Pivot Bio" or "St. Louis"
+ * seven times will extract those as top keywords. The CV obviously can't
+ * match them (Matt isn't Pivot Bio; Matt isn't in St. Louis). They're
+ * noise in the keyword list.
+ */
+export function buildStructuralExcludeSet({ company, location, profilePath } = {}) {
+  const exclude = new Set();
+  const addTokens = (s) => {
+    for (const tok of tokenise(String(s || ''))) {
+      if (tok.length > 1) exclude.add(tok);
+    }
+  };
+  if (company) addTokens(company);
+  if (location) addTokens(location);
+  if (profilePath && existsSync(profilePath)) {
+    try {
+      const yml = readFileSync(profilePath, 'utf8');
+      const mspMatch = yml.match(/msp_local_keywords:\s*\n((?:[ \t]+-[ \t]+.*\n?)+)/);
+      if (mspMatch) {
+        for (const line of mspMatch[1].split('\n')) {
+          const m = line.match(/^[ \t]+-[ \t]+["']?([^"'\n]+?)["']?\s*$/);
+          if (m) addTokens(m[1]);
+        }
+      }
+    } catch {
+      // ignore — profile parsing is best-effort
+    }
+  }
+  // Always include a small built-in US-state + common-city prefix list so
+  // even without profile.yml we catch typical structural noise.
+  for (const tok of [
+    'minneapolis', 'minnetonka', 'eagan', 'paul',
+    'saint', 'louis', 'berkeley',
+    'mn', 'ca', 'ny', 'tx', 'il', 'co', 'ma', 'wa',
+    'inc', 'corp', 'llc', 'ltd', 'co',
+    'united', 'states', 'usa',
+  ]) {
+    exclude.add(tok);
+  }
+  return exclude;
+}
+
+/**
  * Extract candidate terms from the JD.
  * Returns Map<term, rawScore> where rawScore reflects:
  *   - base count (1 per occurrence)
  *   - ×2 for multi-word phrases (bigrams/trigrams)
  *   - ×1.5 for appearances in requirements/qualifications sections
+ *
+ * @param {string} jdText
+ * @param {Set<string>} [extraExclude] - extra tokens to treat like stop-words
  */
-function extractTerms(jdText) {
+function extractTerms(jdText, extraExclude = null) {
   const reqRanges = requirementRanges(jdText);
+  // Strip leading/trailing periods + hyphens before stop-word lookup.
+  // The tokenizer preserves '.' (for tokens like 'node.js') but trailing
+  // punctuation from sentence endings would otherwise slip past exclude-set
+  // matching ('bio.' vs 'bio'). Same for leading hyphens from list markers.
+  const cleanToken = (t) => t.replace(/^[.\-]+|[.\-]+$/g, '');
+  const isStop = extraExclude
+    ? (t) => {
+        const c = cleanToken(t);
+        return STOP_WORDS.has(t) || STOP_WORDS.has(c) || extraExclude.has(t) || extraExclude.has(c);
+      }
+    : (t) => STOP_WORDS.has(t) || STOP_WORDS.has(cleanToken(t));
   const lines = jdText.split('\n');
   const scores = new Map(); // term → cumulative score
 
@@ -117,7 +180,7 @@ function extractTerms(jdText) {
     // Trigrams — require ALL three tokens to be non-stop-words, no repeats
     for (let i = 0; i <= tokens.length - 3; i++) {
       const t0 = tokens[i], t1 = tokens[i + 1], t2 = tokens[i + 2];
-      if (STOP_WORDS.has(t0) || STOP_WORDS.has(t1) || STOP_WORDS.has(t2)) continue;
+      if (isStop(t0) || isStop(t1) || isStop(t2)) continue;
       if (/^\d/.test(t0)) continue;
       // Reject phrases with duplicate tokens (artifact from stripped punctuation)
       if (t0 === t1 || t1 === t2 || t0 === t2) continue;
@@ -128,7 +191,7 @@ function extractTerms(jdText) {
     // Bigrams — require BOTH tokens to be non-stop-words, no repeats
     for (let i = 0; i <= tokens.length - 2; i++) {
       const t0 = tokens[i], t1 = tokens[i + 1];
-      if (STOP_WORDS.has(t0) || STOP_WORDS.has(t1)) continue;
+      if (isStop(t0) || isStop(t1)) continue;
       if (/^\d/.test(t0)) continue;
       if (t0 === t1) continue;
       const phrase = `${t0} ${t1}`;
@@ -138,7 +201,7 @@ function extractTerms(jdText) {
     // Unigrams — skip section heading words and very short tokens
     const HEADING_WORDS = new Set(['requirements', 'qualifications', 'about', 'role', 'overview']);
     for (const tok of tokens) {
-      if (STOP_WORDS.has(tok) || HEADING_WORDS.has(tok) || tok.length <= 2) continue;
+      if (isStop(tok) || HEADING_WORDS.has(tok) || tok.length <= 2) continue;
       if (/^\d/.test(tok)) continue;
       addScore(tok, 1 * reqMult);
     }
@@ -232,11 +295,13 @@ function addSuggestion(term) {
  * @param {string} cvText - full CV text (markdown, plain, etc.)
  * @param {object} [opts]
  * @param {number} [opts.topN=20] - how many JD keywords to score against
+ * @param {Set<string>} [opts.exclude] - additional tokens to treat as stop-words.
+ *   Use buildStructuralExcludeSet({company, location}) for company+city noise removal.
  * @returns {{ pct: number, matched: string[], missing: string[], keywords: string[] }}
  */
 export function scoreAtsMatch(jdText, cvText, opts = {}) {
   const topN = opts.topN ?? 20;
-  const termScores = extractTerms(jdText);
+  const termScores = extractTerms(jdText, opts.exclude || null);
   const keywords = topTerms(termScores, topN);
   const cvLower = String(cvText || '').toLowerCase();
   const matched = keywords.filter((k) => matchesInCV(k, cvLower));
@@ -283,7 +348,17 @@ function main() {
     process.exit(1);
   }
 
-  const { pct, matched, missing, keywords } = scoreAtsMatch(jdText, cvText);
+  // --exclude-structural strips company-name + location noise before scoring
+  // so the ATS % reflects skill-fit, not company-name coincidence.
+  const scoreOpts = {};
+  if (args['exclude-structural'] !== undefined) {
+    scoreOpts.exclude = buildStructuralExcludeSet({
+      company: args.company,
+      location: args.location,
+      profilePath: resolve(ROOT, 'config', 'profile.yml'),
+    });
+  }
+  const { pct, matched, missing, keywords } = scoreAtsMatch(jdText, cvText, scoreOpts);
   const line = '─'.repeat(60);
 
   // --write-json=<path>: persist the score so ats-gate.mjs can --score-file it

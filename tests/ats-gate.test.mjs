@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parseGateArgs, evaluateGate } from '../scripts/ats-gate.mjs';
-import { scoreAtsMatch } from '../scripts/ats-score.mjs';
+import { scoreAtsMatch, buildStructuralExcludeSet } from '../scripts/ats-score.mjs';
 import { parsePreflightArgs } from '../scripts/ats-preflight.mjs';
 
 test('parseGateArgs: defaults', () => {
@@ -56,6 +56,70 @@ test('parsePreflightArgs: core flags + gate passthrough', () => {
   assert.equal(p.writeJson, 'output/ats-score-x.json');
   assert.equal(p.cv, 'cv.md');
   assert.deepEqual(p.gateRest, ['--threshold=70', '--json']);
+});
+
+test('parsePreflightArgs: --exclude-structural routes to scoreExtra only', () => {
+  const p = parsePreflightArgs([
+    '--jd=jds/x.txt',
+    '--write-json=output/score.json',
+    '--exclude-structural',
+    '--threshold=70',
+  ]);
+  assert.ok(p.scoreExtra.includes('--exclude-structural'));
+  assert.ok(!p.gateRest.includes('--exclude-structural'));
+  assert.ok(p.gateRest.includes('--threshold=70'));
+});
+
+test('parsePreflightArgs: --company + --location route to BOTH score and gate', () => {
+  const p = parsePreflightArgs([
+    '--jd=jds/x.txt',
+    '--write-json=output/score.json',
+    '--company=Pivot Bio',
+    '--location=Minneapolis, MN',
+  ]);
+  assert.ok(p.scoreExtra.includes('--company=Pivot Bio'));
+  assert.ok(p.scoreExtra.includes('--location=Minneapolis, MN'));
+  assert.ok(p.gateRest.includes('--company=Pivot Bio'));
+  assert.ok(p.gateRest.includes('--location=Minneapolis, MN'));
+});
+
+test('buildStructuralExcludeSet: strips company + location tokens', () => {
+  const set = buildStructuralExcludeSet({
+    company: 'Pivot Bio',
+    location: 'St. Louis, MO',
+  });
+  assert.ok(set.has('pivot'));
+  assert.ok(set.has('bio'));
+  assert.ok(set.has('louis'));
+  // Built-in blocklist tokens
+  assert.ok(set.has('minneapolis'));
+  assert.ok(set.has('inc'));
+});
+
+test('scoreAtsMatch: exclude set removes company + city from keywords', () => {
+  const jd = `
+## About Pivot Bio
+Pivot Bio is based in St. Louis. We seek a data architect with
+Snowflake, Python, and SQL experience at Pivot Bio. Pivot Bio uses
+modern data platforms.
+
+## Requirements
+- Python, SQL, Snowflake, dbt
+- Data architecture patterns
+`;
+  const cv = 'Snowflake Python SQL dbt data architecture';
+  const without = scoreAtsMatch(jd, cv);
+  const exclude = buildStructuralExcludeSet({ company: 'Pivot Bio', location: 'St. Louis, MO' });
+  const withExclude = scoreAtsMatch(jd, cv, { exclude });
+  // "pivot" and "bio" should appear in unmodified keywords but not in excluded
+  const keywordsRaw = without.keywords.join(' ');
+  const keywordsFiltered = withExclude.keywords.join(' ');
+  assert.ok(keywordsRaw.includes('pivot') || keywordsRaw.includes('bio'),
+    `expected raw keywords to include company tokens, got: ${keywordsRaw}`);
+  assert.ok(!/\bpivot\b/.test(keywordsFiltered),
+    `expected filtered keywords to NOT include 'pivot', got: ${keywordsFiltered}`);
+  assert.ok(!/\bbio\b/.test(keywordsFiltered),
+    `expected filtered keywords to NOT include 'bio', got: ${keywordsFiltered}`);
 });
 
 test('scoreAtsMatch: strong overlap → high pct', () => {

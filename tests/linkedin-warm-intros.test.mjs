@@ -6,6 +6,8 @@ import {
   upsertWarmIntrosSection,
   normalizeIntros,
   buildSearchArgs,
+  fetchWarmIntrosWithRetry,
+  isTransientIntrosError,
 } from '../scripts/linkedin-warm-intros.mjs';
 
 test('pickPeopleSearchTool: returns null for empty tool list', () => {
@@ -201,4 +203,114 @@ test('normalizeIntros: respects max cap', () => {
   const raw = Array.from({ length: 10 }, (_, i) => ({ name: `P${i}` }));
   const out = normalizeIntros(raw, { max: 3 });
   assert.equal(out.length, 3);
+});
+
+// ---------------------------------------------------------------------------
+// Retry logic (Phase 2.5)
+// ---------------------------------------------------------------------------
+
+test('isTransientIntrosError: recognizes timeouts + 5xx + rate-limits', () => {
+  assert.equal(isTransientIntrosError('request timed out'), true);
+  assert.equal(isTransientIntrosError('ECONNRESET from server'), true);
+  assert.equal(isTransientIntrosError('429 Too Many Requests'), true);
+  assert.equal(isTransientIntrosError('502 bad gateway'), true);
+  assert.equal(isTransientIntrosError('rate limit exceeded'), true);
+});
+
+test('isTransientIntrosError: rejects permanent failures', () => {
+  assert.equal(isTransientIntrosError('auth revoked'), false);
+  assert.equal(isTransientIntrosError('invalid schema'), false);
+  assert.equal(isTransientIntrosError('no tool exposed'), false);
+  assert.equal(isTransientIntrosError(null), false);
+  assert.equal(isTransientIntrosError(''), false);
+});
+
+test('fetchWarmIntrosWithRetry: returns on first success without retry', async () => {
+  const calls = [];
+  const sleeps = [];
+  const onceFn = async (opts) => {
+    calls.push(opts);
+    return { ok: true, intros: [{ name: 'A' }], toolName: 'search_people' };
+  };
+  const result = await fetchWarmIntrosWithRetry(
+    { company: 'Acme', max: 5 },
+    { sleep: (ms) => { sleeps.push(ms); return Promise.resolve(); }, onceFn },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.attempts, 1);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(sleeps, [], 'no sleep on first-try success');
+});
+
+test('fetchWarmIntrosWithRetry: retries transient errors with backoff', async () => {
+  let n = 0;
+  const sleeps = [];
+  const onceFn = async () => {
+    n++;
+    if (n < 3) return { ok: false, reason: 'request timed out', transient: true };
+    return { ok: true, intros: [{ name: 'Z' }], toolName: 'search_people' };
+  };
+  const result = await fetchWarmIntrosWithRetry(
+    { company: 'Acme', max: 5 },
+    { sleep: (ms) => { sleeps.push(ms); return Promise.resolve(); }, onceFn },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.attempts, 3);
+  assert.deepEqual(sleeps, [2000, 5000], 'backoff applied between attempts 1→2 and 2→3');
+});
+
+test('fetchWarmIntrosWithRetry: permanent error short-circuits on first attempt', async () => {
+  let n = 0;
+  const sleeps = [];
+  const onceFn = async () => {
+    n++;
+    return { ok: false, reason: 'auth expired', transient: false };
+  };
+  const result = await fetchWarmIntrosWithRetry(
+    { company: 'Acme', max: 5 },
+    { sleep: (ms) => { sleeps.push(ms); return Promise.resolve(); }, onceFn },
+  );
+  assert.equal(result.ok, false);
+  assert.equal(result.attempts, 1);
+  assert.equal(n, 1, 'permanent errors must not retry');
+  assert.deepEqual(sleeps, [], 'no sleep on short-circuit');
+});
+
+test('fetchWarmIntrosWithRetry: exhausts attempts on persistent transient error', async () => {
+  let n = 0;
+  const sleeps = [];
+  const onceFn = async () => {
+    n++;
+    return { ok: false, reason: '503 service unavailable', transient: true };
+  };
+  const result = await fetchWarmIntrosWithRetry(
+    { company: 'Acme', max: 5 },
+    { sleep: (ms) => { sleeps.push(ms); return Promise.resolve(); }, onceFn },
+  );
+  assert.equal(result.ok, false);
+  assert.equal(result.attempts, 3);
+  assert.equal(n, 3, 'all attempts consumed');
+  assert.deepEqual(sleeps, [2000, 5000], 'N-1 sleeps across N attempts');
+  assert.equal(result.reason, '503 service unavailable');
+});
+
+test('fetchWarmIntrosWithRetry: honors custom attempts + delays', async () => {
+  let n = 0;
+  const sleeps = [];
+  const onceFn = async () => {
+    n++;
+    return { ok: false, reason: 'ECONNRESET', transient: true };
+  };
+  const result = await fetchWarmIntrosWithRetry(
+    { company: 'Acme', max: 5 },
+    {
+      attempts: 2,
+      delays: [100],
+      sleep: (ms) => { sleeps.push(ms); return Promise.resolve(); },
+      onceFn,
+    },
+  );
+  assert.equal(result.attempts, 2);
+  assert.equal(n, 2);
+  assert.deepEqual(sleeps, [100]);
 });

@@ -6,15 +6,17 @@
 
 ## Professional Summary
 
-Operational data architect and AI automation leader with 10+ years bridging enterprise business systems, analytics intelligence, and AI-driven workflow automation. Proven record architecting end-to-end pipelines — from ERP REST APIs and complex data models through Power BI semantic layers to LLM-powered decision automation — in live production environments across manufacturing, utilities, financial services, and supply chain. Rare combination of deep technical execution (Python, DAX, SQL, n8n, Microsoft Fabric) and operational business judgment that translates messy real-world data into systems that drive faster, smarter decisions.
+Operational data architect and AI automation leader with 10+ years bridging enterprise business systems, analytics intelligence, and AI-driven workflow automation. Proven record architecting end-to-end pipelines — from ERP REST APIs and complex data models through Power BI semantic layers to LLM-powered decision automation — in live production environments across manufacturing, utilities, financial services, agricultural cooperatives, and supply chain. Comfortable operating across data-mesh patterns and domain-driven design boundaries, with hands-on lakehouse experience in Microsoft Fabric (Databricks-adjacent medallion architecture). Rare combination of deep technical execution (Python, DAX, SQL, n8n, Microsoft Fabric) and operational business judgment that translates messy real-world data into systems that drive faster, smarter decisions.
 
 ---
 
 ## Core Technical Skills
 
-**Data & Analytics:** Power BI, DAX, SQL, Microsoft Fabric, Tableau, ETL pipeline design, semantic model architecture, KPI reporting
-**AI & Automation:** n8n, LLM-enabled workflows, Claude Code, agentic systems, AI-assisted process design, Python
-**Systems & Integration:** ERP REST APIs (Paradigm), Node.js, Android development, Playwright, Firebase, Vercel
+**Data Platform & Architecture:** Data lakes, data warehouses, data mesh architectures, Lakehouse patterns (Microsoft Fabric — Databricks-adjacent medallion architecture with Delta-table-equivalent Parquet layers), dimensional + normalized schemas, Master Data Management (MDM), metadata management, data lineage, domain-driven design (DDD)
+**Data & Analytics:** Power BI, DAX, SQL, Microsoft Fabric, Tableau, ETL/ELT pipeline design, semantic model architecture, KPI reporting, advanced analytics
+**AI & Automation:** n8n, LLM-enabled workflows, Claude Code, agentic systems, GenAI application architecture, MLOps pipeline design, AI-assisted process design, Python
+**Systems & Integration:** ERP REST APIs (Paradigm), Node.js, Android development, Playwright, Firebase, Vercel, 3rd-party data source integration (imagery, machinery/IoT, partner APIs)
+**Agricultural & Domain Data:** Fortune 500 agricultural cooperative experience — agronomic data, crop-nutrition programs, cooperative commercial teams, supply-chain visibility across member operations
 **Business Intelligence:** Predictive analytics, risk dashboards, operational reporting, portfolio analysis
 
 ---
@@ -61,9 +63,9 @@ Operational data architect and AI automation leader with 10+ years bridging ente
 **Minneapolis, MN · Sep 2017 – Dec 2018**
 *Fortune 500 agricultural cooperative*
 
-- Operated as Power BI super-user and analytics lead, building ETL processes and dashboards for multiple supply-chain teams across Tableau and Power BI.
-- Built and managed SQL database supporting sales insight generation for 6,000+ annual truck purchases, customers, dealerships, and opportunities.
-- Contributed analysis and recommendations for procurement consulting engagements in an Agile delivery environment.
+- Operated as Power BI super-user and analytics lead for Fortune 500 agricultural cooperative — worked directly with agronomic and agricultural supply-chain data across member operations, crop-nutrition programs, and cooperative commercial teams, building ETL processes and dashboards across Tableau and Power BI.
+- Built and managed SQL database supporting sales insight generation for 6,000+ annual truck purchases, customers, dealerships, and opportunities — enabled sales and procurement decisioning at cooperative scale.
+- Contributed analysis and recommendations for procurement consulting engagements in an Agile delivery environment, applying domain-driven data modeling to ag-supply-chain problems.
 
 ### Senior Business Analyst · UltiMed, Inc.
 **Minneapolis, MN · Jun 2015 – Sep 2017**

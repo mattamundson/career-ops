@@ -193,7 +193,7 @@ export function normalizeIntros(raw, { max = DEFAULT_MAX_INTROS } = {}) {
 // MCP orchestration
 // ---------------------------------------------------------------------------
 
-async function fetchWarmIntros({ company, max }) {
+async function fetchWarmIntrosOnce({ company, max }) {
   const client = new McpClient('uvx', ['linkedin-scraper-mcp@4.9.3'], { stderrPrefix: 'mcp:linkedin' });
   try {
     const tools = await client.listTools();
@@ -203,6 +203,7 @@ async function fetchWarmIntros({ company, max }) {
         ok: false,
         reason: 'no people-search tool exposed by linkedin-scraper-mcp',
         toolsAvailable: (tools?.tools || []).map((t) => t.name).slice(0, 10),
+        transient: false,
       };
     }
     const toolSchema = (tools?.tools || []).find((t) => t.name === toolName)?.inputSchema;
@@ -211,10 +212,60 @@ async function fetchWarmIntros({ company, max }) {
     const intros = normalizeIntros(result, { max });
     return { ok: true, intros, toolName };
   } catch (err) {
-    return { ok: false, reason: err.message };
+    // Heuristic: distinguish transient failures (timeouts, rate limits, 5xx)
+    // from permanent failures (auth revoked, schema mismatch). Only retry
+    // transients — retrying auth errors wastes quota.
+    const msg = String(err?.message || err || '').toLowerCase();
+    const transient =
+      /timeout|timed out|econnreset|econnrefused|enotfound|etimedout|rate limit|429|5\d\d/.test(msg);
+    return { ok: false, reason: err.message || String(err), transient };
   } finally {
     client.close();
   }
+}
+
+export function isTransientIntrosError(reason) {
+  const msg = String(reason || '').toLowerCase();
+  return /timeout|timed out|econnreset|econnrefused|enotfound|etimedout|rate limit|429|5\d\d/.test(msg);
+}
+
+/**
+ * Wrapper with retry-on-transient. Permanent failures (auth, tool missing)
+ * skip retries to avoid wasting MCP quota + delay.
+ *
+ * Backoff: 2s, 5s, 10s (3 attempts total). Tuned for MCP servers that may
+ * hiccup briefly under load but recover quickly.
+ */
+export async function fetchWarmIntrosWithRetry(
+  opts,
+  { attempts = 3, delays = [2000, 5000, 10000], sleep = defaultSleep, onceFn = fetchWarmIntrosOnce } = {},
+) {
+  let last = null;
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) {
+      const wait = delays[i - 1] ?? delays[delays.length - 1];
+      await sleep(wait);
+    }
+    const result = await onceFn(opts);
+    if (result.ok) {
+      return { ...result, attempts: i + 1 };
+    }
+    last = result;
+    if (!result.transient) {
+      return { ...result, attempts: i + 1 };
+    }
+    // transient — fall through to retry
+  }
+  return { ...last, attempts };
+}
+
+function defaultSleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+// Back-compat export — pre-retry callers still get a Promise<result> shape.
+async function fetchWarmIntros(opts) {
+  return fetchWarmIntrosWithRetry(opts);
 }
 
 // ---------------------------------------------------------------------------
