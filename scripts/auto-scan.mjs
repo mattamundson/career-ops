@@ -1403,6 +1403,23 @@ async function main() {
 
   const seenUrls = new Set([...historyUrls, ...pipelineUrls]);
 
+  // Per-source error tracking for honest scanner.<source>.completed events.
+  // Keyed by portal-prefix ('greenhouse', 'ashby', 'lever', ...). Values:
+  //   { errors: N, attempted: N } — errors is count of failed fetches,
+  //   attempted is total companies/queries tried. Emitter classifies status
+  //   based on ratio: 0→success, some→partial, all→error.
+  const sourceErrors = new Map();
+  const bumpSourceError = (src) => {
+    const b = sourceErrors.get(src) || { errors: 0, attempted: 0 };
+    b.errors += 1;
+    sourceErrors.set(src, b);
+  };
+  const setSourceAttempted = (src, n) => {
+    const b = sourceErrors.get(src) || { errors: 0, attempted: 0 };
+    b.attempted = n;
+    sourceErrors.set(src, b);
+  };
+
   // Fetch all Greenhouse companies in parallel (tolerate per-company failures)
   let fetchResults = [];
   if (!DIRECT_ONLY) {
@@ -1429,22 +1446,6 @@ async function main() {
 
   const toAdd     = [];  // entries to write to pipeline.md
   const historyRows = []; // all rows to append to scan-history.tsv
-  // Per-source error tracking for honest scanner.<source>.completed events.
-  // Keyed by portal-prefix ('greenhouse', 'ashby', 'lever', ...). Values:
-  //   { errors: N, attempted: N } — errors is count of failed fetches,
-  //   attempted is total companies/queries tried. Emitter classifies status
-  //   based on ratio: 0→success, some→partial, all→error.
-  const sourceErrors = new Map();
-  const bumpSourceError = (src) => {
-    const b = sourceErrors.get(src) || { errors: 0, attempted: 0 };
-    b.errors += 1;
-    sourceErrors.set(src, b);
-  };
-  const setSourceAttempted = (src, n) => {
-    const b = sourceErrors.get(src) || { errors: 0, attempted: 0 };
-    b.attempted = n;
-    sourceErrors.set(src, b);
-  };
 
   for (let idx = 0; idx < ghCompanies.length; idx++) {
     const company = ghCompanies[idx];
