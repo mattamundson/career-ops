@@ -75,6 +75,17 @@ Dates assume today ≈ **2026-04-22**. Rename phases if you slip—keep the *seq
 
 Use the same list every week so trends matter.
 
+**Pre-fill from the repo (tracker + `responses.md` + outreach mtimes):**
+
+```bash
+pnpm run scorecard:week
+# JSON:  pnpm run scorecard:week -- --json
+# Optional:  pnpm run scorecard:week -- --run-verify
+# Phase A checklist lines:  pnpm run scorecard:week -- --phase-a
+```
+
+The script prints counts and a copy-paste block. You still fill **outreach 3.5+** (score not auto-inferred), **stale rows moved**, **blocker**, and verify date unless you used `--run-verify`.
+
 ```text
 Week ending: YYYY-MM-DD
 
@@ -113,4 +124,4 @@ These are **infrastructure** goals, not job outcomes—but they protect time.
 
 | Date | Change |
 |------|--------|
-| 2026-04-22 | Initial roadmap: Phases A–C, weekly scorecard, system parallel track. |
+| 2026-04-22 | Initial roadmap (Phases A–C); added `pnpm run scorecard:week` + `scripts/weekly-scorecard.mjs` to pre-fill §4. |
