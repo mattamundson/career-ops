@@ -4,6 +4,8 @@
 
 > Customized for Matthew M. Amundson — Operational Data Architect · AI Automation Leader · BI & Analytics
 
+> **New here or returning after a gap?** Read [`docs/OPERATOR-GUIDE.md`](docs/OPERATOR-GUIDE.md) first — single-page entry point covering what's running, how to pause it, and where everything lives.
+
 [![Claude Code](https://img.shields.io/badge/Claude_Code-000?style=flat&logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org)
 [![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)](https://go.dev)
