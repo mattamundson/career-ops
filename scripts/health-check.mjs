@@ -106,7 +106,13 @@ function checkTaskFreshness(events) {
 // ── Check 2: task.failed events ─────────────────────────────────────────────
 
 function checkRecentFailures(events) {
-  const failures = events.filter((e) => e.type === 'task.failed');
+  // Exclude cron-health-check's OWN failures — otherwise the check is
+  // self-referential: one real upstream failure triggers health-check to
+  // fail, which itself becomes a counted failure next run, locking the
+  // count above threshold until the original failure ages out.
+  const failures = events.filter(
+    (e) => e.type === 'task.failed' && e.task !== 'cron-health-check' && e.job !== 'cron-health-check'
+  );
   if (failures.length === 0) {
     add('failures:24h', 'pass', '0 task.failed events in last 24h');
     return;
