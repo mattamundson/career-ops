@@ -74,6 +74,7 @@ data/embeddings/
 
 # Pipeline / hygiene one-off backups (regenerate anytime)
 **/*.bak
+**/*.bak2
 
 # Claude Code task state (local only)
 .claude/task-manifest.json
@@ -133,8 +134,8 @@ docs/handoff-*.txt
 # gmail-sync writes per-run state + per-day review files; scheduler writes logs)
 data/notifications/
 data/gmail-sync-state.json
-data/outreach/gmail-sync-review-*.md
-data/outreach/followup-*.md
+# Outreach drafts (surfacer / scanner output; high churn — same idea as prefilter-results)
+data/outreach/*.md
 data/prefilter-scheduler.log
 data/scan-run-*.log
 
