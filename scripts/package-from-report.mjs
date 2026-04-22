@@ -121,6 +121,14 @@ function parseReportMeta(reportPath) {
   meta.location = meta.location || readBold('Location');
   meta.salary = meta.salary || readBold('Salary');
   meta.archetype = meta.archetype || readBold('Archetype');
+  // Phase 2.2 scan-enrichment fields — optional bold-text metadata that
+  // makes portal branching + city-token exclusion deterministic without
+  // URL parsing. Reports may include them per modes/_shared.md convention.
+  meta.ghJid = readBold('gh_jid') || readBold('GH JID');
+  meta.leverId = readBold('lever_id') || readBold('Lever ID');
+  meta.officeCity = readBold('Office City') || readBold('office_city');
+  meta.closeDate = readBold('Close Date');
+  meta.repostedAgeDays = readBold('Reposted Age Days') || readBold('reposted_age_days');
 
   // Title line: "# Evaluation: <Company> — <Role>"
   const title = body.match(/^#\s+Evaluation:\s+(.+?)\s*$/m)?.[1] || null;
@@ -233,8 +241,11 @@ function stageAtsPreflight(meta, jdFile, pkgDir, opts) {
   ];
   if (cvForScoring) preflightArgs.unshift(`--cv=${cvForScoring}`);
   if (meta.company) preflightArgs.push(`--company=${meta.company}`);
-  // Pull first city-like token out of the location string for exclusion.
-  const locToken = (meta.location || '').match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?/)?.[0];
+  // Prefer explicit Office City metadata when present (Phase 2.2 enrichment);
+  // fall back to extracting a city-like token from the Location prose.
+  const locToken =
+    meta.officeCity ||
+    (meta.location || '').match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?/)?.[0];
   if (locToken) preflightArgs.push(`--location=${locToken}`);
   const r = runStep(
     'ats-preflight',
@@ -319,7 +330,8 @@ function stageGenerateCoverLetter(meta, pkgDir, opts) {
 
 function stageApplyFlow(meta, portal, pkgDir, opts, parsed = null) {
   if (portal === 'greenhouse' || portal === 'lever' || portal === 'ashby') {
-    const gh_jid = extractGhJid(meta.applyUrl || meta.url);
+    // Prefer explicit Phase-2.2 metadata; fall back to URL regex.
+    const gh_jid = meta.ghJid || extractGhJid(meta.applyUrl || meta.url);
     const essays = [
       {
         q: 'Why do you want this role?',

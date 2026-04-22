@@ -164,6 +164,10 @@ If the candidate has a live demo/dashboard (check profile.yml), offer access in 
 9. **Tracker additions as TSV** -- NEVER edit applications.md to add new entries. Write TSV in `batch/tracker-additions/` and `merge-tracker.mjs` handles the merge. Status column must be a value from `templates/states.yml` (e.g. `Evaluated`, `GO`, `Applied`). TSV column order: **status before score** (see `CLAUDE.md`). **Never** click employer Submit/Send on behalf of the candidate.
 10. **Include `**URL:**` in every report header** -- between Score and PDF.
 11. **Capture close date when visible.** If the JD page shows an explicit "apply by", "closing date", "expires", or "posting ends" date, include it in the report header as `**Close Date:** YYYY-MM-DD`. Dashboard reads this and lifts the row's priority when the deadline is near (≤7d → ×1.10, ≤2d → ×1.25, past → ×0.50). Omit the line entirely when no close date is visible -- do not guess.
+12. **Capture structured scan-enrichment fields when extractable** — makes `package-from-report.mjs` orchestration deterministic (no URL regex fallback). Omit any line whose value is not visible.
+    - `**gh_jid:** <id>` — Greenhouse job ID pulled from `?gh_jid=` or `boards.greenhouse.io/<board>/jobs/<id>`.
+    - `**Lever ID:** <uuid>` — Lever UUID from `jobs.lever.co/<board>/<uuid>`.
+    - `**Office City:** <city>` — explicit city token (e.g., `Minneapolis`, `Edina`, `Eagan`) for ATS structural-token exclusion. The orchestrator strips this + the company name before scoring so "missing: pivot bio, st. louis" doesn't deflate the score.
 
 ### Tools
 

@@ -268,8 +268,13 @@ test('invalid --score-file falls back to live JD/CV (stderr + success)', () => {
 
 function readNewAutomationEvents(/** @type {string} */ logPath, /** @type {number} */ startSize) {
   if (!existsSync(logPath)) return [];
-  const buf = readFileSync(logPath, 'utf8');
-  const tail = startSize >= buf.length ? '' : buf.slice(startSize);
+  // Read as Buffer and slice by byte offset — startSize comes from statSync
+  // (bytes), which diverges from String.length once the log accumulates any
+  // multi-byte UTF-8 chars (em dashes in prior events). Using string .slice
+  // with a byte offset silently drops new lines when they land past the
+  // char-index cap.
+  const buf = readFileSync(logPath);
+  const tail = startSize >= buf.length ? '' : buf.slice(startSize).toString('utf8');
   return tail
     .trim()
     .split('\n')

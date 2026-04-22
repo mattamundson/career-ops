@@ -173,14 +173,18 @@ export function main() {
     const id = nextId;
     nextId = String(parseInt(nextId, 10) + 1).padStart(3, '0');
     const slug = slugify(c.meta.company);
-    const note = `Auto-promoted from prefilter (score=${c.meta.score}, rec=EVALUATE)${c.meta.archetype && c.meta.archetype !== '_pending_' ? ` — archetype=${c.meta.archetype}` : ''}`;
+    // Auto-promote lands in `Evaluated` — NOT `GO`. Prefilter scores on title
+    // + snippet only, so these cards haven't cleared the full A-F rubric.
+    // Matt promotes to `GO` manually (via /career-ops) after deep-eval.
+    // This keeps the GO queue reserved for cards Matt has actually reviewed.
+    const note = `Auto-promoted from prefilter (score=${c.meta.score}, rec=EVALUATE)${c.meta.archetype && c.meta.archetype !== '_pending_' ? ` — archetype=${c.meta.archetype}` : ''} — needs full /career-ops eval before GO`;
     const tsvPath = join(TSV_DIR, `${id}-${slug}.tsv`);
     const row = [
       id,
       today,
       c.meta.company,
       c.meta.title,
-      'GO',
+      'Evaluated',
       `${c.meta.score.toFixed(1)}/5`,
       '❌',
       `[${id}](reports/${id}-${slug}-${today}.md)`,

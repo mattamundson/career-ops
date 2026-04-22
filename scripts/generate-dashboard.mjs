@@ -243,6 +243,25 @@ for (const app of apps) {
 const pendingPipeline = pipeline.filter(p => !p.done);
 const processedPipeline = pipeline.filter(p => p.done);
 
+// Count packages staged by scripts/package-from-report.mjs awaiting Matt's
+// submit. A package is "ready" when packages/<id>/manifest.json exists AND
+// at least one submission-artifact (apply-flow.md / email.eml / apply-preview.md)
+// exists alongside it. Stays deliberately permissive — dashboards flag work
+// to do, not a gate.
+const packagesReadyCount = (() => {
+  const dir = resolve(ROOT, 'packages');
+  if (!existsSync(dir)) return 0;
+  let n = 0;
+  for (const entry of readdirSync(dir)) {
+    if (!/^\d+$/.test(entry)) continue;
+    const manifestPath = resolve(dir, entry, 'manifest.json');
+    if (!existsSync(manifestPath)) continue;
+    const artifacts = ['apply-flow.md', 'email.eml', 'apply-preview.md'];
+    if (artifacts.some((a) => existsSync(resolve(dir, entry, a)))) n++;
+  }
+  return n;
+})();
+
 const scanHistory    = parseScanHistory();
 const prefilterCards = parsePrefilterCards();
 
@@ -2373,6 +2392,11 @@ tailwind.config = {
     <div class="stat-card">
       <div class="label">Pipeline Inbox</div>
       <div class="value" style="color:var(--sky)">${pendingPipeline.length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Packages Ready</div>
+      <div class="value" style="color:${packagesReadyCount > 0 ? 'var(--peach)' : 'var(--subtext)'}">${packagesReadyCount}</div>
+      <div class="label" style="margin-top:2px">${packagesReadyCount > 0 ? 'awaiting submit' : 'none staged'}</div>
     </div>
     <div class="stat-card">
       <div class="label">Dead URLs</div>
