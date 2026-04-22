@@ -27,6 +27,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `scripts/prep-queue.mjs` | Phase A batch: GO / Conditional GO → `package-from-report` (+ optional liveness); `pnpm run prep-queue` |
 | `scripts/apply-review-batch.mjs` | Phase B': sequence `apply-review --prepare` or `--confirm` for an ID list; `pnpm run apply-review:batch` |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
+| `docs/career-search-roadmap-2026.md` | Goals, phase timelines, weekly scorecard — planning layer on top of daily ops |
 | `docs/WHICH-DASHBOARD-WHEN.md` | HTML `dashboard.html` vs Go TUI: when to use each, refresh cadence, explicit non-goals |
 | `docs/RUNBOOK-linkedin-mcp.md` | Operational response for LinkedIn MCP scan failures (symptom triage, fix recipes) |
 | `docs/ARCHITECTURE-scan-pipeline.md` | Scan pipeline architecture: sources, orchestration, event flow, partial_success propagation |

@@ -2,6 +2,8 @@
 
 > How to use career-ops every morning without thinking about it.
 
+For **phase goals, deadlines, and a weekly scorecard**, see [`career-search-roadmap-2026.md`](career-search-roadmap-2026.md) (complements this doc: *how* each day; roadmap = *what* by *when*).
+
 ## The 30-Second Morning Routine
 
 1. **Read the 7:55 AM digest email** (sent to your Gmail). Top 7 actions, recruiter touches, yesterday's activity.
