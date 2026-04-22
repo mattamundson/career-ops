@@ -112,6 +112,11 @@ pnpm run prep-queue -- --dry-run
 pnpm run prep-queue -- --min-score=3 --limit=5
 pnpm run prep-queue -- --skip-liveness
 
+# Phase B' — batch prepare/confirm (same guardrails as apply-review; --confirm needs --accept-submit-risk)
+pnpm run apply-review:batch -- --prepare --dry-run --ids=016,042
+pnpm run apply-review:batch -- --prepare --ids=016,042 --delay-ms=10000
+pnpm run apply-review:batch -- --confirm --ids=016 --accept-submit-risk
+
 # Generate a tailored PDF for a specific app
 node generate-pdf.mjs --app-id 042 --output output/cv-matt-{company}-2026-04-19.pdf
 
