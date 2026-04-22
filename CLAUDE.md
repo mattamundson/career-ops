@@ -23,6 +23,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `templates/cv-template.html` | HTML template for CVs |
 | `generate-pdf.mjs` | Playwright: HTML to PDF |
 | `cv-sync-check.mjs` | CV/profile synchronization check — run to verify consistency |
+| `scripts/ats-preflight.mjs` | ATS: `ats-score` → `--write-json`, then `ats-gate` → `--score-file` (one command before PDF) |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/WHICH-DASHBOARD-WHEN.md` | HTML `dashboard.html` vs Go TUI: when to use each, refresh cadence, explicit non-goals |
 | `docs/RUNBOOK-linkedin-mcp.md` | Operational response for LinkedIn MCP scan failures (symptom triage, fix recipes) |

@@ -15,6 +15,7 @@
  * Usage:
  *   node scripts/ats-gate.mjs --jd=jds/acme.txt [--cv=cv.md] [--threshold=60] [--force]
  *   node scripts/ats-gate.mjs --jd=jds/acme.txt --json  (machine-readable output)
+ *   Or use `scripts/ats-preflight.mjs` to run ats-score --write-json then this gate with --score-file.
  */
 
 import { readFileSync } from 'fs';

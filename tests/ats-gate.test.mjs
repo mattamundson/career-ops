@@ -4,12 +4,13 @@
 
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync, statSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parseGateArgs, evaluateGate } from '../scripts/ats-gate.mjs';
 import { scoreAtsMatch } from '../scripts/ats-score.mjs';
+import { parsePreflightArgs } from '../scripts/ats-preflight.mjs';
 
 test('parseGateArgs: defaults', () => {
   const a = parseGateArgs(['--jd=jds/x.txt']);
@@ -41,6 +42,20 @@ test('parseGateArgs: score-file captured', () => {
 test('parseGateArgs: score-file absent → null', () => {
   const a = parseGateArgs(['--jd=jds/x.txt']);
   assert.equal(a.scoreFile, null);
+});
+
+test('parsePreflightArgs: core flags + gate passthrough', () => {
+  const p = parsePreflightArgs([
+    '--jd=jds/x.txt',
+    '--write-json=output/ats-score-x.json',
+    '--cv=cv.md',
+    '--threshold=70',
+    '--json',
+  ]);
+  assert.equal(p.jd, 'jds/x.txt');
+  assert.equal(p.writeJson, 'output/ats-score-x.json');
+  assert.equal(p.cv, 'cv.md');
+  assert.deepEqual(p.gateRest, ['--threshold=70', '--json']);
 });
 
 test('scoreAtsMatch: strong overlap → high pct', () => {
@@ -146,6 +161,195 @@ test('score-file fast path: ats-score --write-json → ats-gate --score-file rou
     const out = JSON.parse(consume.stdout);
     assert.equal(out.passed, true);
     assert.equal(out.pct, cached.pct);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('invalid --score-file falls back to live JD/CV (stderr + success)', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ats-gate-fallback-'));
+  try {
+    const badPath = join(dir, 'bad.json');
+    writeFileSync(badPath, '{ not json');
+    const jdPath = join(dir, 'jd.txt');
+    const cvPath = join(dir, 'cv.md');
+    writeFileSync(
+      jdPath,
+      '## Requirements\n- Snowflake, dbt, Airflow, Python, Power BI, DAX experience required.'
+    );
+    writeFileSync(
+      cvPath,
+      'Matt — Snowflake, dbt, Airflow, Python, Power BI, DAX practitioner for 10 years.'
+    );
+    const r = spawnSync(
+      process.execPath,
+      [
+        'scripts/ats-gate.mjs',
+        `--score-file=${badPath}`,
+        `--jd=${jdPath}`,
+        `--cv=${cvPath}`,
+        '--threshold=60',
+        '--json',
+      ],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    );
+    assert.match(r.stderr, /falling back/i, r.stderr);
+    assert.equal(r.status, 0, r.stderr);
+    const out = JSON.parse(r.stdout);
+    assert.equal(out.passed, true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+function readNewAutomationEvents(/** @type {string} */ logPath, /** @type {number} */ startSize) {
+  if (!existsSync(logPath)) return [];
+  const buf = readFileSync(logPath, 'utf8');
+  const tail = startSize >= buf.length ? '' : buf.slice(startSize);
+  return tail
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter((e) => e && typeof e === 'object');
+}
+
+test('automation event: --score-file sets details.source= cached', () => {
+  const date = new Date().toISOString().slice(0, 10);
+  const logPath = join(process.cwd(), 'data', 'events', `${date}.jsonl`);
+  const startSize = (() => {
+    try {
+      return statSync(logPath).size;
+    } catch {
+      return 0;
+    }
+  })();
+
+  const dir = mkdtempSync(join(tmpdir(), 'ats-evt-cached-'));
+  try {
+    const jdPath = join(dir, 'jd.txt');
+    const cvPath = join(dir, 'cv.md');
+    const scorePath = join(dir, 'score.json');
+    writeFileSync(
+      jdPath,
+      '## Requirements\n- Snowflake, dbt, Airflow, Python, Power BI, DAX experience required.'
+    );
+    writeFileSync(
+      cvPath,
+      'Matt — Snowflake, dbt, Airflow, Python, Power BI, DAX practitioner for 10 years.'
+    );
+    const produce = spawnSync(
+      process.execPath,
+      [
+        'scripts/ats-score.mjs',
+        `--jd=${jdPath}`,
+        `--cv=${cvPath}`,
+        `--write-json=${scorePath}`,
+      ],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    );
+    assert.equal(produce.status, 0, produce.stderr);
+    const gate = spawnSync(
+      process.execPath,
+      [
+        'scripts/ats-gate.mjs',
+        `--score-file=${scorePath}`,
+        '--threshold=60',
+        '--json',
+      ],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    );
+    assert.equal(gate.status, 0, gate.stderr);
+    const appended = readNewAutomationEvents(logPath, startSize);
+    const ats = appended.filter((e) => e.type && String(e.type).includes('automation.ats_gate'));
+    assert.ok(ats.length >= 1, 'expected an automation.ats_gate event');
+    const last = ats[ats.length - 1];
+    assert.equal(last.details?.source, 'cached');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('automation event: computed path sets details.source= computed', () => {
+  const date = new Date().toISOString().slice(0, 10);
+  const logPath = join(process.cwd(), 'data', 'events', `${date}.jsonl`);
+  const startSize = (() => {
+    try {
+      return statSync(logPath).size;
+    } catch {
+      return 0;
+    }
+  })();
+
+  const dir = mkdtempSync(join(tmpdir(), 'ats-evt-computed-'));
+  try {
+    const jdPath = join(dir, 'jd.txt');
+    const cvPath = join(dir, 'cv.md');
+    writeFileSync(
+      jdPath,
+      '## Requirements\n- Snowflake, dbt, Airflow, Python, Power BI, DAX experience required.'
+    );
+    writeFileSync(
+      cvPath,
+      'Matt — Snowflake, dbt, Airflow, Python, Power BI, DAX practitioner for 10 years.'
+    );
+    const gate = spawnSync(
+      process.execPath,
+      [
+        'scripts/ats-gate.mjs',
+        `--jd=${jdPath}`,
+        `--cv=${cvPath}`,
+        '--threshold=60',
+        '--json',
+      ],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    );
+    assert.equal(gate.status, 0, gate.stderr);
+    const appended = readNewAutomationEvents(logPath, startSize);
+    const ats = appended.filter((e) => e.type && String(e.type).includes('automation.ats_gate'));
+    assert.ok(ats.length >= 1, 'expected an automation.ats_gate event');
+    const last = ats[ats.length - 1];
+    assert.equal(last.details?.source, 'computed');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('ats-preflight.mjs: score + cached gate in one process tree', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ats-preflight-'));
+  try {
+    const jdPath = join(dir, 'jd.txt');
+    const cvPath = join(dir, 'cv.md');
+    const scorePath = join(dir, 'score.json');
+    writeFileSync(
+      jdPath,
+      '## Requirements\n- Snowflake, dbt, Airflow, Python, Power BI, DAX experience required.'
+    );
+    writeFileSync(
+      cvPath,
+      'Matt — Snowflake, dbt, Airflow, Python, Power BI, DAX practitioner for 10 years.'
+    );
+    const r = spawnSync(
+      process.execPath,
+      [
+        'scripts/ats-preflight.mjs',
+        `--jd=${jdPath}`,
+        `--cv=${cvPath}`,
+        `--write-json=${scorePath}`,
+        '--threshold=60',
+      ],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    );
+    assert.equal(r.status, 0, r.stderr);
+    const score = JSON.parse(readFileSync(scorePath, 'utf8'));
+    assert.equal(typeof score.pct, 'number');
+    assert.ok(score.pct >= 60);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
