@@ -86,8 +86,15 @@ export function parseApplyUrl(url) {
   if (/indeed\.com/i.test(raw)) return { portal: 'indeed-proxy', jobId: null, board: null, companySlug: null, raw };
   if (/builtin\.com/i.test(raw)) return { portal: 'builtin-proxy', jobId: null, board: null, companySlug: null, raw };
 
-  // Email mailto:
+  // Email: mailto:, or a bare email address embedded in apply-prose
+  // (e.g. "careers@company.com (send resume + cover letter)"). We only
+  // match when the string contains an @-email and NO http(s):// to avoid
+  // misclassifying pages that happen to mention a contact email.
   if (/^mailto:/i.test(raw)) return { portal: 'email', jobId: null, board: null, companySlug: null, raw };
+  const bareEmail = raw.match(/(?<![A-Za-z0-9._%+-])([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/);
+  if (bareEmail && !/https?:\/\//i.test(raw)) {
+    return { portal: 'email', jobId: null, board: null, companySlug: null, email: bareEmail[1], raw };
+  }
 
   return { portal: 'universal', jobId: null, board: null, companySlug: null, raw };
 }

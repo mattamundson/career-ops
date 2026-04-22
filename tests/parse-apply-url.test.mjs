@@ -62,6 +62,17 @@ test('parseApplyUrl: mailto email', () => {
   assert.equal(r.portal, 'email');
 });
 
+test('parseApplyUrl: bare email embedded in apply-prose', () => {
+  const r = parseApplyUrl('careers@govdocs.com (email resume + salary requirements + cover letter)');
+  assert.equal(r.portal, 'email');
+  assert.equal(r.email, 'careers@govdocs.com');
+});
+
+test('parseApplyUrl: page with contact email does NOT misclassify as email', () => {
+  const r = parseApplyUrl('https://acme.com/careers?contact=hr@acme.com');
+  assert.equal(r.portal, 'universal', 'presence of @ plus http:// must not trigger email portal');
+});
+
 test('parseApplyUrl: unknown company domain', () => {
   const r = parseApplyUrl('https://acme.com/careers/123');
   assert.equal(r.portal, 'universal');

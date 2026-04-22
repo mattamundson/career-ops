@@ -216,10 +216,30 @@ function stageAtsPreflight(meta, jdFile, pkgDir, opts) {
     return { passed: true, skipped: true };
   }
   const writeJson = resolve(pkgDir, 'ats-score.json');
+  // Prefer the tailored variant (output/cv-variants/cv-matt-<slug>.md) when it
+  // exists — that's what actually gets submitted. Fall back to canonical cv.md.
+  const variantSlug = slugify(`${meta.company}-${meta.role}`);
+  const variantPath = resolve(ROOT, 'output', 'cv-variants', `cv-matt-${variantSlug}.md`);
+  const cvForScoring = existsSync(variantPath) ? variantPath : null;
+  // Always exclude company-name + location tokens — structural noise inflates
+  // false-negatives on "missing". --company / --location default-safe to empty
+  // if meta didn't extract them.
+  const preflightArgs = [
+    `--jd=${jdFile}`,
+    `--write-json=${writeJson}`,
+    `--threshold=${opts.threshold}`,
+    '--json',
+    '--exclude-structural',
+  ];
+  if (cvForScoring) preflightArgs.unshift(`--cv=${cvForScoring}`);
+  if (meta.company) preflightArgs.push(`--company=${meta.company}`);
+  // Pull first city-like token out of the location string for exclusion.
+  const locToken = (meta.location || '').match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?/)?.[0];
+  if (locToken) preflightArgs.push(`--location=${locToken}`);
   const r = runStep(
     'ats-preflight',
     resolve(__dir, 'ats-preflight.mjs'),
-    [`--jd=${jdFile}`, `--write-json=${writeJson}`, `--threshold=${opts.threshold}`, '--json'],
+    preflightArgs,
     { stdio: 'pipe' }
   );
   if (r.status !== 0) {
@@ -297,7 +317,7 @@ function stageGenerateCoverLetter(meta, pkgDir, opts) {
   return {};
 }
 
-function stageApplyFlow(meta, portal, pkgDir, opts) {
+function stageApplyFlow(meta, portal, pkgDir, opts, parsed = null) {
   if (portal === 'greenhouse' || portal === 'lever' || portal === 'ashby') {
     const gh_jid = extractGhJid(meta.applyUrl || meta.url);
     const essays = [
@@ -354,10 +374,14 @@ function stageApplyFlow(meta, portal, pkgDir, opts) {
     // Delegate to apply-via-email.mjs --draft (may not exist yet)
     const emailScript = resolve(__dir, 'apply-via-email.mjs');
     if (existsSync(emailScript)) {
+      const emailArgs = ['--app-id', padId(opts.reportNum), '--draft', '--package-dir', pkgDir];
+      // parseApplyUrl stores the extracted address on parsed.email — pass
+      // it through so apply-via-email doesn't have to re-parse the prose.
+      if (parsed?.email) emailArgs.push('--to', parsed.email);
       const r = runStep(
         'apply-via-email',
         emailScript,
-        ['--app-id', padId(opts.reportNum), '--draft', '--package-dir', pkgDir],
+        emailArgs,
         { stdio: 'pipe' }
       );
       if (r.status !== 0) {
@@ -493,17 +517,19 @@ export async function packageFromReport(opts) {
   const urlCandidate = meta.applyUrl || meta.url || '';
   const parsedUrl = parseApplyUrl(urlCandidate);
   let portal = parsedUrl.portal || 'unknown';
+  let effectiveParse = parsedUrl;
   // If the main URL is a proxy (LinkedIn/Indeed/BuiltIn) but the apply URL
   // is a direct ATS link, prefer the direct ATS detection.
   if (['linkedin-proxy', 'indeed-proxy', 'builtin-proxy', 'unknown', 'universal'].includes(portal) && meta.applyUrl && meta.applyUrl !== meta.url) {
     const altParse = parseApplyUrl(meta.applyUrl);
     if (altParse.portal && !['linkedin-proxy', 'indeed-proxy', 'builtin-proxy', 'unknown', 'universal'].includes(altParse.portal)) {
       portal = altParse.portal;
+      effectiveParse = altParse;
     }
   }
 
   // 9. Apply-flow artifact (portal-specific)
-  const flowResult = stageApplyFlow(meta, portal, pkgDir, { ...opts, reportNum });
+  const flowResult = stageApplyFlow(meta, portal, pkgDir, { ...opts, reportNum }, effectiveParse);
 
   // 10. Tracker update
   const trackerResult = stageTrackerUpdate(meta, { ...opts, reportNum });
