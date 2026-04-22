@@ -106,11 +106,19 @@ data/apply-runs/
 data/index/
 data/run-summaries/
 
+# Per-source scanner health (runtime state, regenerated each scan)
+data/source-health.json
+
+# package-from-report.mjs outputs (per-app deliverables; same rationale as output/)
+packages/*
+!packages/.gitkeep
+
 # Date-stamped audit + summary outputs (regenerable from scripts)
 data/scan-summary-*.md
 data/stale-alert-*.md
 data/scan-expansion-*.md
 data/liveness-*.md
+data/apply-liveness-*.md
 data/resume-diff-*.md
 data/dedupe-intake-report.md
 data/pipeline-prune-log.md
