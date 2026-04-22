@@ -57,6 +57,7 @@ If all 7 checks pass, the system is healthy. If anything is yellow/red, see [Tro
 |---|---|---|
 | Every hour | Regenerates `dashboard.html` from `data/applications.md` + `data/pipeline.md` | `dashboard.generated` event in `data/events/YYYY-MM-DD.jsonl` |
 | Daily 18:00 CT | Full scan (Greenhouse, Ashby, Lever, Workday, iCIMS, etc.) + prefilter | `scanner.run.completed` event |
+| Daily 07:00 CT | **Prefilter auto-score + promote** — LLM-scores EVALUATE cards, promotes ≥4.0 into tracker so morning digest sees them | `cron-prefilter` task.complete event with `{scored, promoted, skipped}` |
 | Daily | Gmail recruiter sync — pulls labeled mail, classifies, maps to applications | `gmail-sync.completed` event |
 | Daily 6:00 AM CT | Apply-queue liveness — probes every GO/Conditional GO URL with HEAD + render-mode for SPAs. Catches dead listings before they waste prep cycles. | `data/apply-liveness-YYYY-MM-DD.md` and `apply-liveness.run.completed` event |
 | Daily | Cadence alert — flags applications stale > 14 days | `data/stale-alert-YYYY-MM-DD.md` |
@@ -73,6 +74,17 @@ If a task hasn't run, see [Scheduled Tasks](#scheduled-tasks-windows-task-schedu
 
 # Log a response from a recruiter
 node scripts/log-response.mjs --app-id 042 --event recruiter_reply --notes "wants Tuesday call"
+
+# Package a GO-scored report for submission (NEW — meta-orchestrator)
+# Runs ATS preflight → PDF → cover letter → portal-branch artifact → tracker update.
+# Output lands in packages/<N>/ with manifest.json + warnings.jsonl.
+node scripts/package-from-report.mjs --report-num 219              # full pipeline
+node scripts/package-from-report.mjs --report-num 219 --skip-pdf   # if DOCX→PDF flow not available
+node scripts/package-from-report.mjs --report-num 219 --dry-run    # preview without writing
+# Portal branches emit:
+#   greenhouse/lever/ashby → packages/<N>/apply-flow.md  (essay checklist + gh_jid if known)
+#   email                  → packages/<N>/email.eml      (multipart/mixed, open in Outlook/Thunderbird)
+#   workday/icims/universal → packages/<N>/apply-preview.md  (form preview stub)
 
 # Apply-Review queue — see what's ready to prep, with URL classification
 pnpm run apply-review               # list all GO / Conditional GO with URL kind + ATS
