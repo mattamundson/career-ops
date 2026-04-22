@@ -107,6 +107,11 @@ grep -E '^\| .* \| (Ready to Submit|GO|Conditional GO) \|' data/applications.md
 # (do this AFTER you click Submit on the employer site)
 node scripts/log-response.mjs --app-id 042 --event submitted --date 2026-04-19
 
+# Batch Phase A — package every GO / Conditional GO (score ≥ min) with a report on disk
+pnpm run prep-queue -- --dry-run
+pnpm run prep-queue -- --min-score=3 --limit=5
+pnpm run prep-queue -- --skip-liveness
+
 # Generate a tailored PDF for a specific app
 node generate-pdf.mjs --app-id 042 --output output/cv-matt-{company}-2026-04-19.pdf
 

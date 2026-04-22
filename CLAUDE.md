@@ -24,6 +24,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `generate-pdf.mjs` | Playwright: HTML to PDF |
 | `cv-sync-check.mjs` | CV/profile synchronization check — run to verify consistency |
 | `scripts/ats-preflight.mjs` | ATS: `ats-score` → `--write-json`, then `ats-gate` → `--score-file` (one command before PDF) |
+| `scripts/prep-queue.mjs` | Phase A batch: GO / Conditional GO → `package-from-report` (+ optional liveness); `pnpm run prep-queue` |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/WHICH-DASHBOARD-WHEN.md` | HTML `dashboard.html` vs Go TUI: when to use each, refresh cadence, explicit non-goals |
 | `docs/RUNBOOK-linkedin-mcp.md` | Operational response for LinkedIn MCP scan failures (symptom triage, fix recipes) |
