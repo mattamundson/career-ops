@@ -22,7 +22,14 @@ function dirSizeBytes(path) {
 export function killStaleLinkedInChrome() {
   if (process.platform !== 'win32') return { killed: 0, skipped: true };
   try {
-    const psCmd = `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -like '*linkedin-mcp*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue; $_.ProcessId } | Measure-Object | Select-Object -ExpandProperty Count`;
+    // Avoid nested quote parsing issues by filtering in PowerShell instead of -Filter.
+    const psCmd = [
+      "Get-CimInstance -ClassName Win32_Process",
+      "  | Where-Object { $_.Name -eq 'chrome.exe' -and $_.CommandLine -like '*linkedin-mcp*' }",
+      "  | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue; $_.ProcessId }",
+      '  | Measure-Object',
+      '  | Select-Object -ExpandProperty Count',
+    ].join(' ');
     const out = execSync(`powershell.exe -NoProfile -Command "${psCmd}"`, { encoding: 'utf-8', timeout: 15000 });
     const killed = parseInt(out.trim()) || 0;
     if (killed > 0) {
