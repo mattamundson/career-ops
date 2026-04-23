@@ -49,6 +49,7 @@
     "prep-queue": "node scripts/prep-queue.mjs",
     "apply-review:batch": "node scripts/apply-review-batch.mjs",
     "scorecard:week": "node scripts/weekly-scorecard.mjs",
+    "scorecard:weekly-scorecard": "node scripts/weekly-scorecard.mjs",
     "apply-liveness": "node scripts/check-apply-queue-liveness.mjs",
     "apply-liveness:render": "node scripts/check-apply-queue-liveness.mjs --render",
     "cover-letter": "node scripts/generate-cover-letter.mjs",
