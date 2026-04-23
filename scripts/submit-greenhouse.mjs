@@ -183,46 +183,45 @@ try {
 
   await page.waitForTimeout(1500);
 
-  // ---- Dry run exit ----
+  // ---- Dry run exit (no top-level return — this try is at module scope) ----
   if (dryRun) {
     console.log('[submit-greenhouse] DRY RUN — form filled but NOT submitted');
     console.log('[submit-greenhouse] Take a screenshot to verify, then close browser manually');
     await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-dryrun-${Date.now()}.png`), fullPage: true }).catch(() => {});
     console.log('[submit-greenhouse] Screenshot saved. Browser will stay open for 60 seconds...');
     await page.waitForTimeout(60000);
-    return;
-  }
-
-  // ---- SUBMIT ----
-  console.log('[submit-greenhouse] Clicking Submit...');
-  const submitBtn = await page.$('button[type="submit"], button:has-text("Submit"), button:has-text("Apply")').catch(() => null);
-  if (!submitBtn) {
-    console.error('[submit-greenhouse] Submit button not found');
-    await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-error-${Date.now()}.png`) }).catch(() => {});
-    return;
-  }
-  await submitBtn.click();
-  await page.waitForTimeout(5000);
-
-  // Check for confirmation page
-  const currentUrl = page.url();
-  const pageText = await page.textContent('body').catch(() => '');
-  const isConfirmed =
-    /thank you|application (submitted|received)|we('|v)e received/i.test(pageText) ||
-    /confirmation|submitted|thank/i.test(currentUrl);
-
-  if (isConfirmed) {
-    console.log('[submit-greenhouse] ✅ SUBMISSION CONFIRMED');
-    console.log(`[submit-greenhouse] URL: ${currentUrl}`);
-    // Auto-log to responses.md
-    try {
-      execSync(`node "${resolve(__dir, 'log-response.mjs')}" --new --company "${slug || 'UNKNOWN'}" --role "Greenhouse submission" --ats Greenhouse --date ${new Date().toISOString().slice(0,10)} --notes "Auto-submitted via submit-greenhouse.mjs"`, { cwd: ROOT, stdio: 'inherit' });
-    } catch { /* non-fatal */ }
   } else {
-    console.warn('[submit-greenhouse] ⚠️ Confirmation unclear — check screenshot');
-  }
+    // ---- SUBMIT ----
+    console.log('[submit-greenhouse] Clicking Submit...');
+    const submitBtn = await page.$('button[type="submit"], button:has-text("Submit"), button:has-text("Apply")').catch(() => null);
+    if (!submitBtn) {
+      console.error('[submit-greenhouse] Submit button not found');
+      await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-error-${Date.now()}.png`) }).catch(() => {});
+    } else {
+      await submitBtn.click();
+      await page.waitForTimeout(5000);
 
-  await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-${slug || 'job'}-${Date.now()}.png`), fullPage: true }).catch(() => {});
+      // Check for confirmation page
+      const currentUrl = page.url();
+      const pageText = await page.textContent('body').catch(() => '');
+      const isConfirmed =
+        /thank you|application (submitted|received)|we('|v)e received/i.test(pageText) ||
+        /confirmation|submitted|thank/i.test(currentUrl);
+
+      if (isConfirmed) {
+        console.log('[submit-greenhouse] ✅ SUBMISSION CONFIRMED');
+        console.log(`[submit-greenhouse] URL: ${currentUrl}`);
+        // Auto-log to responses.md
+        try {
+          execSync(`node "${resolve(__dir, 'log-response.mjs')}" --new --company "${slug || 'UNKNOWN'}" --role "Greenhouse submission" --ats Greenhouse --date ${new Date().toISOString().slice(0,10)} --notes "Auto-submitted via submit-greenhouse.mjs"`, { cwd: ROOT, stdio: 'inherit' });
+        } catch { /* non-fatal */ }
+      } else {
+        console.warn('[submit-greenhouse] ⚠️ Confirmation unclear — check screenshot');
+      }
+
+      await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-${slug || 'job'}-${Date.now()}.png`), fullPage: true }).catch(() => {});
+    }
+  }
 } catch (err) {
   console.error(`[submit-greenhouse] ERROR: ${err.message}`);
   await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-error-${Date.now()}.png`) }).catch(() => {});
