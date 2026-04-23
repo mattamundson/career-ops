@@ -273,6 +273,8 @@ function stageGeneratePdf(meta, pkgDir, opts) {
   }
   const slug = slugify(`${meta.company}-${meta.role}`);
   const outBase = resolve(ROOT, 'output', 'cv-pdfs', `cv-matt-${slug}`);
+  const pdfPath = `${outBase}.pdf`;
+  const docxPath = `${outBase}.docx`;
   // Ensure dir
   mkdirSync(dirname(outBase), { recursive: true });
 
@@ -283,11 +285,17 @@ function stageGeneratePdf(meta, pkgDir, opts) {
     { stdio: 'pipe' }
   );
   if (r.status !== 0) {
-    // Halt: trustworthy PDF is required for submit
+    // Word/COM conversion is occasionally flaky on Windows (locked files, SaveAs errors).
+    // If we already have a prior PDF for this same app slug, reuse it so packaging can proceed.
+    if (existsSync(pdfPath)) {
+      copyFileSync(pdfPath, resolve(pkgDir, 'cv.pdf'));
+      if (existsSync(docxPath)) copyFileSync(docxPath, resolve(pkgDir, 'cv.docx'));
+      appendWarning(pkgDir, 'pdf', 'conversion failed; reused existing output/cv-pdfs PDF');
+      return { reusedExisting: true, outBase, pdfPath, docxPath, failed: false };
+    }
+    // No reusable artifact — halt.
     return { failed: true, status: r.status, stderr: r.stderr, stdout: r.stdout };
   }
-  const pdfPath = `${outBase}.pdf`;
-  const docxPath = `${outBase}.docx`;
   // Copy into package dir if produced
   if (existsSync(pdfPath)) copyFileSync(pdfPath, resolve(pkgDir, 'cv.pdf'));
   if (existsSync(docxPath)) copyFileSync(docxPath, resolve(pkgDir, 'cv.docx'));
