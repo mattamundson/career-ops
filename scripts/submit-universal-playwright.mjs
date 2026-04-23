@@ -102,10 +102,21 @@ runChromePreflight('playwright-submit');
 // In DRY-RUN, default to headless so apply-review prepare can run unattended.
 const launchHeadless = LIVE ? HEADLESS : (HEADLESS || true);
 
-const browser = await chromium.launchPersistentContext('.playwright-session', {
-  headless: launchHeadless,
-  viewport: { width: 1280, height: 900 },
-});
+let browser;
+try {
+  browser = await chromium.launchPersistentContext('.playwright-session', {
+    headless: launchHeadless,
+    viewport: { width: 1280, height: 900 },
+  });
+} catch (err) {
+  const fallbackSessionDir = resolve(ROOT, '.playwright-session-fallback', String(Date.now()));
+  mkdirSync(fallbackSessionDir, { recursive: true });
+  console.warn(`[playwright-submit] Persistent session launch failed (${err.message}). Retrying with isolated session: ${fallbackSessionDir}`);
+  browser = await chromium.launchPersistentContext(fallbackSessionDir, {
+    headless: launchHeadless,
+    viewport: { width: 1280, height: 900 },
+  });
+}
 
 const page = await browser.newPage();
 
