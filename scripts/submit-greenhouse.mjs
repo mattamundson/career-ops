@@ -20,8 +20,8 @@
  *   --dry-run   Fill form but don't click Submit (prints would-be submission)
  *   --headless  Run in headless mode (default: false, for Matt to watch)
  *
- * IMPORTANT: File uploads require the file to be inside C:\\windows\\system32\\.playwright-mcp\\
- * This script auto-copies the PDF and cover letter into that directory before upload.
+ * Staging: PDFs/CLs are copied into the repo’s `.playwright-mcp/` (same as screenshot output)
+ * so `setInputFiles` always gets a path under a known, writable directory.
  */
 
 import { existsSync, readFileSync, copyFileSync, mkdirSync } from 'node:fs';
@@ -32,7 +32,7 @@ import { getFormFields, getResumePath, getCoverLetterPath } from './profile-fiel
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
-const PLAYWRIGHT_ROOT = 'C:\\windows\\system32\\.playwright-mcp';
+const PLAYWRIGHT_ROOT = resolve(ROOT, '.playwright-mcp');
 
 // ---- arg parsing ----
 const args = process.argv.slice(2);
@@ -44,8 +44,8 @@ function getArg(name) {
 
 const url = getArg('url');
 const slug = getArg('slug');
-const resumePath = getArg('resume');
-const coverPath = getArg('cover');
+const resumePath = getArg('resume') || getArg('pdf');
+const coverPath = getArg('cover') || getArg('cover-letter');
 const dryRun = args.includes('--dry-run');
 const headless = args.includes('--headless');
 
@@ -66,7 +66,7 @@ const pdf = resumePath || getResumePath(slug);
 const cl = coverPath || getCoverLetterPath(slug);
 
 if (!pdf || !existsSync(pdf)) {
-  console.error(`[submit-greenhouse] Resume PDF not found. Provide --resume <path> or --slug <slug>`);
+  console.error(`[submit-greenhouse] Resume PDF not found. Provide --pdf/--resume <path> or --slug <slug>`);
   console.error(`Tried: ${pdf}`);
   process.exit(1);
 }
@@ -186,10 +186,10 @@ try {
   // ---- Dry run exit (no top-level return — this try is at module scope) ----
   if (dryRun) {
     console.log('[submit-greenhouse] DRY RUN — form filled but NOT submitted');
-    console.log('[submit-greenhouse] Take a screenshot to verify, then close browser manually');
+    console.log('[submit-greenhouse] Screenshot in .playwright-mcp/ — review before live submit');
     await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-dryrun-${Date.now()}.png`), fullPage: true }).catch(() => {});
-    console.log('[submit-greenhouse] Screenshot saved. Browser will stay open for 60 seconds...');
-    await page.waitForTimeout(60000);
+    console.log('[submit-greenhouse] Screenshot saved.');
+    await page.waitForTimeout(2000);
   } else {
     // ---- SUBMIT ----
     console.log('[submit-greenhouse] Clicking Submit...');
@@ -226,10 +226,6 @@ try {
   console.error(`[submit-greenhouse] ERROR: ${err.message}`);
   await page.screenshot({ path: resolve(ROOT, '.playwright-mcp', `submit-error-${Date.now()}.png`) }).catch(() => {});
 } finally {
-  if (!dryRun) {
-    await browser.close();
-  } else {
-    // Leave open for inspection
-    console.log('[submit-greenhouse] Dry-run complete. Close browser manually when done.');
-  }
+  // Always close so the Node process exits (apply-review / submit-dispatch use execSync).
+  await browser.close().catch(() => {});
 }

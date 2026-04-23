@@ -11,7 +11,7 @@
  *   const fields = getFormFields();  // standardized keys
  */
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -206,15 +206,13 @@ export function getFormFields() {
  * Gets the path to the role-specific resume PDF if it exists, otherwise fallback to default.
  */
 export function getResumePath(companySlug) {
-  const fs = require('fs');
-  const path = require('path');
   const output = resolve(ROOT, 'output');
   if (companySlug) {
-    const candidates = fs.readdirSync(output).filter(f => f.startsWith(`cv-matt-${companySlug}`) && f.endsWith('.pdf'));
+    const candidates = readdirSync(output).filter(f => f.startsWith(`cv-matt-${companySlug}`) && f.endsWith('.pdf'));
     if (candidates.length > 0) return resolve(output, candidates[0]);
   }
   // Fallback: most recent generic CV
-  const all = fs.readdirSync(output).filter(f => f.startsWith('cv-matt-') && f.endsWith('.pdf'));
+  const all = readdirSync(output).filter(f => f.startsWith('cv-matt-') && f.endsWith('.pdf'));
   if (all.length > 0) {
     all.sort((a, b) => b.localeCompare(a));
     return resolve(output, all[0]);
@@ -223,11 +221,10 @@ export function getResumePath(companySlug) {
 }
 
 export function getCoverLetterPath(companySlug) {
-  const fs = require('fs');
   const clDir = resolve(ROOT, 'output', 'cover-letters');
   if (!existsSync(clDir)) return null;
   if (companySlug) {
-    const candidates = fs.readdirSync(clDir).filter(f => f.startsWith(companySlug) && f.endsWith('.txt'));
+    const candidates = readdirSync(clDir).filter(f => f.startsWith(companySlug) && f.endsWith('.txt'));
     if (candidates.length > 0) return resolve(clDir, candidates[0]);
   }
   return null;
