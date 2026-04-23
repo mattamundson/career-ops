@@ -105,10 +105,10 @@ if (applyUrl.includes('greenhouse')) {
     reason: 'unknown_ats',
     apply_url: applyUrl,
   });
-  console.error(`[submit-dispatch] Unknown ATS for URL: ${applyUrl}`);
-  console.error('[submit-dispatch] Detected domain does not match: greenhouse, ashby, lever, smartrecruiters, workday, icims');
-  console.error('[submit-dispatch] Please use Playwright submitters (submit-workday.mjs, submit-icims.mjs) for custom ATS platforms.');
-  process.exit(1);
+  ats = 'unknown';
+  submitter = 'submit-universal-playwright.mjs';
+  console.warn(`[submit-dispatch] Unknown ATS for URL: ${applyUrl}`);
+  console.warn('[submit-dispatch] Falling back to submit-universal-playwright.mjs for generic form automation.');
 }
 
 console.log(`[submit-dispatch] Detected ATS: ${ats}`);
