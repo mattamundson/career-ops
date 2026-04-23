@@ -34,7 +34,8 @@ installExitTrap('cadence-alert');
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 loadProjectEnv(ROOT);
-const DRY_RUN = process.env.CAREER_OPS_DRY_RUN === '1';
+const ARGS = new Set(process.argv.slice(2));
+const DRY_RUN = ARGS.has('--dry-run') || process.env.CAREER_OPS_DRY_RUN === '1';
 const PHONE_TO = (process.env.OPENCLAW_WHATSAPP_TO || '').trim();
 
 // ── YAML parser (minimal — mirrors check-cadence.mjs) ───────────────────────
@@ -363,8 +364,13 @@ function main() {
 
   if (stale.length === 0) {
     console.log(`[check-cadence-alert] All applications within cadence as of ${dateStr}.`);
+    // Keep stale-alert file in sync even when count is zero so downstream
+    // health checks and dashboards don't keep reading an older non-zero alert.
+    const zeroMessage = `Career-Ops Cadence Alert (${dateStr})\n0 stale applications need action.`;
+    const alertFile = writeAlertFile(zeroMessage, dateStr);
     const { mdPath } = finalizeRunSummary(run, 'success', {
       stats: { scanned_rows: rows.length, stale_rows: 0, dry_run: DRY_RUN },
+      artifacts: [alertFile],
     });
     console.log(`[check-cadence-alert] Run summary: ${mdPath}`);
     appendAutomationEvent(ROOT, {

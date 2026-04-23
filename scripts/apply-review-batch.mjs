@@ -17,13 +17,14 @@
  * --delay-ms=8000 (default) pauses between steps so the browser can settle.
  */
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { loadProjectEnv } from './load-env.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { isMainEntry } from './lib/main-entry.mjs';
+import { todayConfirmCount } from './lib/apply-review-cap.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -33,18 +34,6 @@ loadProjectEnv(ROOT);
 
 function normalizeId(id) {
   return String(id).padStart(3, '0');
-}
-
-function todayUtc() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function todayConfirmCount() {
-  if (!existsSync(APPLY_RUNS_DIR)) return 0;
-  const today = todayUtc();
-  return readdirSync(APPLY_RUNS_DIR)
-    .filter((f) => f.startsWith('confirm-') && f.includes(today))
-    .length;
 }
 
 export function parseBatchArgs(argv) {
@@ -134,7 +123,7 @@ export async function runApplyReviewBatch(opts) {
   const results = { ok: [], fail: [], skipped: [] };
 
   if (opts.mode === 'confirm' && !opts.dryRun) {
-    const already = todayConfirmCount();
+    const already = todayConfirmCount(APPLY_RUNS_DIR);
     const cap = 5;
     if (already >= cap) {
       throw new Error(`daily confirm cap (${cap}) already reached — try tomorrow`);

@@ -39,6 +39,7 @@ import { execSync } from 'node:child_process';
 import { loadProjectEnv } from './load-env.mjs';
 import { buildApplicationIndex } from './lib/career-data.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
+import { todayConfirmCount, todayUtc } from './lib/apply-review-cap.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -131,16 +132,6 @@ function reviewBundles(appId) {
       return { path: p, name: f, mtime: stat.mtimeMs };
     })
     .sort((a, b) => b.mtime - a.mtime);
-}
-
-function todayUtc() { return new Date().toISOString().slice(0, 10); }
-
-function todayConfirmCount() {
-  if (!existsSync(APPLY_RUNS_DIR)) return 0;
-  const today = todayUtc();
-  return readdirSync(APPLY_RUNS_DIR)
-    .filter((f) => f.startsWith('confirm-') && f.includes(today))
-    .length;
 }
 
 function detectAts(url) {
@@ -411,7 +402,7 @@ function modeConfirm() {
   }
 
   // Daily limit (CLAUDE.md: quality over quantity)
-  const todayCount = todayConfirmCount();
+  const todayCount = todayConfirmCount(APPLY_RUNS_DIR);
   if (todayCount >= 5) {
     console.error(`[apply-review] HARD STOP: ${todayCount} confirms already today. Daily cap is 5 (CLAUDE.md quality rule). Try tomorrow.`);
     process.exit(1);
