@@ -68,6 +68,7 @@ export function parseApplyQueue(rootDir) {
         id: headerMatch[2].padStart(3, '0'),
         queueDecision: (headerMatch[3] || '').trim(),
         applyUrl: null,
+        queueScore: null,
         salary: null,
         remote: null,
         pdfPath: null,
@@ -82,6 +83,14 @@ export function parseApplyQueue(rootDir) {
     let match = line.match(/^\-\s+\*\*Apply URL:\*\*\s+(https?:\/\/\S+)/);
     if (match) {
       current.applyUrl = match[1];
+      continue;
+    }
+
+    match = line.match(
+      /^\-\s+\*\*Score:\*\*\s+([0-9]+(?:\.[0-9]+)?)\s*\/\s*5/,
+    );
+    if (match) {
+      current.queueScore = `${match[1]}/5`;
       continue;
     }
 
@@ -119,12 +128,62 @@ export function parseApplyQueue(rootDir) {
   return entries;
 }
 
+/**
+ * When apply-queue has a header like [NNN — GO], surface a tracker-like status
+ * for synthetic (queue-only) records.
+ */
+function statusFromQueueEntry(entry) {
+  const d = (entry.queueDecision || '').trim();
+  if (d === 'Discarded') return 'Discarded';
+  if (d === 'GO' || d === 'MAYBE') return d;
+  if (d) return d;
+  return 'Conditional GO';
+}
+
+/**
+ * `applications.md` is canonical, but older queue rows can still reference
+ * numeric IDs that no longer exist in the tracker (renumbering / split datasets).
+ * Merge in minimal synthetic rows so `submit-dispatch` / `apply-review` can
+ * resolve `applyUrl` for those IDs.
+ */
+function queueOnlyRecords(applications, queueEntries) {
+  const inTracker = new Set(applications.map((a) => a.id));
+  const out = [];
+  for (const q of queueEntries) {
+    if (inTracker.has(q.id) || !q.applyUrl) continue;
+    const label = q.companyRoleLabel || '';
+    const segs = label.split(/\s+—\s+/);
+    const company = (segs[0] || label || 'Unknown').trim();
+    const role = (segs[1] || segs[0] || 'Role TBD').trim();
+    out.push({
+      id: q.id,
+      date: '',
+      company,
+      role,
+      score: q.queueScore || '',
+      status: statusFromQueueEntry(q),
+      pdf: '',
+      report: '',
+      reportPath: null,
+      notes: 'queue-only: id not in applications.md — fix tracker drift or retire this row',
+      applyUrl: q.applyUrl,
+      salary: q.salary,
+      remote: q.remote,
+      pdfPath: q.pdfPath,
+      coverLetterPath: q.coverLetterPath,
+      queueDecision: q.queueDecision || null,
+      queueStatus: q.queueStatus || null,
+    });
+  }
+  return out;
+}
+
 export function buildApplicationIndex(rootDir) {
   const applications = parseApplicationsTracker(rootDir);
   const queueEntries = parseApplyQueue(rootDir);
   const queueById = new Map(queueEntries.map((entry) => [entry.id, entry]));
 
-  const records = applications.map((application) => {
+  const fromTracker = applications.map((application) => {
     const queue = queueById.get(application.id) || null;
     return {
       ...application,
@@ -137,10 +196,11 @@ export function buildApplicationIndex(rootDir) {
       queueStatus: queue?.queueStatus || null,
     };
   });
+  const extra = queueOnlyRecords(applications, queueEntries);
 
   return {
     generatedAt: new Date().toISOString(),
-    records,
+    records: [...fromTracker, ...extra],
   };
 }
 

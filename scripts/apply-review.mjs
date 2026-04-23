@@ -262,7 +262,7 @@ function modePrepare() {
   }
 
   if (!app.applyUrl) {
-    console.error(`[apply-review] App #${app.id} has no apply_url. Add it to data/applications.md first.`);
+    console.error(`[apply-review] App #${app.id} has no apply_url. Add **Apply URL:** to data/apply-queue.md for that id, or restore the row in data/applications.md.`);
     process.exit(1);
   }
 

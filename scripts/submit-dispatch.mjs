@@ -65,7 +65,7 @@ if (!applyUrl) {
   });
   console.error(`[submit-dispatch] Could not locate apply_url for app-id=${appId}.`);
   console.error(`  Checked canonical snapshot: ${indexPath}`);
-  console.error(`  Add an "**Apply URL:** https://..." bullet under the matching section in data/apply-queue.md.`);
+  console.error('  Fix: add the app row to data/applications.md (tracker), or add a matching ### section with **Apply URL:** in data/apply-queue.md.');
   process.exit(1);
 }
 

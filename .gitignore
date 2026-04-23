@@ -30,6 +30,7 @@ node_modules/
 
 # Playwright agent / MCP artifacts (local only)
 .playwright-session/
+.playwright-session-fallback/
 .playwright-mcp/
 
 # Claude Code local
