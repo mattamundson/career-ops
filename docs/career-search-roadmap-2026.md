@@ -86,6 +86,8 @@ pnpm run scorecard:week
 
 The script prints counts and a copy-paste block. You still fill **outreach 3.5+** (score not auto-inferred), **stale rows moved**, **blocker**, and verify date unless you used `--run-verify`.
 
+**Ritual ownership:** *You* run the command, interpret the numbers, and complete the template (Notes, Obsidian, etc.). AI/agents should **not** fill the scorecard end-to-end, write “final” snapshots into the repo, or commit on your behalf unless you explicitly ask—so the habit stays yours and keeps moving.
+
 ```text
 Week ending: YYYY-MM-DD
 
