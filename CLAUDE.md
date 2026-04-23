@@ -119,6 +119,7 @@ Once all files exist, confirm:
 - **Discourage low-fit applications.** If a score is below 3.0/5, explicitly tell the user this is a weak match and recommend skipping unless they have a specific reason.
 - **Quality over speed.** A well-targeted application to 5 companies beats a generic blast to 50.
 - **Respect recruiters' time.** Only send what's worth reading.
+- **Weekly scorecard (roadmap).** Suggest `pnpm run scorecard:week` if helpful; the human completes the template and any notes. **Do not** add committed “finished” scorecard files to the repo or fill the ritual end-to-end on their behalf unless they explicitly ask (see `docs/career-search-roadmap-2026.md` §4).
 
 ---
 
