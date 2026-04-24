@@ -130,7 +130,7 @@ Writes `backups/backup-<iso-timestamp>/` with a `manifest.json` (paths listed in
 
 `scripts/cron-backup.mjs` runs `backup-career-data.mjs` under `runCronTask` (with `task.*` events for Operator Health). One-off: `pnpm run cron:backup`.
 
-**Windows Task Scheduler:** add a task that runs `run-nightly-backup.bat` (same pattern as `run-daily-prefilter.bat`). Log file: `data/backup-scheduler.log` (create empty file if you want a stable path).
+**Windows Task Scheduler:** add a task that runs `run-nightly-backup.bat` (same pattern as `run-daily-prefilter.bat`). Log file: `data/backup-scheduler.log` (**gitignored**, like other scheduler logs).
 
 ## Automation event log (`data/events/`)
 

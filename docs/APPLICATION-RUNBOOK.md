@@ -6,9 +6,11 @@ Operational truth lives in [`data/applications.md`](../data/applications.md) and
 
 **If you used `pnpm run apply-review --confirm <id>`** (live submit after a prepare bundle), the repo already runs **Status → Applied**, **Date → today**, and **`log-response --event submitted`** for you. Use `--no-post-submit` on confirm only if you want to update the tracker yourself.
 
-`apply-review --confirm` also runs **`pnpm run post-apply:refresh`** at the end (rebuilds `data/index` + `dashboard.html`), unless you pass **`--no-refresh`**. To open the browser after regen, run `pnpm run post-apply:refresh:open` yourself, or re-run refresh after the fact.
+`apply-review --confirm` also runs **`pnpm run post-apply:refresh`** at the end (rebuilds `data/index` + `dashboard.html` + **`review.html`**), unless you pass **`--no-refresh`**. To open the browser after regen, run `pnpm run post-apply:refresh:open` yourself, or re-run refresh after the fact.
 
-The same `post-apply:refresh` command is for any manual edit to `data/applications.md` or `data/responses.md` when you want the HTML dashboard in sync.
+**Apply review UI:** `review.html` (GO / Conditional GO / Ready to Submit — copy-to-clipboard prep/confirm commands) is regenerated with that refresh, or on demand: `pnpm run review:ui` / `pnpm run review:ui:open`.
+
+The same `post-apply:refresh` command is for any manual edit to `data/applications.md` or `data/responses.md` when you want the HTML dashboard and review cockpit in sync.
 
 **If you submitted manually in a browser**, do the following:
 

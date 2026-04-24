@@ -144,6 +144,7 @@ data/gmail-sync-state.json
 # Outreach drafts (surfacer / scanner output; high churn — same idea as prefilter-results)
 data/outreach/*.md
 data/prefilter-scheduler.log
+data/backup-scheduler.log
 data/scan-run-*.log
 
 # Ad-hoc application-flow screenshots + dashboard previews (debug artifacts,

@@ -7,6 +7,7 @@ This fork has **two operator surfaces** for the same underlying data. Neither re
 | Surface | Primary use | Success criteria |
 |---------|----------------|------------------|
 | **HTML** (`dashboard.html`) | Browser overview: funnel health, scan rollups, filter health, operator health, pipeline volume, apply queue, comparisons | After `pnpm run verify:all` or `pnpm run dashboard`, you can answer in one screen: *Where is the funnel? What is stale? What did scans do? What is blocked?* |
+| **HTML** (`review.html`) | **Apply review** cockpit: GO / Conditional GO / Ready to Submit only — copy prep/confirm/dispatch commands | When you are about to apply, use `pnpm run review:ui` (regenerated with `post-apply:refresh` and `smoke`) |
 | **Go TUI** (`dashboard/career-dashboard`) | Fast terminal triage: filter tabs, sorts, inline **status** edits, report preview | You can change application status and skim reports without leaving the terminal. |
 
 **Default stance:** **Both** — HTML for weekly/ops review and sharing a file; TUI for day-to-day status edits. If you later pick only one, update this section.
@@ -32,6 +33,7 @@ A lightweight default so the dual surfaces stay useful without scope creep:
 | Full integrity gate | `pnpm run verify:all` | Yes | Pipeline + CV sync + `data/index/applications.json` + `dashboard.html` + events JSONL validation |
 | CI / hooks | `pnpm run verify:ci` | Yes | Same as above but missing `reports/*.md` are warnings only |
 | Dashboard only | `pnpm run dashboard` | Yes | Runs `generate-dashboard.mjs` (optional `--open`) |
+| Review UI only | `pnpm run review:ui` | Yes (writes `review.html`) | Does not regen the main dashboard; run `dashboard` or `post-apply:refresh` for both |
 | TUI | `cd dashboard && ./career-dashboard -path ..` | No | Reads data live from disk each run |
 
 ## What dashboards do **not** show

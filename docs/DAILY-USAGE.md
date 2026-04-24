@@ -92,6 +92,8 @@ node scripts/package-from-report.mjs --report-num 219 --dry-run    # preview wit
 pnpm run apply-review               # list all GO / Conditional GO with URL kind + ATS
 pnpm run apply-review --prepare 003 # dry-run: open browser, fill form, screenshot, no submit
 pnpm run apply-review --confirm 003 # actually submit (needs a recent prepare bundle)
+# LinkedIn jobs Apply URL (linkedin.com/jobs/...) → submit-linkedin-easy-apply via dispatch; see docs/tos-risk-register.md
+pnpm run review:ui:open            # single-page review cockpit (GO / Conditional / Ready) — or open review.html
 
 # Cover letters
 pnpm run cover-letter -- --app-id 003       # generate (auto-runs lint, blocks bad output)

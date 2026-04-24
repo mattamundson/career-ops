@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * smoke.mjs — Fast regression: tracker parses, index builds, dashboard generates.
+ * smoke.mjs — Fast regression: tracker parses, index builds, dashboard + apply review UI.
  *
  * Skips cv-sync, unit tests, automation-events validation, and cron checks
  * (use `pnpm run verify:ci` for the full pre-push suite).
@@ -27,21 +27,26 @@ function run(rel, args = []) {
   return r.status ?? 1;
 }
 
-console.log('\n[smoke] 1/3 verify-pipeline…\n');
+console.log('\n[smoke] 1/4 verify-pipeline…\n');
 if (run('verify-pipeline.mjs', ['--skip-missing-reports', ...extra]) !== 0) {
   process.exit(1);
 }
 
-console.log('\n[smoke] 2/3 build-application-index…\n');
+console.log('\n[smoke] 2/4 build-application-index…\n');
 if (run('scripts/build-application-index.mjs') !== 0) {
   process.exit(1);
 }
 
-console.log('\n[smoke] 3/3 generate-dashboard…\n');
+console.log('\n[smoke] 3/4 generate-dashboard…\n');
 if (run('scripts/generate-dashboard.mjs') !== 0) {
   process.exit(1);
 }
 
+console.log('\n[smoke] 4/4 generate-review-ui…\n');
+if (run('scripts/generate-review-ui.mjs') !== 0) {
+  process.exit(1);
+}
+
 console.log(
-  '\n✅ smoke OK — pipeline + index + dashboard. Full CI: pnpm run verify:ci\n',
+  '\n✅ smoke OK — pipeline + index + dashboard + review.html. Full CI: pnpm run verify:ci\n',
 );
