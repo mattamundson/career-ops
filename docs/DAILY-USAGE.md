@@ -121,6 +121,10 @@ pnpm run apply-review:batch -- --prepare --dry-run --ids=016,042
 pnpm run apply-review:batch -- --prepare --ids=016,042 --delay-ms=10000
 pnpm run apply-review:batch -- --confirm --ids=016 --accept-submit-risk
 
+# Diagnose recent scheduler failures (Windows Task Scheduler)
+pnpm run tasks:inspect
+pnpm run tasks:inspect -- --task="Career-Ops Dashboard" --hours=48
+
 # Generate a tailored PDF for a specific app
 node generate-pdf.mjs --app-id 042 --output output/cv-matt-{company}-2026-04-19.pdf
 

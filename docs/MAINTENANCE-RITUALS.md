@@ -132,6 +132,13 @@ Writes `backups/backup-<iso-timestamp>/` with a `manifest.json` (paths listed in
 
 **Windows Task Scheduler:** add a task that runs `run-nightly-backup.bat` (same pattern as `run-daily-prefilter.bat`). Log file: `data/backup-scheduler.log` (**gitignored**, like other scheduler logs).
 
+For quick task diagnosis after a warning in `verify:all` / `verify:ci`:
+
+```bash
+pnpm run tasks:inspect
+pnpm run tasks:inspect -- --task="Career-Ops Dashboard" --hours=48
+```
+
 ## Automation event log (`data/events/`)
 
 Scans, dashboard regen, application-index rebuilds, and post-scan reports append **JSON lines** to `data/events/YYYY-MM-DD.jsonl` via `scripts/lib/automation-events.mjs`. The static dashboard **Operator health** panel reads the latest tail.
