@@ -7,13 +7,14 @@
  * detects ATS from URL domain, and invokes the appropriate submitter.
  *
  * Supported ATSs:
- *   - Greenhouse (greenhouse.io, boards.greenhouse.io) → submit-greenhouse.mjs
- *   - Ashby (ashbyhq.com, jobs.ashbyhq.com) → submit-ashby.mjs
- *   - Lever (lever.co, jobs.lever.co) → submit-lever.mjs
- *   - SmartRecruiters (smartrecruiters.com) → submit-smartrecruiters.mjs
- *   - WorkDay (workday.com) → submit-workday.mjs (Playwright-based, separate)
- *   - iCIMS (ats.icims.com, taleo.icims.com) → submit-icims.mjs (Playwright-based, separate)
- *   - Unknown → fallback message, use Playwright submitters
+ *   - Greenhouse → submit-greenhouse.mjs
+ *   - Ashby → submit-ashby.mjs (stub: no public candidate JSON API; exits so dispatcher
+ *     can fall back to submit-universal-playwright.mjs — same path as a failed JSON submitter)
+ *   - Lever → submit-lever.mjs (JSON/multipart handler; real submitter)
+ *   - SmartRecruiters / Workable → routed to submit-*.mjs; if the script is absent, the
+ *     "missing file" handler runs submit-universal-playwright.mjs
+ *   - Workday / iCIMS → dedicated Playwright submitters (see warnings below)
+ *   - Unknown / long tail → submit-universal-playwright.mjs
  *
  * Usage:
  *   node scripts/submit-dispatch.mjs --app-id 025 --pdf resume.pdf --cover-letter cl.txt --dry-run
@@ -117,13 +118,12 @@ console.log(`[submit-dispatch] Routing to: ${submitter}`);
 // ---- Invoke submitter with pass-through args ----
 let submitterPath = resolve(__dir, submitter);
 if (!existsSync(submitterPath)) {
-  // Per-ATS submitters for lever, ashby, smartrecruiters, workable haven't been
-  // built yet. Rather than fail, fall through to the universal Playwright
-  // submitter — it handles arbitrary ATS forms via auto-detection. Slower and
-  // less precise than a dedicated submitter, but functional for the long tail.
+  // Missing script on disk (e.g. long-tail SmartRecruiters/Workable before a dedicated
+  // module exists). Ashby and Lever have scripts: Ashby is a stub (exit 2 → Playwright
+  // in the execSync catch), Lever is a full JSON submitter.
   const universal = resolve(__dir, 'submit-universal-playwright.mjs');
   if (existsSync(universal)) {
-    console.warn(`[submit-dispatch] Submitter not built yet: ${submitter}. Falling back to submit-universal-playwright.mjs.`);
+    console.warn(`[submit-dispatch] Submitter file not found: ${submitter}. Falling back to submit-universal-playwright.mjs.`);
     submitter = 'submit-universal-playwright.mjs';
     submitterPath = universal;
   } else {

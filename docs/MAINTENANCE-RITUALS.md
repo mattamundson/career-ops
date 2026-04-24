@@ -116,6 +116,16 @@ Install hooks after `pnpm install` (the `prepare` script runs `husky`). If hooks
 
 `pnpm run pipeline:dedupe -- --apply` and `pnpm run pipeline:prune-tracked -- --apply` write `*.bak` next to modified markdown. These are **gitignored**; keep or delete locally. Prune details append to `data/pipeline-prune-log.md` (commit if you want an audit trail).
 
+## Manual data snapshot (local)
+
+For a point-in-time copy of the main tracker, queue, and config (never secrets):
+
+```bash
+pnpm run backup:data
+```
+
+Writes `backups/backup-<iso-timestamp>/` with a `manifest.json` (paths listed in `scripts/backup-career-data.mjs`). The `backups/` tree is **gitignored**. Use `--dest relative/path` to choose the folder. Does not read or copy `.env`.
+
 ## Automation event log (`data/events/`)
 
 Scans, dashboard regen, application-index rebuilds, and post-scan reports append **JSON lines** to `data/events/YYYY-MM-DD.jsonl` via `scripts/lib/automation-events.mjs`. The static dashboard **Operator health** panel reads the latest tail.
