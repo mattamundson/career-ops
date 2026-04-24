@@ -27,6 +27,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `scripts/prep-queue.mjs` | Phase A batch: GO / Conditional GO → `package-from-report` (+ optional liveness); `pnpm run prep-queue` |
 | `scripts/apply-review-batch.mjs` | Phase B': sequence `apply-review --prepare` or `--confirm` for an ID list; `pnpm run apply-review:batch` |
 | `scripts/post-apply-refresh.mjs` | Rebuild `data/index` + `dashboard.html`; runs automatically after `apply-review --confirm` (use `--no-refresh` to skip); or `pnpm run post-apply:refresh` / `:open` |
+| `scripts/smoke.mjs` | Fast check: `verify-pipeline` + `build:index` + `dashboard` — `pnpm run smoke` (full suite: `pnpm run verify:ci`) |
 | `scripts/weekly-scorecard.mjs` | Roadmap scorecard: metrics from `applications.md` + `responses.md`; `pnpm run scorecard:week` |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/career-search-roadmap-2026.md` | Goals, phase timelines, weekly scorecard — planning layer on top of daily ops |

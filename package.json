@@ -32,6 +32,7 @@
     "gmail-sync": "node scripts/gmail-recruiter-sync.mjs --apply",
     "cadence-alert": "node scripts/check-cadence-alert.mjs",
     "verify:ci": "node scripts/verify-all.mjs --skip-missing-reports",
+    "smoke": "node scripts/smoke.mjs",
     "pipeline:hygiene": "node scripts/pipeline-hygiene.mjs",
     "pipeline:hygiene:apply": "node scripts/pipeline-hygiene.mjs --apply",
     "pipeline:liveness": "node scripts/check-liveness.mjs",
