@@ -191,6 +191,7 @@ export function getFormFields() {
     remote_preference:  defaults.remote_preference || 'Remote preferred',
     earliest_start:     defaults.earliest_start || '2 weeks from offer',
     how_did_you_hear:   defaults.how_did_you_hear || 'Job Board',
+    years_experience:   defaults.years_experience || '10',
 
     // File paths (caller can override with role-specific variants)
     resume_pdf_path: null,       // set per-application

@@ -8,12 +8,11 @@
  *
  * Supported ATSs:
  *   - Greenhouse → submit-greenhouse.mjs
- *   - Ashby → submit-ashby.mjs (stub: no public candidate JSON API; exits so dispatcher
- *     can fall back to submit-universal-playwright.mjs — same path as a failed JSON submitter)
- *   - Lever → submit-lever.mjs (JSON/multipart handler; real submitter)
- *   - SmartRecruiters / Workable → routed to submit-*.mjs; if the script is absent, the
- *     "missing file" handler runs submit-universal-playwright.mjs
- *   - Workday / iCIMS → dedicated Playwright submitters (see warnings below)
+ *   - Ashby → submit-ashby-playwright.mjs (no public candidate JSON API; profile-driven fill)
+ *   - LinkedIn jobs → submit-linkedin-easy-apply.mjs (ToS: supervised use; see docs/tos-risk-register.md)
+ *   - Lever → submit-lever.mjs
+ *   - SmartRecruiters / Workable → submit-*.mjs or missing-file → universal Playwright
+ *   - Workday / iCIMS → dedicated Playwright (warnings below)
  *   - Unknown / long tail → submit-universal-playwright.mjs
  *
  * Usage:
@@ -79,9 +78,12 @@ let submitter = null;
 if (applyUrl.includes('greenhouse')) {
   ats = 'greenhouse';
   submitter = 'submit-greenhouse.mjs';
+} else if (/linkedin\.com\/jobs\//i.test(applyUrl)) {
+  ats = 'linkedin';
+  submitter = 'submit-linkedin-easy-apply.mjs';
 } else if (applyUrl.includes('ashby')) {
   ats = 'ashby';
-  submitter = 'submit-ashby.mjs';
+  submitter = 'submit-ashby-playwright.mjs';
 } else if (applyUrl.includes('lever.co')) {
   ats = 'lever';
   submitter = 'submit-lever.mjs';
@@ -118,9 +120,7 @@ console.log(`[submit-dispatch] Routing to: ${submitter}`);
 // ---- Invoke submitter with pass-through args ----
 let submitterPath = resolve(__dir, submitter);
 if (!existsSync(submitterPath)) {
-  // Missing script on disk (e.g. long-tail SmartRecruiters/Workable before a dedicated
-  // module exists). Ashby and Lever have scripts: Ashby is a stub (exit 2 → Playwright
-  // in the execSync catch), Lever is a full JSON submitter.
+  // Missing script on disk (e.g. long-tail SmartRecruiters/Workable). Implement or use universal fallback.
   const universal = resolve(__dir, 'submit-universal-playwright.mjs');
   if (existsSync(universal)) {
     console.warn(`[submit-dispatch] Submitter file not found: ${submitter}. Falling back to submit-universal-playwright.mjs.`);

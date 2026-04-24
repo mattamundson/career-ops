@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apply review — career-ops</title>
+  <style>
+    :root { --bg:#0f1419; --panel:#1a2332; --text:#e7ecf3; --muted:#8b9cb3; --accent:#3d8fd1; --line:#2a3a4d; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; min-height: 100vh; }
+    header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); background: var(--panel); }
+    header h1 { margin: 0; font-size: 1.15rem; font-weight: 600; }
+    header p { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 0; min-height: calc(100vh - 80px); }
+    @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+    .list { border-right: 1px solid var(--line); overflow: auto; max-height: calc(100vh - 80px); }
+    .row { padding: 0.65rem 1rem; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .row:hover, .row.on { background: #243044; }
+    .row .id { color: var(--accent); font-weight: 600; }
+    .row .co { font-size: 0.9rem; }
+    .row .meta { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+    .detail { padding: 1.25rem; overflow: auto; max-height: calc(100vh - 80px); }
+    .detail h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .detail .kv { margin: 0.5rem 0; font-size: 0.9rem; }
+    .detail .k { color: var(--muted); display: inline-block; min-width: 7rem; }
+    a { color: var(--accent); }
+    .btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+    button { background: #2d4a68; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; cursor: pointer; }
+    button:hover { background: #365a82; }
+    pre.cmd { background: #121a24; padding: 0.75rem; border-radius: 6px; overflow: auto; font-size: 0.8rem; border: 1px solid var(--line); white-space: pre-wrap; }
+    code { font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Apply review</h1>
+    <p>GO / Conditional GO / Ready to Submit — <strong>15</strong> row(s). Regenerate: <code>pnpm run review:ui</code></p>
+  </header>
+  <div class="layout">
+    <div class="list" id="list"></div>
+    <div class="detail" id="detail"><p style="color:var(--muted)">Select a row.</p></div>
+  </div>
+  <script>
+    const DATA = [{"id":"032","company":"C.H. Robinson","role":"Senior Business Intelligence Developer","status":"Ready to Submit","score":"4.5/5","applyUrl":null,"reportPath":"reports/032-ch-robinson-2026-04-18.md"},{"id":"033","company":"D.A. Davidson Companies","role":"AI & Automation Engineer","status":"Ready to Submit","score":"4.2/5","applyUrl":null,"reportPath":"reports/033-da-davidson-2026-04-18.md"},{"id":"036","company":"Legence","role":"Power BI Data Engineer","status":"Ready to Submit","score":"4.2/5","applyUrl":null,"reportPath":"reports/036-legence-2026-04-18.md"},{"id":"038","company":"ME Global Inc. dba ME Elecmetal","role":"Business Intelligence Developer","status":"Ready to Submit","score":"4.1/5","applyUrl":null,"reportPath":"reports/038-me-global-2026-04-18.md"},{"id":"216","company":"GovDocs","role":"Senior Data Engineer","status":"Ready to Submit","score":"4.0/5","applyUrl":null,"reportPath":"reports/216-govdocs-senior-data-engineer-2026-04-21.md"},{"id":"219","company":"Pivot Bio","role":"Director, Data Architect","status":"Ready to Submit","score":"4.0/5","applyUrl":null,"reportPath":"reports/219-pivot-bio-director-data-architect-2026-04-21.md"},{"id":"016","company":"Factspan","role":"Enterprise Data Architect","status":"Ready to Submit","score":"4.0/5","applyUrl":"https://www.linkedin.com/jobs/view/4396303155","reportPath":"reports/016-factspan-2026-04-09.md"},{"id":"004","company":"GSquared Group","role":"Senior Power BI Architect","status":"Ready to Submit","score":"4.0/5","applyUrl":"https://www.linkedin.com/jobs/view/4376761988","reportPath":"reports/004-gsquared-2026-04-09.md"},{"id":"037","company":"Lunds & Byerlys","role":"Data Architect","status":"Ready to Submit","score":"4.0/5","applyUrl":null,"reportPath":"reports/037-lunds-byerlys-2026-04-18.md"},{"id":"040","company":"Optum","role":"Principal Data Engineer/Architect - Remote","status":"Conditional GO","score":"4.0/5","applyUrl":null,"reportPath":"reports/148-optum-2026-04-21.md"},{"id":"035","company":"EVEREVE","role":"Analytics Engineer - Headquarters - Edina, MN","status":"Ready to Submit","score":"3.8/5","applyUrl":null,"reportPath":"reports/035-evereve-2026-04-18.md"},{"id":"042","company":"SIDMANS, INC.","role":"Data Architect (Local to MN only)","status":"Ready to Submit","score":"3.8/5","applyUrl":null,"reportPath":"reports/042-sidmans-2026-04-18.md"},{"id":"045","company":"Allina Health","role":"Sr BI Analyst","status":"Conditional GO","score":"3.7/5","applyUrl":null,"reportPath":"reports/045-allina-health-bi-analyst-2026-04-20.md"},{"id":"012","company":"Modine Manufacturing","role":"Senior AI Data Architect","status":"Ready to Submit","score":"3.5/5","applyUrl":"https://careers.modine.com/job/Remote-Senior-AI-Data-Architect/7594-en_US/","reportPath":"reports/012-modine-manufacturing-2026-04-09.md"},{"id":"046","company":"UnitedHealth Group","role":"Data Architect - Minneapolis, MN (Enterprise/Optum)","status":"Conditional GO","score":"3.0/5","applyUrl":null,"reportPath":"reports/046-unitedhealth-group-data-architect-2026-04-21.md"}];
+    const list = document.getElementById('list');
+    const detail = document.getElementById('detail');
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function escapeAttr(s) {
+      return String(s).replace(/"/g, '&quot;');
+    }
+
+    function select(i) {
+      document.querySelectorAll('.row').forEach((r, j) => r.classList.toggle('on', j === i));
+      const r = DATA[i];
+      if (!r) return;
+      const rep = r.reportPath ? r.reportPath : '';
+      const cmd = {
+        prepare: 'pnpm run apply-review -- --prepare ' + r.id,
+        confirm: 'pnpm run apply-review -- --confirm ' + r.id,
+        dispatch: 'node scripts/submit-dispatch.mjs --app-id ' + r.id + ' --pdf <path-to-pdf> --dry-run',
+      };
+      let h = '<h2>#' + escapeHtml(r.id) + ' — ' + escapeHtml(r.company) + ' — ' + escapeHtml(r.role) + '</h2>';
+      h += '<div class="kv"><span class="k">Status</span> ' + escapeHtml(r.status) + '</div>';
+      h += '<div class="kv"><span class="k">Score</span> ' + escapeHtml(r.score) + '</div>';
+      h += '<div class="kv"><span class="k">Apply URL</span> ';
+      h += r.applyUrl ? '<a href="' + escapeAttr(r.applyUrl) + '">' + escapeHtml(r.applyUrl) + '</a>' : '—';
+      h += '</div><div class="kv"><span class="k">Report</span> ';
+      h += rep ? '<code>' + escapeHtml(rep) + '</code>' : '—';
+      h += '</div><div class="btns">';
+      h += '<button type="button" data-cmd="prepare">Copy prepare</button>';
+      h += '<button type="button" data-cmd="confirm">Copy confirm</button>';
+      h += '<button type="button" data-cmd="dispatch">Copy dispatch dry-run</button></div>';
+      h += '<p style="color:var(--muted);font-size:0.8rem;margin-top:0.75rem">You review every apply; confirm only when ready.</p>';
+      h += '<pre class="cmd" id="cmdbox"></pre>';
+      detail.innerHTML = h;
+      const box = document.getElementById('cmdbox');
+      box.textContent = cmd.prepare;
+      detail.querySelectorAll('button[data-cmd]').forEach((b) => {
+        b.addEventListener('click', () => {
+          const k = b.getAttribute('data-cmd');
+          box.textContent = cmd[k];
+          navigator.clipboard.writeText(cmd[k]);
+        });
+      });
+    }
+
+    if (!DATA.length) {
+      list.innerHTML = '<div class="row">No applications in target statuses.</div>';
+    } else {
+      DATA.forEach((r, i) => {
+        const el = document.createElement('div');
+        el.className = 'row' + (i === 0 ? ' on' : '');
+        el.innerHTML = '<span class="id">#' + escapeHtml(r.id) + '</span> <span class="co">' + escapeHtml(r.company) + '</span>' +
+          '<div class="meta">' + escapeHtml(r.score) + ' · ' + escapeHtml(r.status) + '</div>';
+        el.addEventListener('click', () => select(i));
+        list.appendChild(el);
+      });
+      select(0);
+    }
+  </script>
+</body>
+</html>

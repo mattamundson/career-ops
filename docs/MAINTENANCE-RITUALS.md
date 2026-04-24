@@ -126,6 +126,12 @@ pnpm run backup:data
 
 Writes `backups/backup-<iso-timestamp>/` with a `manifest.json` (paths listed in `scripts/backup-career-data.mjs`). The `backups/` tree is **gitignored**. Use `--dest relative/path` to choose the folder. Does not read or copy `.env`.
 
+## Nightly backup (scheduled)
+
+`scripts/cron-backup.mjs` runs `backup-career-data.mjs` under `runCronTask` (with `task.*` events for Operator Health). One-off: `pnpm run cron:backup`.
+
+**Windows Task Scheduler:** add a task that runs `run-nightly-backup.bat` (same pattern as `run-daily-prefilter.bat`). Log file: `data/backup-scheduler.log` (create empty file if you want a stable path).
+
 ## Automation event log (`data/events/`)
 
 Scans, dashboard regen, application-index rebuilds, and post-scan reports append **JSON lines** to `data/events/YYYY-MM-DD.jsonl` via `scripts/lib/automation-events.mjs`. The static dashboard **Operator health** panel reads the latest tail.

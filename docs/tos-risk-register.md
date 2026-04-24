@@ -54,6 +54,12 @@ LinkedIn Terms of Service explicitly forbid:
 | **Headful Mode** | `headless: false` required for first-run login | Runs in visible browser; avoids headless-only detection |
 | **Query Scope** | 7 targeted queries only; ~20 jobs per query = ~140 total jobs per run | Low volume reduces detection surface |
 
+### LinkedIn Easy Apply (`submit-linkedin-easy-apply.mjs`)
+
+- **What it is:** Playwright flow on **your** logged-in session to open a `linkedin.com/jobs/view/...` page, start **Easy Apply**, run profile-based autofill from `config/profile.yml`, and **not** auto-submit the application unless you pass `--auto-submit` (discouraged; see root `CLAUDE.md` ethical rule).
+- **ToS / policy:** Implicates LinkedIn’s automation and bot provisions (same family as direct scraping, but as browser automation in-session). **Disable** with `CAREER_OPS_LINKEDIN_EASYAPPLY=0` or the global `CAREER_OPS_AUTOAPPLY_DISABLED=1`. Prefer a dedicated profile dir: `.playwright-session-linkedin/` or `CAREER_OPS_LINKEDIN_SESSION_DIR`.
+- **Operational:** Log in headfully once if the job page shows a login wall. Keep volume low; treat CAPTCHA as a hard stop for human.
+
 ---
 
 ## Indeed Direct Scraper

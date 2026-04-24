@@ -142,6 +142,7 @@ function reviewBundles(appId) {
 function detectAts(url) {
   if (!url) return 'unknown';
   if (url.includes('greenhouse')) return 'greenhouse';
+  if (/linkedin\.com\/jobs\//i.test(url)) return 'linkedin';
   if (url.includes('ashby')) return 'ashby';
   if (url.includes('lever.co')) return 'lever';
   if (url.includes('smartrecruiters')) return 'smartrecruiters';
@@ -159,6 +160,7 @@ function detectAts(url) {
 //   none              — no URL at all
 function classifyUrl(url) {
   if (!url) return 'none';
+  if (/linkedin\.com\/jobs\//i.test(url)) return 'direct-ats';
   const ats = detectAts(url);
   if (ats !== 'unknown') return 'direct-ats';
   if (/linkedin\.com/i.test(url)) return 'linkedin';
@@ -167,8 +169,8 @@ function classifyUrl(url) {
 }
 
 const URL_KIND_HINT = {
-  'direct-ats': 'auto-prep ready',
-  'linkedin': 'manual: open URL → "Apply on company site" → paste real URL into report',
+  'direct-ats': 'auto-prep ready (includes LinkedIn jobs / Easy Apply — submit-linkedin-easy-apply)',
+  'linkedin': 'LinkedIn non-jobs URL: resolve to company ATS or jobs/view URL',
   'indeed': 'manual: same as linkedin (Indeed proxies the ATS)',
   'company-site': 'try --prepare; universal-playwright may handle it',
   'none': 'no URL on file — populate report **URL:** field',

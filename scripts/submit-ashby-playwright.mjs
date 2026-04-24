@@ -1,29 +1,23 @@
 #!/usr/bin/env node
 /**
- * submit-universal-playwright.mjs — Playwright-based form-fill submitter
+ * submit-ashby-playwright.mjs — Ashby-optimized Playwright application prep
  *
- * Works with any ATS web form by:
- * 1. Navigating to the apply URL
- * 2. Detecting form fields (name, email, phone, resume upload, etc.)
- * 3. Auto-filling with profile data from config/profile.yml
- * 4. Uploading resume PDF and cover letter
- * 5. Submitting the form (or pausing for human review)
+ * There is no public candidate-side JSON API for Ashby; employer keys gate
+ * applicationForm.submit. This script is the first-class path from
+ * submit-dispatch: Ashby-specific Apply/iframe heuristics + shared
+ * profile-based fill (config/profile.yml).
  *
- * Usage:
- *   node scripts/submit-universal-playwright.mjs --url <apply_url> --pdf <resume.pdf> [--cover-letter <cl.txt>] [--live]
- *   node scripts/submit-universal-playwright.mjs --app-id 025 --live
+ * Does not auto-click final submit unless --auto-submit (discouraged; see CLAUDE.md).
  *
- * SAFETY: Opens a visible browser window. In --live mode, auto-fills but
- * waits for you to verify before clicking Submit (unless --auto-submit is passed).
+ * Usage: same as submit-universal-playwright.mjs
  */
-
 import { existsSync, readFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { runChromePreflight } from './lib/chrome-preflight.mjs';
 import { loadProjectEnv } from './load-env.mjs';
 import { getFormFields } from './profile-fields.mjs';
-import { runPlaywrightAtsApplyFlow } from './lib/run-playwright-ats-apply.mjs';
+import { runPlaywrightAtsApplyFlow, ASHBY_APPLY_SELECTORS } from './lib/run-playwright-ats-apply.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -43,32 +37,36 @@ const coverPath = getArg('cover-letter');
 const LIVE = args.includes('--live');
 const AUTO_SUBMIT = args.includes('--auto-submit');
 const HEADLESS = args.includes('--headless');
-const DRY_RUN = !LIVE; // explicit: dry-run is the default (rehearsal, no submit)
+const DRY_RUN = !LIVE;
 
 if (process.env.CAREER_OPS_AUTOAPPLY_DISABLED === '1') {
-  console.error('[playwright-submit] CAREER_OPS_AUTOAPPLY_DISABLED=1 — exiting.');
+  console.error('[ashby-playwright] CAREER_OPS_AUTOAPPLY_DISABLED=1 — exiting.');
   process.exit(0);
 }
 
-// Resolve apply URL
 let applyUrl = typeof urlOverride === 'string' ? urlOverride : null;
 if (!applyUrl && appId) {
   const queueFile = resolve(ROOT, 'data', 'apply-queue.md');
   if (existsSync(queueFile)) {
     const lines = readFileSync(queueFile, 'utf8').split('\n');
     const normId = String(appId).padStart(3, '0');
-    const hIdx = lines.findIndex(l => /^### /.test(l) && (l.includes(`[${appId} `) || l.includes(`[${normId} `)));
+    const hIdx = lines.findIndex(
+      (l) => /^### /.test(l) && (l.includes(`[${appId} `) || l.includes(`[${normId} `)),
+    );
     if (hIdx !== -1) {
       for (let i = hIdx; i < Math.min(hIdx + 15, lines.length); i++) {
         const m = lines[i].match(/\*\*Apply URL:\*\*\s*(https?:\/\/\S+)/);
-        if (m) { applyUrl = m[1]; break; }
+        if (m) {
+          applyUrl = m[1];
+          break;
+        }
       }
     }
   }
 }
 
 if (!applyUrl) {
-  console.error('Usage: node scripts/submit-universal-playwright.mjs --url <apply_url> --pdf <resume.pdf> [--live]');
+  console.error('Usage: node scripts/submit-ashby-playwright.mjs --url <ashby_url> --pdf <resume.pdf> [--cover-letter cl.txt] [--live]');
   process.exit(1);
 }
 
@@ -76,27 +74,26 @@ let formFields;
 try {
   formFields = getFormFields();
 } catch (e) {
-  console.error(`[playwright-submit] ${e.message}`);
+  console.error(`[ashby-playwright] ${e.message}`);
   process.exit(1);
 }
 
-console.log(`[playwright-submit] URL: ${applyUrl}`);
-console.log(`[playwright-submit] Resume: ${pdfPath}`);
-console.log(`[playwright-submit] Mode: ${LIVE ? (AUTO_SUBMIT ? 'LIVE + AUTO-SUBMIT' : 'LIVE (manual submit)') : 'DRY-RUN (rehearsal — fill + screenshot, no submit)'}`);
+console.log(`[ashby-playwright] URL: ${applyUrl}`);
+console.log(`[ashby-playwright] Resume: ${pdfPath}`);
+console.log(
+  `[ashby-playwright] Mode: ${LIVE ? (AUTO_SUBMIT ? 'LIVE + AUTO-SUBMIT' : 'LIVE (manual submit)') : 'DRY-RUN'}`,
+);
 
-// ---- Playwright form-fill logic ----
 let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.error('[playwright-submit] Playwright not installed. Run: pnpm add playwright');
+  console.error('[ashby-playwright] Playwright not installed. Run: pnpm add playwright');
   process.exit(1);
 }
 
-runChromePreflight('playwright-submit');
+runChromePreflight('ashby-playwright');
 
-// In LIVE mode, default to a visible browser unless --headless is forced.
-// In DRY-RUN, default to headless so apply-review prepare can run unattended.
 const launchHeadless = LIVE ? HEADLESS : (HEADLESS || true);
 
 let browser;
@@ -108,7 +105,9 @@ try {
 } catch (err) {
   const fallbackSessionDir = resolve(ROOT, '.playwright-session-fallback', String(Date.now()));
   mkdirSync(fallbackSessionDir, { recursive: true });
-  console.warn(`[playwright-submit] Persistent session launch failed (${err.message}). Retrying with isolated session: ${fallbackSessionDir}`);
+  console.warn(
+    `[ashby-playwright] Persistent session failed (${err.message}). Retrying: ${fallbackSessionDir}`,
+  );
   browser = await chromium.launchPersistentContext(fallbackSessionDir, {
     headless: launchHeadless,
     viewport: { width: 1280, height: 900 },
@@ -125,12 +124,13 @@ try {
     DRY_RUN,
     AUTO_SUBMIT,
     formFields,
-    logPrefix: '[playwright-submit]',
-    automationTypePrefix: 'playwright_submit',
+    logPrefix: '[ashby-playwright]',
+    applySelectors: ASHBY_APPLY_SELECTORS,
+    automationTypePrefix: 'ashby_playwright',
   });
-} catch (err) {
+} catch {
   process.exitCode = 1;
 } finally {
-  console.log('[playwright-submit] Closing browser...');
+  console.log('[ashby-playwright] Closing browser...');
   await browser.close();
 }

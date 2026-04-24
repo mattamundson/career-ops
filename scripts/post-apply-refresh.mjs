@@ -2,7 +2,7 @@
 /**
  * post-apply-refresh.mjs
  *
- * Rebuilds `data/index/applications.json` and `dashboard.html` after a tracker or
+ * Rebuilds `data/index/applications.json`, `dashboard.html`, and `review.html` after a tracker or
  * responses change (e.g. `apply-review --confirm` post-submit hooks).
  *
  * Usage:
@@ -25,4 +25,6 @@ const dashArgs = [resolve(__dir, 'generate-dashboard.mjs')];
 if (open) dashArgs.push('--open');
 console.log(`[post-apply:refresh] generate-dashboard.mjs${open ? ' --open' : ''} …`);
 execFileSync(node, dashArgs, { cwd: root, stdio: 'inherit' });
+console.log('[post-apply:refresh] generate-review-ui.mjs …');
+execFileSync(node, [resolve(__dir, 'generate-review-ui.mjs')], { cwd: root, stdio: 'inherit' });
 console.log('[post-apply:refresh] Done.');

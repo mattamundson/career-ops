@@ -26,12 +26,16 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `scripts/ats-preflight.mjs` | ATS: `ats-score` → `--write-json`, then `ats-gate` → `--score-file` (one command before PDF) |
 | `scripts/prep-queue.mjs` | Phase A batch: GO / Conditional GO → `package-from-report` (+ optional liveness); `pnpm run prep-queue` |
 | `scripts/apply-review-batch.mjs` | Phase B': sequence `apply-review --prepare` or `--confirm` for an ID list; `pnpm run apply-review:batch` |
-| `scripts/post-apply-refresh.mjs` | Rebuild `data/index` + `dashboard.html`; runs automatically after `apply-review --confirm` (use `--no-refresh` to skip); or `pnpm run post-apply:refresh` / `:open` |
+| `scripts/post-apply-refresh.mjs` | Rebuild `data/index` + `dashboard.html` + `review.html`; runs automatically after `apply-review --confirm` (use `--no-refresh` to skip); or `pnpm run post-apply:refresh` / `:open` |
+| `review.html` | Single-page **apply review** cockpit (GO / Conditional / Ready) — `pnpm run review:ui` or `:open` |
+| `scripts/submit-ashby-playwright.mjs` | Ashby: profile-based Playwright fill (routed from `submit-dispatch`; `submit-ashby.mjs` delegates here) |
+| `scripts/submit-linkedin-easy-apply.mjs` | LinkedIn **jobs** URLs → Easy Apply wizard prep (ToS: supervised; see `docs/tos-risk-register.md`) |
+| `scripts/cron-backup.mjs` | Scheduled backup allowlist — `pnpm run cron:backup` or `run-nightly-backup.bat` |
 | `scripts/smoke.mjs` | Fast check: `verify-pipeline` + `build:index` + `dashboard` — `pnpm run smoke` (full suite: `pnpm run verify:ci`) |
 | `lib/cron-lock.mjs` | `runCronTask(..., { singleInstance: true })` — avoid overlapping cron; locks in `data/.locks/`. **cron-prefilter** uses this |
 | `scripts/prune-apply-runs.mjs` | Remove stale trees under `data/apply-runs/` — `pnpm run apply-runs:prune` (dry-run) or `apply-runs:prune:apply` |
 | `scripts/backup-career-data.mjs` | Copy allowlisted tracker/config files into `backups/backup-<timestamp>/` (gitignored; no `.env`) — `pnpm run backup:data` |
-| `.gitattributes` | `dashboard.html` as `eol=lf` to cut CRLF churn on Windows |
+| `.gitattributes` | `dashboard.html` and `review.html` as `eol=lf` to cut CRLF churn on Windows |
 | `scripts/weekly-scorecard.mjs` | Roadmap scorecard: metrics from `applications.md` + `responses.md`; `pnpm run scorecard:week` |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/career-search-roadmap-2026.md` | Goals, phase timelines, weekly scorecard — planning layer on top of daily ops |
