@@ -913,6 +913,18 @@ career-dashboard.exe -path .
 
 The TUI reads `data/applications.md` and displays a live pipeline view.
 
+### HTML Operator Views
+
+```bash
+pnpm run dashboard        # writes dashboard.html
+pnpm run review:ui        # writes review.html (apply-review cockpit)
+pnpm run review:ui:open   # generate + open review.html
+```
+
+- `dashboard.html` = broad operator surface (pipeline, outcomes, health, rollups)
+- `review.html` = narrow apply surface (GO / Conditional GO / Ready to Submit)
+- `pnpm run post-apply:refresh` regenerates index + both HTML files
+
 ### What It Shows
 
 - Full application list with status, score, and PDF indicator
@@ -1227,6 +1239,15 @@ This reports any malformed TSV files.
 ### "Playwright launches two browsers and breaks"
 
 The Playwright MCP uses a single shared browser instance. **Never run two Playwright operations in parallel.** All Playwright usage is sequential.
+
+### "LinkedIn Easy Apply script can't find the button"
+
+Use a **LinkedIn jobs view URL** (`https://www.linkedin.com/jobs/view/...`), not a company profile or search results page.
+
+If the button is still missing:
+- run in visible mode (`--live`, no `--headless`) and log in first
+- confirm the posting actually supports Easy Apply
+- check `docs/tos-risk-register.md` guardrails and disable flags (`CAREER_OPS_LINKEDIN_EASYAPPLY`, `CAREER_OPS_AUTOAPPLY_DISABLED`)
 
 ### "The offer score seems too low / too high"
 
