@@ -30,16 +30,18 @@
  *   --status <id>         Show prepare/confirm history for one app
  *   --force-low-score     Allow prepare for 3.0–3.4 apps
  *   --headless            Run Playwright in headless mode (default: false)
+ *   --no-post-submit      On --confirm: skip tracker + data/responses.md updates (rare: debugging)
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import { loadProjectEnv } from './load-env.mjs';
 import { buildApplicationIndex } from './lib/career-data.mjs';
 import { appendAutomationEvent } from './lib/automation-events.mjs';
 import { todayConfirmCount, todayUtc } from './lib/apply-review-cap.mjs';
+import { markApplicationApplied } from './lib/tracker-mark-applied.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..');
@@ -68,6 +70,7 @@ const MODE = (() => {
 const TARGET_ID = valOf('prepare') || valOf('confirm') || valOf('status') || null;
 const FORCE_LOW_SCORE = flag('force-low-score');
 const HEADLESS = flag('headless');
+const NO_POST_SUBMIT = flag('no-post-submit');
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
 
@@ -503,8 +506,62 @@ function modeConfirm() {
   });
 
   if (liveOk) {
-    console.log(`\n✅ Submitted #${app.id} — ${app.company}. Update status in data/applications.md to Applied.\n`);
-    console.log(`  Suggested: node scripts/log-response.mjs --app-id ${app.id} --event submitted --date ${todayUtc()}\n`);
+    const day = todayUtc();
+    if (!NO_POST_SUBMIT) {
+      console.log(`\n✅ Live submit finished for #${app.id} — ${app.company}.`);
+      const applied = markApplicationApplied(ROOT, app.id, {
+        date: day,
+        noteLine: `Submitted ${day} (apply-review --confirm).`,
+      });
+      if (!applied.ok) {
+        if (applied.reason === 'row_not_found') {
+          console.warn(
+            `[apply-review] Tracker: no row for #${app.id} in data/applications.md — set Applied manually or add the row (id drift).`,
+          );
+        } else {
+          console.warn(
+            `[apply-review] Tracker update skipped: ${applied.reason}${applied.detail ? ` — ${applied.detail}` : ''}`,
+          );
+        }
+      } else {
+        console.log(`[apply-review] Tracker: Status → Applied, Date → ${day}`);
+      }
+      const lr = resolve(__dir, 'log-response.mjs');
+      const ats = String((meta.ats && meta.ats !== 'unknown' && meta.ats) || '—');
+      try {
+        execFileSync(
+          process.execPath,
+          [
+            lr,
+            '--app-id',
+            String(app.id),
+            '--event',
+            'submitted',
+            '--date',
+            day,
+            '--company',
+            app.company,
+            '--role',
+            app.role,
+            '--ats',
+            ats,
+            '--notes',
+            'apply-review --confirm',
+          ],
+          { cwd: ROOT, stdio: 'inherit' },
+        );
+        console.log('[apply-review] responses.md: submitted event recorded.\n');
+      } catch (e) {
+        console.warn(`[apply-review] log-response failed: ${e.message || e}`);
+        console.warn(
+          `  Run: node scripts/log-response.mjs --app-id ${app.id} --event submitted --date ${day} --company "${app.company}" --role "${app.role}" --ats ${ats}\n`,
+        );
+      }
+    } else {
+      console.log(
+        '\n✅ Submitted (post-submit hooks skipped: --no-post-submit). Update tracker and responses.md yourself.\n',
+      );
+    }
   } else {
     console.error(`\n✖  Submission failed for #${app.id}. See error above. Bundle and confirm artifact: ${latest.path} ${confirmFile}\n`);
     process.exit(1);

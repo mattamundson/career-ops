@@ -4,6 +4,10 @@ Operational truth lives in [`data/applications.md`](../data/applications.md) and
 
 ## After you submit to the employer ATS
 
+**If you used `pnpm run apply-review --confirm <id>`** (live submit after a prepare bundle), the repo already runs **Status → Applied**, **Date → today**, and **`log-response --event submitted`** for you. Use `--no-post-submit` on confirm only if you want to update the tracker yourself.
+
+**If you submitted manually in a browser**, do the following:
+
 1. In **`data/applications.md`**, set **Status** to **`Applied`** for that row (edit in place is allowed per `CLAUDE.md`).
 2. Log the event (recommended):
 

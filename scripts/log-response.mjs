@@ -272,11 +272,29 @@ if (isBulk) {
     };
     rows.push(row);
     console.log(`[log-response] Created pre-submission entry #${row.app_id} → ${event} on ${date} (${noteText})`);
+  } else if (!row && event === 'submitted' && company && role) {
+    // First-time submission log when responses.md has no row yet (e.g. after apply-review --confirm)
+    row = {
+      app_id: paddedId,
+      company,
+      role,
+      submitted_at: date,
+      ats: ats || '—',
+      status: 'submitted',
+      last_event_at: date,
+      response_days: '—',
+      notes: notes || 'Submitted (log-response)',
+    };
+    rows.push(row);
+    console.log(`[log-response] Created entry #${row.app_id} → submitted on ${date} (${row.company} — ${row.role})`);
   } else if (!row) {
     console.error(`[log-response] No row found for app_id=${appId}`);
     console.error(`Existing IDs: ${rows.map(r => r.app_id).join(', ')}`);
     process.exit(1);
   } else {
+    if (event === 'submitted' && (!row.submitted_at || row.submitted_at === '—')) {
+      row.submitted_at = date;
+    }
     row.status = event;
     row.last_event_at = date;
     row.response_days = computeResponseDays(row.submitted_at, row.last_event_at);
