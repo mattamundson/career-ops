@@ -139,6 +139,20 @@ pnpm run tasks:inspect
 pnpm run tasks:inspect -- --task="Career-Ops Dashboard" --hours=48
 ```
 
+If the dashboard task repeatedly exits `267014`, export a patched XML that raises
+the execution timeout from the old 2-minute setting to 10 minutes:
+
+```bash
+pnpm run tasks:remediate
+```
+
+Review the generated XML under `output/scheduled-task-fixes/`, then re-register
+only when you are ready:
+
+```bash
+pnpm run tasks:remediate -- --apply
+```
+
 ## Automation event log (`data/events/`)
 
 Scans, dashboard regen, application-index rebuilds, and post-scan reports append **JSON lines** to `data/events/YYYY-MM-DD.jsonl` via `scripts/lib/automation-events.mjs`. The static dashboard **Operator health** panel reads the latest tail.

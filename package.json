@@ -55,6 +55,7 @@
     "health:json": "node scripts/health-check.mjs --json",
     "health:cron": "node scripts/cron-health-check.mjs",
     "tasks:inspect": "node scripts/inspect-scheduled-task.mjs",
+    "tasks:remediate": "node scripts/remediate-scheduled-task.mjs",
     "apply-review": "node scripts/apply-review.mjs",
     "prep-queue": "node scripts/prep-queue.mjs",
     "apply-review:batch": "node scripts/apply-review-batch.mjs",

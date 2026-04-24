@@ -124,6 +124,7 @@ pnpm run apply-review:batch -- --confirm --ids=016 --accept-submit-risk
 # Diagnose recent scheduler failures (Windows Task Scheduler)
 pnpm run tasks:inspect
 pnpm run tasks:inspect -- --task="Career-Ops Dashboard" --hours=48
+pnpm run tasks:remediate          # dry-run: export patched XML for repeated 267014 dashboard exits
 
 # Generate a tailored PDF for a specific app
 node generate-pdf.mjs --app-id 042 --output output/cv-matt-{company}-2026-04-19.pdf
