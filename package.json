@@ -43,6 +43,8 @@
     "scan:report": "node scripts/scan-report.mjs --since=7",
     "events:prune": "node scripts/prune-automation-events.mjs",
     "events:prune:apply": "node scripts/prune-automation-events.mjs --apply",
+    "apply-runs:prune": "node scripts/prune-apply-runs.mjs",
+    "apply-runs:prune:apply": "node scripts/prune-apply-runs.mjs --apply",
     "digest": "node scripts/daily-digest.mjs",
     "digest:dry": "node scripts/daily-digest.mjs --dry-run",
     "health": "node scripts/health-check.mjs",

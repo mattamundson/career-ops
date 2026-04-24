@@ -136,6 +136,17 @@ node scripts/prune-automation-events.mjs --days=30 --apply
 
 Only `YYYY-MM-DD.jsonl` names are eligible; other files in `data/events/` are left alone.
 
+## Apply-run artifacts (`data/apply-runs/`)
+
+Preview removal of bundles/confirm JSON older than 60 days (by newest nested file mtime):
+
+```bash
+pnpm run apply-runs:prune
+pnpm run apply-runs:prune:apply
+```
+
+Scheduled `cron-prefilter` uses a **single-instance lock** under `data/.locks/` so two runs cannot overlap; stale locks (dead pid, unreadable file, or age over three hours) are taken over automatically.
+
 ## CI
 
 GitHub Actions workflow `.github/workflows/verify.yml` copies `config/profile.example.yml` to `config/profile.yml`, then runs `verify:ci` and Node tests; a parallel job runs `go vet ./...` and `go test ./...` in `dashboard/`. Adjust branch names if your default branch is not `main` / `master`.

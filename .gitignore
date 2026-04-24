@@ -104,6 +104,9 @@ data/brain-staging-reports/
 # Application dispatch records (operational state, contains form-fill data + local paths)
 data/apply-runs/
 
+# Cron single-instance lock files (data/.locks/<task>.lock)
+data/.locks/
+
 # Build artifacts (regenerable)
 data/index/
 data/run-summaries/

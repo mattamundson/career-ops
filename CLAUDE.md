@@ -28,6 +28,9 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `scripts/apply-review-batch.mjs` | Phase B': sequence `apply-review --prepare` or `--confirm` for an ID list; `pnpm run apply-review:batch` |
 | `scripts/post-apply-refresh.mjs` | Rebuild `data/index` + `dashboard.html`; runs automatically after `apply-review --confirm` (use `--no-refresh` to skip); or `pnpm run post-apply:refresh` / `:open` |
 | `scripts/smoke.mjs` | Fast check: `verify-pipeline` + `build:index` + `dashboard` — `pnpm run smoke` (full suite: `pnpm run verify:ci`) |
+| `lib/cron-lock.mjs` | `runCronTask(..., { singleInstance: true })` — avoid overlapping cron; locks in `data/.locks/`. **cron-prefilter** uses this |
+| `scripts/prune-apply-runs.mjs` | Remove stale trees under `data/apply-runs/` — `pnpm run apply-runs:prune` (dry-run) or `apply-runs:prune:apply` |
+| `.gitattributes` | `dashboard.html` as `eol=lf` to cut CRLF churn on Windows |
 | `scripts/weekly-scorecard.mjs` | Roadmap scorecard: metrics from `applications.md` + `responses.md`; `pnpm run scorecard:week` |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/career-search-roadmap-2026.md` | Goals, phase timelines, weekly scorecard — planning layer on top of daily ops |

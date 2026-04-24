@@ -1,0 +1,2 @@
+# Reduce CRLF/LF churn on Windows for generated HTML
+dashboard.html text eol=lf

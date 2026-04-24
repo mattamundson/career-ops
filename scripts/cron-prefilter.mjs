@@ -60,7 +60,9 @@ function parseSummary(stdout) {
   return out;
 }
 
-runCronTask('cron-prefilter', async () => {
+runCronTask(
+  'cron-prefilter',
+  async () => {
   const summary = { scored: 0, promoted: 0, merged: 0, generated: 0, steps: [] };
 
   if (!SKIP_SCORE) {
@@ -109,4 +111,6 @@ runCronTask('cron-prefilter', async () => {
   }
 
   return summary;
-});
+  },
+  { singleInstance: true },
+);

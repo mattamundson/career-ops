@@ -25,6 +25,7 @@
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendAutomationEvent } from './automation-events.mjs';
+import { releaseCronLock, tryAcquireCronLock } from './cron-lock.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dir, '..', '..');
@@ -33,7 +34,28 @@ const MAX_ERROR_MSG = 500;
 const MAX_STACK = 2000;
 
 export async function runCronTask(taskName, fn, opts = {}) {
-  const { rootPath = ROOT, exitOnFinish = true } = opts;
+  const { rootPath = ROOT, exitOnFinish = true, singleInstance = false } = opts;
+  let lockPath = null;
+  const clearLock = () => {
+    releaseCronLock(lockPath);
+    lockPath = null;
+  };
+
+  if (singleInstance) {
+    const acq = tryAcquireCronLock(rootPath, taskName);
+    if (!acq.acquired) {
+      appendAutomationEvent(rootPath, {
+        type: 'task.skipped',
+        task: taskName,
+        reason: 'already_running',
+        skipped_at: new Date().toISOString(),
+      });
+      if (exitOnFinish) process.exit(0);
+      return undefined;
+    }
+    lockPath = acq.lockPath;
+  }
+
   const started = new Date();
   const startedIso = started.toISOString();
 
@@ -51,6 +73,7 @@ export async function runCronTask(taskName, fn, opts = {}) {
     if (unhandledFired) return;
     unhandledFired = true;
     emitFailure(rootPath, taskName, started, err, 'unhandledRejection');
+    clearLock();
     if (exitOnFinish) process.exit(1);
   };
   process.on('unhandledRejection', onUnhandled);
@@ -64,8 +87,9 @@ export async function runCronTask(taskName, fn, opts = {}) {
       taskName,
       started,
       new Error(`Process received ${signal} (likely Task Scheduler timeout)`),
-      'signal'
+      'signal',
     );
+    clearLock();
     if (exitOnFinish) process.exit(143);
   };
   process.on('SIGTERM', () => onSignal('SIGTERM'));
@@ -84,12 +108,20 @@ export async function runCronTask(taskName, fn, opts = {}) {
       // event for dashboards (e.g., {scanned: 42, new: 3}). Keep it small.
       summary: serializeSummary(result),
     });
-    if (exitOnFinish) process.exit(0);
+    if (exitOnFinish) {
+      clearLock();
+      process.exit(0);
+    }
     return result;
   } catch (err) {
     emitFailure(rootPath, taskName, started, err, 'caught');
-    if (exitOnFinish) process.exit(1);
+    if (exitOnFinish) {
+      clearLock();
+      process.exit(1);
+    }
     throw err;
+  } finally {
+    clearLock();
   }
 }
 
