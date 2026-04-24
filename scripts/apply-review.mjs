@@ -31,6 +31,7 @@
  *   --force-low-score     Allow prepare for 3.0–3.4 apps
  *   --headless            Run Playwright in headless mode (default: false)
  *   --no-post-submit      On --confirm: skip tracker + data/responses.md updates (rare: debugging)
+ *   --no-refresh          On --confirm: after post-submit hooks, skip post-apply:refresh (index + dashboard)
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
@@ -71,6 +72,7 @@ const TARGET_ID = valOf('prepare') || valOf('confirm') || valOf('status') || nul
 const FORCE_LOW_SCORE = flag('force-low-score');
 const HEADLESS = flag('headless');
 const NO_POST_SUBMIT = flag('no-post-submit');
+const NO_DASHBOARD_REFRESH = flag('no-refresh');
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
 
@@ -550,13 +552,24 @@ function modeConfirm() {
           ],
           { cwd: ROOT, stdio: 'inherit' },
         );
-        console.log('[apply-review] responses.md: submitted event recorded.');
-        console.log('  Next: pnpm run post-apply:refresh  (rebuild index + dashboard.html)\n');
+        console.log('[apply-review] responses.md: submitted event recorded.\n');
       } catch (e) {
         console.warn(`[apply-review] log-response failed: ${e.message || e}`);
         console.warn(
           `  Run: node scripts/log-response.mjs --app-id ${app.id} --event submitted --date ${day} --company "${app.company}" --role "${app.role}" --ats ${ats}\n`,
         );
+      }
+      if (!NO_DASHBOARD_REFRESH) {
+        const refreshPath = resolve(__dir, 'post-apply-refresh.mjs');
+        try {
+          console.log('[apply-review] Rebuilding data/index + dashboard.html (post-apply:refresh)…\n');
+          execFileSync(process.execPath, [refreshPath], { cwd: ROOT, stdio: 'inherit' });
+        } catch (e) {
+          console.warn(`[apply-review] post-apply-refresh failed: ${e.message || e}`);
+          console.warn('  Run: pnpm run post-apply:refresh\n');
+        }
+      } else {
+        console.log('[apply-review] Skipped index/dashboard regen (--no-refresh). Run: pnpm run post-apply:refresh\n');
       }
     } else {
       console.log(
