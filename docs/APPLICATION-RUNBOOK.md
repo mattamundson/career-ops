@@ -6,6 +6,8 @@ Operational truth lives in [`data/applications.md`](../data/applications.md) and
 
 **If you used `pnpm run apply-review --confirm <id>`** (live submit after a prepare bundle), the repo already runs **Status → Applied**, **Date → today**, and **`log-response --event submitted`** for you. Use `--no-post-submit` on confirm only if you want to update the tracker yourself.
 
+After that, refresh the index and HTML dashboard: `pnpm run post-apply:refresh` (or `post-apply:refresh:open` to regenerate and open the browser). Same command any time you edit `data/applications.md` or `data/responses.md` and want `dashboard.html` in sync.
+
 **If you submitted manually in a browser**, do the following:
 
 1. In **`data/applications.md`**, set **Status** to **`Applied`** for that row (edit in place is allowed per `CLAUDE.md`).

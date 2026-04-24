@@ -20,6 +20,8 @@
     "sync-check": "node cv-sync-check.mjs",
     "dashboard": "node scripts/generate-dashboard.mjs --open",
     "build:index": "node scripts/build-application-index.mjs",
+    "post-apply:refresh": "node scripts/post-apply-refresh.mjs",
+    "post-apply:refresh:open": "node scripts/post-apply-refresh.mjs --open",
     "preflight:gmail-sync": "node scripts/automation-preflight-check.mjs --job=gmail-sync",
     "preflight:cadence-alert": "node scripts/automation-preflight-check.mjs --job=cadence-alert",
     "preflight:scanner": "node scripts/automation-preflight-check.mjs --job=scanner",

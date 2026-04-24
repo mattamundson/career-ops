@@ -550,7 +550,8 @@ function modeConfirm() {
           ],
           { cwd: ROOT, stdio: 'inherit' },
         );
-        console.log('[apply-review] responses.md: submitted event recorded.\n');
+        console.log('[apply-review] responses.md: submitted event recorded.');
+        console.log('  Next: pnpm run post-apply:refresh  (rebuild index + dashboard.html)\n');
       } catch (e) {
         console.warn(`[apply-review] log-response failed: ${e.message || e}`);
         console.warn(
