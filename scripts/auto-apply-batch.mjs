@@ -54,11 +54,11 @@ const SUPPORTED_ATS = [
   'workable.com', 'apply.workable.com',
 ];
 
-function isSupportedAts(url) {
+export function isSupportedAts(url) {
   return SUPPORTED_ATS.some(d => url.includes(d));
 }
 
-function detectAts(url) {
+export function detectAts(url) {
   if (url.includes('greenhouse')) return 'greenhouse';
   if (url.includes('lever.co')) return 'lever';
   if (url.includes('ashby')) return 'ashby';
@@ -74,7 +74,7 @@ function detectAts(url) {
 // ---------------------------------------------------------------------------
 // Parse apply-queue.md — extract structured application entries
 // ---------------------------------------------------------------------------
-function parseApplyQueue() {
+export function parseApplyQueue() {
   if (!existsSync(APPLY_QUEUE)) return [];
 
   const text = readFileSync(APPLY_QUEUE, 'utf8');
