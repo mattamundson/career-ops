@@ -10,7 +10,7 @@
 
 *Cleaned 2026-04-20: removed 5 Discarded (#025 Agility, #023 Aledade, #017 Rescale, #015 V4C.ai, #002 Valtech) and 3 Applied (#024 KinderCare ✅, #003 Vultr ✅, #001 Panopto ✅). See Section 6 for new 2026-04-18 GO batch pending queue entry.*
 
-### 1. Protolabs — Data Architect [044 — GO] 🔥 TOP PRIORITY
+### 1. Protolabs — Data Architect [044 — In Progress] 🔥 TOP PRIORITY
 - **Salary:** $131,500–$175,400 confirmed
 - **Location:** Maple Plain, MN — Hybrid (Tue/Wed/Thu on-site)
 - **Apply URL:** https://www.linkedin.com/jobs/view/4401027184
@@ -20,7 +20,7 @@
 
 ---
 
-### 2. Modine Manufacturing — Senior AI Data Architect [012 — GO]
+### 2. Modine Manufacturing — Senior AI Data Architect [012 — Ready to Submit]
 - **Salary:** $150K–$185K confirmed
 - **Remote:** Verified fully remote (Menomonee Falls WI HQ, occasional on-site TBD)
 - **Apply URL:** https://careers.modine.com/job/Remote-Senior-AI-Data-Architect/7594-en_US/
@@ -30,7 +30,7 @@
 
 ---
 
-### 2. GSquared Group — Senior Power BI Architect [004 — GO]
+### 2. GSquared Group — Senior Power BI Architect [004 — Ready to Submit]
 - **Salary:** Unknown (staffing firm — client salary TBD)
 - **Remote:** Unknown (staffing firm — client engagement TBD)
 - **Apply URL:** https://www.linkedin.com/jobs/view/4376761988
@@ -204,7 +204,7 @@
 
 ---
 
-### Unknown Company — Data Architect (Azure + Finance GL/AR/AP) [022 — Conditional GO]
+### Unknown Company — Data Architect (Azure + Finance GL/AR/AP) [022 — Discarded]
 - **Apply URL:** https://www.indeed.com/viewjob?jk=ffa724aa3602f6ed
 - **Score:** 3.6/5 (Azure + finance domain strong archetype match)
 - **Current Status:** JD not accessible (Indeed JS-blocked), company identity unknown, remote policy unconfirmed
