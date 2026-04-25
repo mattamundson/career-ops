@@ -62,8 +62,10 @@ try {
   const oneScript =
     `$t = Get-ScheduledTask -TaskName '${taskName}' -ErrorAction Stop; ` +
     `$i = Get-ScheduledTaskInfo -TaskName '${taskName}' -ErrorAction Stop; ` +
+    `$a = @($t.Actions)[0]; ` +
     `[PSCustomObject]@{ Name=$t.TaskName; State=$t.State; LastRunTime=$i.LastRunTime; ` +
-    `NextRunTime=$i.NextRunTime; LastTaskResult=$i.LastTaskResult; NumberOfMissedRuns=$i.NumberOfMissedRuns } ` +
+    `NextRunTime=$i.NextRunTime; LastTaskResult=$i.LastTaskResult; NumberOfMissedRuns=$i.NumberOfMissedRuns; ` +
+    `Command=$a.Execute; Arguments=$a.Arguments; WorkingDirectory=$a.WorkingDirectory } ` +
     `| ConvertTo-Json -Depth 3 -Compress`;
   const one = psJson(oneScript);
 
@@ -78,6 +80,9 @@ try {
   console.log(`  next run:    ${nextRunIso}`);
   console.log(`  last result: ${code} (${hint})`);
   console.log(`  missed runs: ${one.NumberOfMissedRuns ?? 0}`);
+  console.log(`  command:     ${one.Command || '(none)'}`);
+  console.log(`  arguments:   ${one.Arguments || '(none)'}`);
+  console.log(`  cwd:         ${one.WorkingDirectory || '(none)'}`);
 
   const allScript =
     `Get-ScheduledTask | Where-Object { $_.TaskName -like '${prefix}*' } | ` +

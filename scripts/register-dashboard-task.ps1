@@ -8,6 +8,12 @@ if (-not (Test-Path $xmlPath)) {
 }
 
 schtasks /create /xml $xmlPath /tn 'Career-Ops Dashboard' /f
+if ($LASTEXITCODE -ne 0) {
+  throw "Failed to register Career-Ops Dashboard task from $xmlPath"
+}
 Write-Host "Task registered."
 
 schtasks /query /tn 'Career-Ops Dashboard' /fo LIST
+if ($LASTEXITCODE -ne 0) {
+  throw 'Career-Ops Dashboard task registration succeeded, but query failed.'
+}

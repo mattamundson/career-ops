@@ -8,8 +8,7 @@
             reflecting any updates to data/applications.md, data/pipeline.md, or reports/.
   Working directory: C:\Users\mattm\career-ops\
 
-  IMPORT INSTRUCTIONS
-  -------------------
+  IMPORT INSTRUCTIONS:
   Open an elevated (Admin) Command Prompt and run:
 
       schtasks /create /xml "C:\Users\mattm\career-ops\scripts\dashboard-hourly.xml" /tn "Career-Ops Dashboard" /f
