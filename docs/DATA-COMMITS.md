@@ -28,16 +28,20 @@ The repo generates many markdown files under `data/company-intel/`, `data/prefil
 ## Practical workflow
 
 1. Stage in slices: `git add data/applications.md data/apply-queue.md` first, then intel batches.
-2. Run `pnpm run verify:all` (or `pnpm run verify:ci` if reports are missing) before pushing — see [MAINTENANCE-RITUALS.md](MAINTENANCE-RITUALS.md).
+2. Run `pnpm run verify:all` before pushing — see [MAINTENANCE-RITUALS.md](MAINTENANCE-RITUALS.md).
 3. Use `git diff --stat` before commit to ensure the diff matches intent.
 4. If `git status` is too large to read, use `git status -uno` or path-scoped status: `git status data/applications.md`.
 
 ## Reports and CI
 
-Because `reports/*.md` is gitignored, **CI on a fresh clone cannot verify report paths** unless you pass **`--skip-missing-reports`**:
+Because `reports/*.md` is gitignored, default verification treats missing report files as warnings:
 
 ```bash
-pnpm run verify -- --skip-missing-reports
+pnpm run verify
 ```
 
-That turns missing report files into **warnings** (exit 0 if nothing else fails). Full strict check: `pnpm run verify` on a machine that already has `reports/*.md` locally.
+Full strict check on a machine that already has `reports/*.md` locally:
+
+```bash
+pnpm run verify:strict
+```

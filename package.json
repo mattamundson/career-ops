@@ -4,8 +4,10 @@
   "description": "AI-powered job search pipeline built on Claude Code — customized for Matthew M. Amundson",
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "verify": "node verify-pipeline.mjs",
-    "verify:all": "node scripts/verify-all.mjs",
+    "verify": "node verify-pipeline.mjs --skip-missing-reports",
+    "verify:strict": "node verify-pipeline.mjs",
+    "verify:all": "node scripts/verify-all.mjs --skip-missing-reports",
+    "verify:all:strict": "node scripts/verify-all.mjs",
     "respond": "node scripts/respond.mjs",
     "dedupe:intake": "node scripts/dedupe-intake-vs-tracker.mjs",
     "pipeline:dedupe": "node scripts/dedupe-pipeline-md.mjs",

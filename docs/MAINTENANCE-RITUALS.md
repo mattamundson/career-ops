@@ -8,15 +8,15 @@ Operational defaults for keeping career-ops honest: tracker, inbox, queue, and a
 pnpm run verify:all
 ```
 
-(`verify:all` also runs `scripts/validate-automation-events.mjs` on `data/events/*.jsonl`. To check events only: `pnpm run validate:events`. Advanced: set `CAREER_OPS_EVENTS_DIR` to an absolute path to validate that directory instead — must exist.)
+(`verify:all` also runs `scripts/validate-automation-events.mjs` on `data/events/*.jsonl`. Missing local `reports/*.md` are warnings because reports are gitignored on many machines. To check events only: `pnpm run validate:events`. Advanced: set `CAREER_OPS_EVENTS_DIR` to an absolute path to validate that directory instead — must exist.)
 
-On machines without local `reports/*.md`, use:
+When you specifically want to require every linked report file to exist locally, use:
 
 ```bash
-pnpm run verify:ci
+pnpm run verify:all:strict
 ```
 
-(`verify:ci` = `verify-all` with `--skip-missing-reports` forwarded to `verify-pipeline.mjs`.)
+(`verify:ci` remains the hook/CI spelling for the same report-tolerant full gate.)
 
 Operator snapshot: [SYSTEM-STATUS.md](SYSTEM-STATUS.md). HTML vs TUI and refresh cadence: [WHICH-DASHBOARD-WHEN.md](WHICH-DASHBOARD-WHEN.md).
 
@@ -25,7 +25,7 @@ Operator snapshot: [SYSTEM-STATUS.md](SYSTEM-STATUS.md). HTML vs TUI and refresh
 Per `CLAUDE.md` pipeline rules:
 
 1. Merge TSV additions only: `node merge-tracker.mjs` (or `pnpm run merge`).
-2. Integrity: `pnpm run verify:all` (or `pnpm run verify:ci` if local `reports/*.md` are missing).
+2. Integrity: `pnpm run verify:all` (or `pnpm run verify:all:strict` when local `reports/*.md` must be present).
 3. **Do not** add duplicate company+role rows in `data/applications.md`—update existing entries for status/notes changes.
 
 ## Post-scan console report

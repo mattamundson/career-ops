@@ -148,10 +148,11 @@ career-ops/
 ## Integrity Commands
 
 ```bash
+pnpm run verify      # Tracker + TSV hygiene; missing local reports are warnings
 pnpm run verify:all  # verify + CV sync + application index + dashboard.html
-pnpm run verify:ci    # same as verify:all but missing reports → warnings only (CI / hooks)
-pnpm run verify      # Tracker + report links + TSV hygiene
-pnpm run verify -- --skip-missing-reports   # CI / clone: missing reports are warnings only
+pnpm run verify:ci   # same report-tolerant gate for CI / hooks
+pnpm run verify:strict      # require all linked report files to exist locally
+pnpm run verify:all:strict  # full gate + strict report-link check
 pnpm run normalize   # Fix status spelling
 pnpm run dedup       # Remove duplicate entries
 pnpm run merge       # Merge tracker additions from batch runs

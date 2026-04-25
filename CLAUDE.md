@@ -180,7 +180,7 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 2. **YES you can edit applications.md to UPDATE status/notes of existing entries.**
 3. All reports MUST include `**URL:**` in the header (between Score and PDF).
 4. All statuses MUST be canonical (see `templates/states.yml`).
-5. Health check: `pnpm run verify:all` (alias: `pnpm run check`) or `pnpm run verify:ci` when `reports/*.md` are absent — `verify:all` runs 7 steps including **unit tests** + **recent cron-task failure surface** (last 24h, warn-only; `--strict-cron` to fail); `verify:ci` skips unit tests (CI runs `pnpm test` separately). Includes automation-events JSONL validation. Daily user routine: [`docs/DAILY-USAGE.md`](docs/DAILY-USAGE.md). Rituals: [`docs/MAINTENANCE-RITUALS.md`](docs/MAINTENANCE-RITUALS.md). Optional: `pnpm run events:prune` / `events:prune:apply` trims old `data/events/*.jsonl`.
+5. Health check: `pnpm run verify:all` (report-tolerant; local `reports/*.md` may be absent) or `pnpm run verify:all:strict` when linked report files must exist — `verify:all` runs 7 steps including **unit tests** + **recent cron-task failure surface** (last 24h, warn-only; `--strict-cron` to fail). Includes automation-events JSONL validation. Daily user routine: [`docs/DAILY-USAGE.md`](docs/DAILY-USAGE.md). Rituals: [`docs/MAINTENANCE-RITUALS.md`](docs/MAINTENANCE-RITUALS.md). Optional: `pnpm run events:prune` / `events:prune:apply` trims old `data/events/*.jsonl`.
 6. Normalize statuses: `node normalize-statuses.mjs`
 7. Dedup: `node dedup-tracker.mjs`
 
