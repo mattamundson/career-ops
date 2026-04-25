@@ -1,9 +1,13 @@
-$xml = '<?xml version="1.0" encoding="UTF-16"?><Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"><RegistrationInfo><Date>2026-04-08T00:00:00</Date><Author>mattm</Author><Description>Regenerates dashboard.html every hour from data/applications.md and data/pipeline.md.</Description><URI>\Career-Ops Dashboard</URI></RegistrationInfo><Triggers><TimeTrigger><StartBoundary>2026-04-08T00:00:00</StartBoundary><Enabled>true</Enabled><Repetition><Interval>PT1H</Interval><StopAtDurationEnd>false</StopAtDurationEnd></Repetition></TimeTrigger></Triggers><Principals><Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals><Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries><StopIfGoingOnBatteries>false</StopIfGoingOnBatteries><AllowHardTerminate>true</AllowHardTerminate><StartWhenAvailable>true</StartWhenAvailable><RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable><IdleSettings><StopOnIdleEnd>false</StopOnIdleEnd><RestartOnIdle>false</RestartOnIdle></IdleSettings><AllowStartOnDemand>true</AllowStartOnDemand><Enabled>true</Enabled><Hidden>false</Hidden><RunOnlyIfIdle>false</RunOnlyIfIdle><DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession><UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine><WakeToRun>false</WakeToRun><ExecutionTimeLimit>PT2M</ExecutionTimeLimit><Priority>7</Priority></Settings><Actions Context="Author"><Exec><Command>C:\Program Files\nodejs\node.exe</Command><Arguments>scripts\generate-dashboard.mjs</Arguments><WorkingDirectory>C:\Users\mattm\career-ops\</WorkingDirectory></Exec></Actions></Task>'
+# Registers the Career-Ops Dashboard task from the checked-in XML.
+# The XML runs post-apply-refresh hourly (index + dashboard.html + review.html)
+# and uses a 10-minute execution limit to avoid Task Scheduler 267014 kills.
 
-[System.IO.File]::WriteAllText('C:\Users\mattm\career-ops\scripts\dashboard-task.xml', $xml, [System.Text.Encoding]::Unicode)
-Write-Host "XML written."
+$xmlPath = 'C:\Users\mattm\career-ops\scripts\dashboard-hourly.xml'
+if (-not (Test-Path $xmlPath)) {
+  throw "Missing task XML: $xmlPath"
+}
 
-schtasks /create /xml 'C:\Users\mattm\career-ops\scripts\dashboard-task.xml' /tn 'Career-Ops Dashboard' /f
+schtasks /create /xml $xmlPath /tn 'Career-Ops Dashboard' /f
 Write-Host "Task registered."
 
 schtasks /query /tn 'Career-Ops Dashboard' /fo LIST

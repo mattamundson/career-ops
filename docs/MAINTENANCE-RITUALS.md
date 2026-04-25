@@ -130,7 +130,19 @@ Writes `backups/backup-<iso-timestamp>/` with a `manifest.json` (paths listed in
 
 `scripts/cron-backup.mjs` runs `backup-career-data.mjs` under `runCronTask` (with `task.*` events for Operator Health). One-off: `pnpm run cron:backup`.
 
-**Windows Task Scheduler:** add a task that runs `run-nightly-backup.bat` (same pattern as `run-daily-prefilter.bat`). Log file: `data/backup-scheduler.log` (**gitignored**, like other scheduler logs).
+**Windows Task Scheduler:** register the nightly backup task with:
+
+```bash
+pnpm run tasks:register-backup
+```
+
+This imports `scripts/backup-task.xml`, which runs `run-nightly-backup.bat` nightly at 9:30 PM local time. Log file: `data/backup-scheduler.log` (**gitignored**, like other scheduler logs).
+
+The dashboard scheduler should run the full refresh path (index + `dashboard.html` + `review.html`) rather than dashboard-only generation:
+
+```bash
+pnpm run tasks:register-dashboard
+```
 
 For quick task diagnosis after a warning in `verify:all` / `verify:ci`:
 
@@ -140,7 +152,8 @@ pnpm run tasks:inspect -- --task="Career-Ops Dashboard" --hours=48
 ```
 
 If the dashboard task repeatedly exits `267014`, export a patched XML that raises
-the execution timeout from the old 2-minute setting to 10 minutes:
+the execution timeout from the old 2-minute setting to 10 minutes and routes the
+task to `post-apply-refresh.mjs`:
 
 ```bash
 pnpm run tasks:remediate

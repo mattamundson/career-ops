@@ -35,6 +35,8 @@
     "smoke": "node scripts/smoke.mjs",
     "backup:data": "node scripts/backup-career-data.mjs",
     "cron:backup": "node scripts/cron-backup.mjs",
+    "tasks:register-backup": "powershell -ExecutionPolicy Bypass -File scripts/register-backup-task.ps1",
+    "tasks:register-dashboard": "powershell -ExecutionPolicy Bypass -File scripts/register-dashboard-task.ps1",
     "review:ui": "node scripts/generate-review-ui.mjs",
     "review:ui:open": "node scripts/generate-review-ui.mjs --open",
     "pipeline:hygiene": "node scripts/pipeline-hygiene.mjs",

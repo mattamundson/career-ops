@@ -31,6 +31,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `scripts/submit-ashby-playwright.mjs` | Ashby: profile-based Playwright fill (routed from `submit-dispatch`; `submit-ashby.mjs` delegates here) |
 | `scripts/submit-linkedin-easy-apply.mjs` | LinkedIn **jobs** URLs → Easy Apply wizard prep (ToS: supervised; see `docs/tos-risk-register.md`) |
 | `scripts/cron-backup.mjs` | Scheduled backup allowlist — `pnpm run cron:backup` or `run-nightly-backup.bat` |
+| `scripts/register-dashboard-task.ps1` / `scripts/register-backup-task.ps1` | Windows Task Scheduler registration — `pnpm run tasks:register-dashboard` / `tasks:register-backup` |
 | `scripts/inspect-scheduled-task.mjs` / `scripts/remediate-scheduled-task.mjs` | Windows Task Scheduler triage + patched XML export — `pnpm run tasks:inspect` / `tasks:remediate` |
 | `scripts/smoke.mjs` | Fast check: `verify-pipeline` + `build:index` + `dashboard` + `review.html` — `pnpm run smoke` (full suite: `pnpm run verify:ci`) |
 | `lib/cron-lock.mjs` | `runCronTask(..., { singleInstance: true })` — avoid overlapping cron; locks in `data/.locks/`. **cron-prefilter** uses this |

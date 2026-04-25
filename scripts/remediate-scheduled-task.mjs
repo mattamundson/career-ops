@@ -13,6 +13,7 @@
  *   node scripts/remediate-scheduled-task.mjs
  *   node scripts/remediate-scheduled-task.mjs --task="Career-Ops Dashboard" --execution-limit=PT10M
  *   node scripts/remediate-scheduled-task.mjs --apply
+ *   node scripts/remediate-scheduled-task.mjs --no-dashboard-full-refresh
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -28,6 +29,7 @@ const taskName = getArg('task') || 'Career-Ops Dashboard';
 const executionLimit = getArg('execution-limit') || 'PT10M';
 const outDir = resolve(ROOT, getArg('out-dir') || 'output/scheduled-task-fixes');
 const APPLY = args.includes('--apply');
+const patchDashboardFullRefresh = !args.includes('--no-dashboard-full-refresh');
 
 if (platform() !== 'win32') {
   console.log('[remediate-scheduled-task] Windows only.');
@@ -68,6 +70,12 @@ function upsertSimpleTag(xml, tag, value) {
   return xml.replace(/<\/Settings>/, `    <${tag}>${value}</${tag}>\n  </Settings>`);
 }
 
+function replaceFirstSimpleTag(xml, tag, value) {
+  const re = new RegExp(`<${tag}>[\\s\\S]*?<\\/${tag}>`);
+  if (!re.test(xml)) return xml;
+  return xml.replace(re, `<${tag}>${value}</${tag}>`);
+}
+
 function patchXml(xml) {
   let out = xml;
   out = upsertSimpleTag(out, 'ExecutionTimeLimit', executionLimit);
@@ -76,6 +84,14 @@ function patchXml(xml) {
   out = upsertSimpleTag(out, 'AllowStartOnDemand', 'true');
   out = upsertSimpleTag(out, 'DisallowStartIfOnBatteries', 'false');
   out = upsertSimpleTag(out, 'StopIfGoingOnBatteries', 'false');
+  if (patchDashboardFullRefresh && taskName === 'Career-Ops Dashboard') {
+    out = replaceFirstSimpleTag(out, 'Arguments', 'scripts\\post-apply-refresh.mjs');
+    out = replaceFirstSimpleTag(
+      out,
+      'Description',
+      'Regenerates data/index, dashboard.html, and review.html every hour.',
+    );
+  }
   return out;
 }
 
@@ -103,6 +119,9 @@ try {
   console.log(`  - MultipleInstancesPolicy → IgnoreNew`);
   console.log(`  - StartWhenAvailable / AllowStartOnDemand → true`);
   console.log(`  - Battery stop/start blocks → false`);
+  if (patchDashboardFullRefresh && taskName === 'Career-Ops Dashboard') {
+    console.log(`  - Dashboard arguments → scripts\\post-apply-refresh.mjs`);
+  }
 
   if (!APPLY) {
     console.log('');

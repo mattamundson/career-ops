@@ -2,8 +2,9 @@
 <!--
   dashboard-hourly.xml — Windows Task Scheduler definition for hourly dashboard regeneration
   ===========================================================================================
-  Runs: node scripts/generate-dashboard.mjs
-  Schedule: Every 1 hour, starting at midnight. Generates a fresh dashboard.html
+  Runs: node scripts/post-apply-refresh.mjs
+  Schedule: Every 1 hour, starting at midnight. Generates fresh data/index,
+            dashboard.html, and review.html
             reflecting any updates to data/applications.md, data/pipeline.md, or reports/.
   Working directory: C:\Users\mattm\career-ops\
 
@@ -32,7 +33,7 @@
   <RegistrationInfo>
     <Date>2026-04-08T00:00:00</Date>
     <Author>mattm</Author>
-    <Description>Regenerates dashboard.html every hour by reading data/applications.md, data/pipeline.md, and reports/. Open C:\Users\mattm\career-ops\dashboard.html in any browser — it auto-refreshes every 60 minutes.</Description>
+    <Description>Regenerates data/index, dashboard.html, and review.html every hour from the career-ops source files.</Description>
     <URI>\Career-Ops Dashboard</URI>
   </RegistrationInfo>
 
@@ -73,14 +74,14 @@
     <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
     <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
     <WakeToRun>false</WakeToRun>
-    <ExecutionTimeLimit>PT2M</ExecutionTimeLimit>
+    <ExecutionTimeLimit>PT10M</ExecutionTimeLimit>
     <Priority>7</Priority>
   </Settings>
 
   <Actions Context="Author">
     <Exec>
       <Command>C:\Program Files\nodejs\node.exe</Command>
-      <Arguments>scripts\generate-dashboard.mjs</Arguments>
+      <Arguments>scripts\post-apply-refresh.mjs</Arguments>
       <WorkingDirectory>C:\Users\mattm\career-ops\</WorkingDirectory>
     </Exec>
   </Actions>
