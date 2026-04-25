@@ -195,6 +195,18 @@ async function autosubmit({ rootPath }) {
         type: 'auto_submit_success',
         appId: e.appId, company: e.company, role: e.role, ats: e.ats, score: e.score,
       });
+      // Start response timer in responses.md so response_days tracks from submission
+      const atsLabel = { greenhouse: 'Greenhouse', ashby: 'Ashby', lever: 'Lever' }[e.ats] || e.ats;
+      spawnSync(process.execPath, [
+        'scripts/log-response.mjs',
+        '--app-id', e.appId,
+        '--event', 'submitted',
+        '--company', e.company,
+        '--role', e.role,
+        '--ats', atsLabel,
+        '--date', new Date().toISOString().slice(0, 10),
+        '--notes', 'Auto-submitted by cron-autosubmit',
+      ], { cwd: ROOT, encoding: 'utf8', stdio: 'pipe', timeout: 15_000 });
       await notify({
         kind: 'autosubmit',
         title: `Applied: ${e.company}`,
