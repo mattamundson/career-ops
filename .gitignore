@@ -83,6 +83,7 @@ backups/
 # Claude Code task state (local only)
 .claude/task-manifest.json
 data/scan-scheduler.log
+data/report-link-audit.md
 
 # Append-only automation telemetry (local machine; dashboard reads last lines)
 data/events/*.jsonl

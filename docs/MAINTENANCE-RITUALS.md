@@ -18,6 +18,15 @@ pnpm run verify:all:strict
 
 (`verify:ci` remains the hook/CI spelling for the same report-tolerant full gate.)
 
+To turn missing-report warnings into a concise checklist:
+
+```bash
+pnpm run reports:audit
+pnpm run reports:audit:write
+```
+
+The write form creates local `data/report-link-audit.md` (gitignored) with the affected tracker rows and missing paths.
+
 Operator snapshot: [SYSTEM-STATUS.md](SYSTEM-STATUS.md). HTML vs TUI and refresh cadence: [WHICH-DASHBOARD-WHEN.md](WHICH-DASHBOARD-WHEN.md).
 
 ## After batch evaluations (tracker)

@@ -58,6 +58,8 @@
     "events:prune:apply": "node scripts/prune-automation-events.mjs --apply",
     "apply-runs:prune": "node scripts/prune-apply-runs.mjs",
     "apply-runs:prune:apply": "node scripts/prune-apply-runs.mjs --apply",
+    "reports:audit": "node scripts/report-link-audit.mjs",
+    "reports:audit:write": "node scripts/report-link-audit.mjs --write",
     "digest": "node scripts/daily-digest.mjs",
     "digest:dry": "node scripts/daily-digest.mjs --dry-run",
     "health": "node scripts/health-check.mjs",

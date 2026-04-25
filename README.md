@@ -153,6 +153,8 @@ pnpm run verify:all  # verify + CV sync + application index + dashboard.html
 pnpm run verify:ci   # same report-tolerant gate for CI / hooks
 pnpm run verify:strict      # require all linked report files to exist locally
 pnpm run verify:all:strict  # full gate + strict report-link check
+pnpm run reports:audit      # summarize missing report links
+pnpm run reports:audit:write # write local data/report-link-audit.md
 pnpm run normalize   # Fix status spelling
 pnpm run dedup       # Remove duplicate entries
 pnpm run merge       # Merge tracker additions from batch runs

@@ -34,10 +34,13 @@ start dashboard.html
 
 # 2. Optional: see system health in one glance
 pnpm run verify:all
+
+# 3. Optional: turn missing local report warnings into a checklist
+pnpm run reports:audit
 ```
 
 `verify:all` runs in ~10 seconds and tells you:
-- Tracker is consistent (no broken statuses, missing reports, dup rows)
+- Tracker is consistent (no broken statuses or duplicate rows; missing local reports are warnings)
 - CV ↔ profile.yml in sync
 - Application index regenerated
 - Dashboard regenerated
