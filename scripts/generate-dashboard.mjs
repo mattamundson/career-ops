@@ -1560,13 +1560,14 @@ function generateBrainTile() {
   <div class="section" style="margin-bottom:16px">
     <div class="section-header">
       <h2>🧠 Brain</h2>
-      <span class="count" style="color:#a6e3a1;font-weight:600">${s.pages} pages · ${s.links} links</span>
+      <span class="count" style="color:${s.stale ? '#f9e2af' : '#a6e3a1'};font-weight:600">${s.pages} pages · ${s.links} links${s.stale ? ' · cached' : ''}</span>
     </div>
     <div style="padding:12px 20px;font-size:12px;color:var(--subtext);display:flex;gap:24px;flex-wrap:wrap">
       ${typeBadges}
       <span>Chunks: <strong>${s.chunks}</strong></span>
       <span>Embedded: <strong>${s.embedded}</strong></span>
       <span>Timeline: <strong>${s.timeline}</strong></span>
+      ${s.stale ? `<span title="${escHtml(s.error || '')}">Last good stats: <strong>${escHtml((s.cached_at || '').slice(0, 19) || 'cached')}</strong></span>` : ''}
     </div>
   </div>`;
 }

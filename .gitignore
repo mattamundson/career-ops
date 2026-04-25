@@ -99,6 +99,7 @@ data/prefilter-results/*.md
 !data/prefilter-results/.gitkeep
 
 # Brain staging output (regenerated from applications.md + responses.md by migrations)
+data/brain-stats-cache.json
 data/brain-staging-applications/
 data/brain-staging-intel/
 data/brain-staging-people/

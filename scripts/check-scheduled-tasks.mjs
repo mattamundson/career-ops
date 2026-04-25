@@ -54,7 +54,16 @@ const psScript =
 const r = spawnSync('powershell', ['-NoProfile', '-Command', psScript], {
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'pipe'],
+  timeout: 15_000,
 });
+
+if (r.error) {
+  console.log(
+    `[scheduled-tasks] PowerShell call timed out or failed ` +
+      `(${r.error.message}) — skipping`,
+  );
+  process.exit(0);
+}
 
 if (r.status !== 0) {
   console.log(

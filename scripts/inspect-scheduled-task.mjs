@@ -48,7 +48,11 @@ function psJson(script) {
   const r = spawnSync('powershell', ['-NoProfile', '-Command', script], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 15_000,
   });
+  if (r.error) {
+    throw new Error(`PowerShell failed to complete: ${r.error.message}`);
+  }
   if (r.status !== 0) {
     const err = (r.stderr || '').trim().slice(0, 240);
     throw new Error(`PowerShell failed (${r.status}): ${err}`);
@@ -115,6 +119,6 @@ try {
   process.exit(0);
 } catch (e) {
   console.error(`[inspect-scheduled-task] ${e.message}`);
-  process.exit(1);
+  process.exit(/ETIMEDOUT|timed out/i.test(e.message) ? 0 : 1);
 }
 

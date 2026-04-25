@@ -3,7 +3,7 @@
 // runtime is unavailable or when BRAIN_DISABLE=1 is set.
 
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +11,7 @@ const THIS_DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(THIS_DIR, '..', '..');
 const GBRAIN_DIR = join(ROOT, 'vendor', 'gbrain');
 const GBRAIN_CLI = join(GBRAIN_DIR, 'src', 'cli.ts');
+const STATS_CACHE = join(ROOT, 'data', 'brain-stats-cache.json');
 
 export function isBrainAvailable() {
   if (process.env.BRAIN_DISABLE === '1') return false;
@@ -44,7 +45,18 @@ export function addTimelineEntry(slug, date, summary, detail) {
 export function getBrainStats() {
   if (!isBrainAvailable()) return { available: false };
   const res = runGbrain(['stats']);
-  if (!res.ok) return { available: false, error: res.error };
+  if (!res.ok) {
+    const cached = readStatsCache();
+    if (cached) {
+      return {
+        ...cached,
+        available: true,
+        stale: true,
+        error: res.error,
+      };
+    }
+    return { available: false, error: res.error };
+  }
 
   const stats = { available: true, pages: 0, chunks: 0, embedded: 0, links: 0, tags: 0, timeline: 0, byType: {} };
   const lines = res.stdout.split(/\r?\n/);
@@ -62,5 +74,30 @@ export function getBrainStats() {
       if (tm) stats.byType[tm[1]] = parseInt(tm[2], 10);
     }
   }
+  writeStatsCache(stats);
   return stats;
+}
+
+function readStatsCache() {
+  if (!existsSync(STATS_CACHE)) return null;
+  try {
+    const cached = JSON.parse(readFileSync(STATS_CACHE, 'utf8'));
+    if (!cached || cached.available !== true) return null;
+    return cached;
+  } catch {
+    return null;
+  }
+}
+
+function writeStatsCache(stats) {
+  try {
+    mkdirSync(join(ROOT, 'data'), { recursive: true });
+    writeFileSync(
+      STATS_CACHE,
+      `${JSON.stringify({ ...stats, cached_at: new Date().toISOString() }, null, 2)}\n`,
+      'utf8',
+    );
+  } catch {
+    /* cache is best-effort */
+  }
 }
