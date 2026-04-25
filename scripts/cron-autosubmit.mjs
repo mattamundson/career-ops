@@ -133,7 +133,8 @@ async function autosubmit({ rootPath }) {
   const eligible = entries
     .filter(e => {
       if (!e.applyUrl || e.status === 'submitted') return false;
-      if (!(e.queueStatus || '').toLowerCase().includes('ready')) return false;
+      const qs = (e.queueStatus || '').trim();
+      if (qs !== 'GO' && !qs.toLowerCase().includes('ready')) return false;
       if (e.blockers.length > 0) return false;
       if (!SAFE_ATS.has(detectAts(e.applyUrl))) return false;
       const hasPdf = e.pdfPath && existsSync(resolve(rootPath, e.pdfPath));
