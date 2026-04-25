@@ -37,7 +37,7 @@ Built and customized for Matthew M. Amundson — operational data architect and 
 | `lib/cron-lock.mjs` | `runCronTask(..., { singleInstance: true })` — avoid overlapping cron; locks in `data/.locks/`. **cron-prefilter** uses this |
 | `scripts/prune-apply-runs.mjs` | Remove stale trees under `data/apply-runs/` — `pnpm run apply-runs:prune` (dry-run) or `apply-runs:prune:apply` |
 | `scripts/backup-career-data.mjs` | Copy allowlisted tracker/config files into `backups/backup-<timestamp>/` (gitignored; no `.env`) — `pnpm run backup:data` |
-| `.gitattributes` | `dashboard.html` and `review.html` as `eol=lf` to cut CRLF churn on Windows |
+| `dashboard.html` / `review.html` | Generated local operator surfaces (gitignored; regenerate via `pnpm run dashboard`, `pnpm run review:ui`, `post-apply:refresh`, or scheduled task) |
 | `scripts/weekly-scorecard.mjs` | Roadmap scorecard: metrics from `applications.md` + `responses.md`; `pnpm run scorecard:week` |
 | `dashboard/` | Go TUI pipeline tracker (`career-dashboard.exe -path .`; rebuild from `dashboard/` after Go changes) |
 | `docs/career-search-roadmap-2026.md` | Goals, phase timelines, weekly scorecard — planning layer on top of daily ops |

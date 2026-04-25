@@ -33,7 +33,7 @@ Dates assume today ≈ **2026-04-22**. Rename phases if you slip—keep the *seq
 | **Automation matches reality** | Scanner / cron issues are triaged, not ignored | `pnpm run health` or `verify:all` green; evening scan shows no fresh `setSourceAttempted` / TDZ in `data/events/*.jsonl` after deploy. |
 | **Batch packaging is practiced** | You have run prep-queue dry-run and at least one small real batch with `--limit` | `pnpm run prep-queue -- --dry-run` then a capped run; review `packages/` + tracker updates. |
 | **Apply batch is understood** | You know the prepare → review → confirm flow | `apply-review:batch` with `--prepare` and `--dry-run` before any `--confirm` + `--accept-submit-risk`. |
-| **Dashboard / responses** | `dashboard.html` and `data/responses.md` either committed when meaningful or accepted as local-only churn | `git status` is explainable in one sentence. |
+| **Dashboard / responses** | `dashboard.html` / `review.html` are local generated surfaces; `data/responses.md` is the tracked event source when meaningful | `git status` is explainable in one sentence. |
 
 **Exit criteria for Phase A:** one full loop completed on paper: **GO rows → prep-queue → review artifacts → (optional) apply-review prepare** without confusion about commands.
 

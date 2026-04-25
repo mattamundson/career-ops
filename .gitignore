@@ -113,6 +113,8 @@ data/.locks/
 # Build artifacts (regenerable)
 data/index/
 data/run-summaries/
+dashboard.html
+review.html
 
 # Per-source scanner health (runtime state, regenerated each scan)
 data/source-health.json

@@ -382,6 +382,24 @@ function escHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+function eventSummaryText(summary) {
+  if (summary == null || summary === '') return '';
+  if (typeof summary === 'string') return summary;
+  if (typeof summary !== 'object') return String(summary);
+
+  const pairs = Object.entries(summary)
+    .filter(([, value]) => value != null && typeof value !== 'object')
+    .slice(0, 6)
+    .map(([key, value]) => `${key}: ${String(value).replace(/\s+/g, ' ').slice(0, 120)}`);
+
+  if (pairs.length > 0) return pairs.join(', ');
+  try {
+    return JSON.stringify(summary).slice(0, 180);
+  } catch {
+    return '[summary unavailable]';
+  }
+}
+
 const automationEvents = loadRecentAutomationEvents(150);
 const STALE_TOUCH_STATUSES = new Set([
   'Evaluated', 'Evaluating', 'GO', 'Conditional GO', 'Ready to Submit',
@@ -517,7 +535,7 @@ const operatorSnapshotSection = `
     : `<ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.5">
             ${automationTail.map((e) => {
     const t = escHtml(e.type || 'event');
-    const sum = escHtml(e.summary || '');
+    const sum = escHtml(eventSummaryText(e.summary));
     const at = escHtml((e.recorded_at || '').slice(0, 19));
     return `<li><span class="muted">${at}</span> <strong>${t}</strong>${sum ? ` — ${sum}` : ''}</li>`;
   }).join('')}

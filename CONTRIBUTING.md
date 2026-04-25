@@ -49,7 +49,7 @@ cd dashboard && go build -o career-dashboard .
 
 Husky runs `.husky/pre-commit` and `.husky/pre-push` automatically.
 
-- **pre-commit** — runs `pnpm run secrets:check`, then regenerates `dashboard.html` when a tracked dashboard input is staged (`data/responses.md`, `dashboard.html` itself, `scripts/generate-dashboard.mjs`, or its `scripts/lib/*.mjs` deps). Primary data sources (`applications.md`, `pipeline.md`, `scan-history.tsv`) are gitignored and local-only — regenerate manually via `pnpm run dashboard` when those change.
+- **pre-commit** — runs `pnpm run secrets:check`. Generated HTML surfaces (`dashboard.html`, `review.html`) are local-only and gitignored; regenerate manually via `pnpm run dashboard`, `pnpm run review:ui`, or `pnpm run post-apply:refresh`.
 - **pre-push** — runs `pnpm run verify:ci` and `pnpm test`.
 
 ### Windows and Go (`dashboard/`)
