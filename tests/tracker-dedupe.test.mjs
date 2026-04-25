@@ -50,3 +50,15 @@ test('dedupeApplicationsMarkdown removes duplicate report links even when titles
   assert.deepEqual(result.removed.map((r) => r.num), [1]);
   assert.match(result.content, /\| 002 \| 2026-01-02 \| Better Co \| Senior Solutions Architect \| 4.2\/5 \| Applied \|/);
 });
+
+test('dedupeApplicationsMarkdown removes exact Unknown title duplicates', () => {
+  const input = tracker([
+    '| 179 | 2026-01-01 | Unknown | AI Automation Engineer @ The WFS Group - Jobs | 4.0/5 | Evaluated | — | [179](reports/179-unknown.md) | |',
+    '| 358 | 2026-01-02 | Unknown | AI Automation Engineer @ The WFS Group - Jobs | 4.0/5 | GO | ✅ | [358](reports/358-unknown.md) | Ready |',
+  ]);
+
+  const result = dedupeApplicationsMarkdown(input);
+
+  assert.deepEqual(result.removed.map((r) => r.num), [179]);
+  assert.match(result.content, /\| 358 \| 2026-01-02 \| Unknown \| AI Automation Engineer @ The WFS Group - Jobs \| 4.0\/5 \| GO \|/);
+});

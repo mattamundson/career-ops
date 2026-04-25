@@ -101,7 +101,7 @@ function isDuplicate(a, b) {
 
   const aCompany = normalizeCompany(a.company);
   const bCompany = normalizeCompany(b.company);
-  if (!aCompany || !bCompany || aCompany === 'unknown' || bCompany === 'unknown') return false;
+  if (!aCompany || !bCompany) return false;
 
   return aCompany === bCompany && normalizeRole(a.role) === normalizeRole(b.role);
 }
